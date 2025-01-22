@@ -18,6 +18,8 @@ const MobileMenu = ({ isOpen, onClose, isAuthenticated, currentPath }: MobileMen
   const navItems = [
     { path: '/ideas', label: 'Project Ideas' },
     { path: '/generate', label: 'Generate' },
+    { path: '/pricing', label: 'Pricing' },
+    { path: '/about', label: 'About' },
     ...(isAuthenticated ? [
       { path: '/collaborations', label: 'My Collaborations' },
       { path: '/profile', label: 'Profile' }

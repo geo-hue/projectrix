@@ -37,12 +37,9 @@ import {
   X
 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogFooter, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
-import { DialogContent, DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { TechSelect } from '@/components/TechSelect';
+import Footer from '@/components/Footer';
+import ProjectSubmission from '@/components/ProjectSubmission';
+import TechBackground from '@/components/TechBackground';
 
 const technologies = [
   { label: "React", value: "react" },
@@ -56,13 +53,13 @@ const technologies = [
   // Add more technologies
 ];
 
+
 export default function GeneratePage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
     const [complexityLevel, setComplexityLevel] = useState(50);
     const [techSearchOpen, setTechSearchOpen] = useState(false);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
     const handleGenerate = () => {
       setIsGenerating(true);
       setTimeout(() => setIsGenerating(false), 2000);
@@ -75,15 +72,10 @@ export default function GeneratePage() {
       return "Advanced";
     };
   
-    // Function to get background color based on complexity
-    const getComplexityColor = (value: number) => {
-      if (value <= 33) return "bg-green-500";
-      if (value <= 66) return "bg-yellow-500";
-      return "bg-red-500";
-    };
 
   return (
-    <main className="min-h-screen bg-background pb-12">
+    <main className="min-h-screen bg-background relative">
+      <TechBackground/>
       <Header />
       
       {/* Hero Section */}
@@ -102,7 +94,7 @@ export default function GeneratePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            Tell us your preferred technologies and requirements, and we'll generate the perfect project idea for you.
+            Tell us your preferred technologies and requirements, and we&lsquo;ll generate the perfect project idea for you.
           </motion.p>
         </div>
       </section>
@@ -111,7 +103,12 @@ export default function GeneratePage() {
       <section className="container px-4 mx-auto">
         <div className="grid lg:grid-cols-5 gap-8">
           {/* Preferences Panel */}
-          <Card className="lg:col-span-2">
+          <div className="lg:col-span-2">
+  <div className="group relative">
+    {/* Background shadow element */}
+    <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-2 translate-y-2 rounded-lg transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+    
+    <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
             <CardHeader>
               <CardTitle>Project Preferences</CardTitle>
               <CardDescription>Customize your project generation</CardDescription>
@@ -194,13 +191,16 @@ export default function GeneratePage() {
       {getComplexityLabel(complexityLevel)} ({complexityLevel}%)
     </span>
   </div>
-  <div className="relative">
+  <div className="relative py-2">
+    <div className="absolute h-2 w-full bg-secondary rounded-full border border-b-gray-500 border-border"></div>
+    
+    {/* Slider component */}
     <Slider
       value={[complexityLevel]}
       onValueChange={(value) => setComplexityLevel(value[0])}
       max={100}
       step={1}
-      className="slider"
+      className="relative z-10"
     />
   </div>
   <div className="flex justify-between text-xs text-muted-foreground">
@@ -260,26 +260,29 @@ export default function GeneratePage() {
 </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full gap-2" 
-                size="lg"
-                onClick={handleGenerate}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <>
-                    <RefreshCcw className="h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    Generate Project Idea
-                  </>
-                )}
-              </Button>
+            <Button 
+  className="w-full gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none" 
+  size="lg"
+  onClick={handleGenerate}
+  disabled={isGenerating}
+>
+  {isGenerating ? (
+    <>
+      <RefreshCcw className="h-4 w-4 animate-spin" />
+      Generating...
+    </>
+  ) : (
+    <>
+      <Sparkles className="h-4 w-4" />
+      Generate Project Idea
+    </>
+  )}
+</Button>
+
             </CardFooter>
           </Card>
+</div>
+</div>
 
           {/* Results Panel */}
           <motion.div 
@@ -288,256 +291,173 @@ export default function GeneratePage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card>
+           <div className="group relative">
+    {/* Background shadow element */}
+    <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-2 translate-y-2 rounded-lg transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+    
+    {/* Main card */}
+    <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>AI-Powered Chat Application</CardTitle>
-                    <CardDescription>A real-time chat platform with AI capabilities</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Bookmark className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Project Stats */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">2-3 months</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">3-4 members</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Intermediate</span>
-                  </div>
-                </div>
+                  <CardTitle>AI-Powered Chat Application</CardTitle>
+            <CardDescription>A real-time chat platform with AI capabilities</CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon">
+              <Bookmark className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {/* Project Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">2-3 months</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">3-4 members</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Layers className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">Intermediate</span>
+          </div>
+        </div>
 
-                {/* Required Technologies */}
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Required Technologies</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge>React</Badge>
-                    <Badge>Node.js</Badge>
-                    <Badge>Socket.io</Badge>
-                    <Badge>MongoDB</Badge>
-                    <Badge>OpenAI API</Badge>
-                  </div>
-                </div>
+        {/* Required Technologies */}
+        <div>
+          <h3 className="text-sm font-medium mb-2">Required Technologies</h3>
+          <div className="flex flex-wrap gap-2">
+            <Badge>React</Badge>
+            <Badge>Node.js</Badge>
+            <Badge>Socket.io</Badge>
+            <Badge>MongoDB</Badge>
+            <Badge>OpenAI API</Badge>
+          </div>
+        </div>
 
-                {/* Project Description */}
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Project Description</h3>
-                  <p className="text-muted-foreground">
-                    Build a modern chat application that incorporates AI capabilities for enhanced user interaction. 
-                    The application will feature real-time messaging, AI-powered message suggestions, and automated responses.
-                  </p>
-                </div>
+        {/* Project Description */}
+        <div>
+          <h3 className="text-sm font-medium mb-2">Project Description</h3>
+          <p className="text-muted-foreground">
+            Build a modern chat application that incorporates AI capabilities for enhanced user interaction. 
+            The application will feature real-time messaging, AI-powered message suggestions, and automated responses.
+          </p>
+        </div>
 
-                {/* Key Features */}
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Key Features</h3>
-                  <ul className="list-disc list-inside text-muted-foreground">
-                    <li>Real-time messaging using Socket.io</li>
-                    <li>AI-powered message suggestions</li>
-                    <li>User authentication and profiles</li>
-                    <li>Message history and search</li>
-                    <li>File sharing capabilities</li>
-                  </ul>
-                </div>
+        {/* Team Structure */}
+        <div>
+          <h3 className="text-sm font-medium mb-2">Team Structure</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground">Required Roles</h4>
+              <ul className="list-disc list-inside text-muted-foreground">
+                <li>Frontend Lead (React, Socket.io)</li>
+                <li>Frontend Developer (UI/UX)</li>
+                <li>Backend Developer (Node.js, MongoDB)</li>
+                <li>AI/ML Integration Specialist</li>
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground">Role Responsibilities</h4>
+              <ul className="list-disc list-inside text-muted-foreground">
+                <li>Frontend: UI components, real-time updates</li>
+                <li>UI/UX: Design system, user experience</li>
+                <li>Backend: API, database, WebSocket server</li>
+                <li>AI: ML models, OpenAI integration</li>
+              </ul>
+            </div>
+          </div>
+        </div>
 
-                {/* Learning Outcomes */}
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Learning Outcomes</h3>
-                  <ul className="list-disc list-inside text-muted-foreground">
-                    <li>Real-time application architecture</li>
-                    <li>AI/ML integration in web applications</li>
-                    <li>State management in real-time systems</li>
-                    <li>WebSocket implementation</li>
-                  </ul>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <div className="w-full flex flex-col sm:flex-row gap-3">
-                  <Button className="flex-1 gap-2">
-                    <Code2 className="h-4 w-4" />
-                    Start Project
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    Generate Another
-                  </Button>
+        {/* Features Grid */}
+        <div>
+          <h3 className="text-sm font-medium mb-2">Project Features</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground">Core Features</h4>
+              <ul className="list-disc list-inside text-muted-foreground">
+                <li>Real-time messaging system</li>
+                <li>User authentication</li>
+                <li>Message history & search</li>
+                <li>File sharing capabilities</li>
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground">AI Features</h4>
+              <ul className="list-disc list-inside text-muted-foreground">
+                <li>Smart message suggestions</li>
+                <li>Automated responses</li>
+                <li>Sentiment analysis</li>
+                <li>Language translation</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Learning Outcomes */}
+        <div>
+          <h3 className="text-sm font-medium mb-2">Learning Outcomes</h3>
+          <ul className="list-disc list-inside text-muted-foreground">
+            <li>Real-time application architecture</li>
+            <li>AI/ML integration in web applications</li>
+            <li>State management in real-time systems</li>
+            <li>WebSocket implementation</li>
+          </ul>
+        </div>
+      </CardContent>
+
+      <CardFooter>
+        <div className="w-full flex flex-col sm:flex-row gap-3">
+          <Button className="flex-1 gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none">
+            <Code2 className="h-4 w-4" />
+            Start Project
+          </Button>
+          <Button variant="outline" className="flex-1 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none">
+            Generate Another
+</Button>
                 </div>
               </CardFooter>
             </Card>
+            </div>
           </motion.div>
         </div>
       </section>
 
 
-      <div className="relative my-12">
-  <div className="absolute inset-0 flex items-center" aria-hidden="true">
-    <div className="w-full border-t border-border"></div>
-  </div>
-  <div className="relative flex justify-center">
-    <span className="bg-background dark:bg-background/95 backdrop-blur-sm px-8 py-2 text-base font-medium text-muted-foreground rounded-full border border-border">
-      OR
-    </span>
-  </div>
-</div>
-
-{/* Have a Project Idea Section */}
-<section className="pt-8 pb-8">
-          <div className="container px-4 mx-auto text-center">
-            <motion.h2 
-              className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent font-orbitron"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              Have a Project Idea?
-            </motion.h2>
-            <motion.p 
-              className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              Share your existing project idea and find collaborators to help bring it to life.
-            </motion.p>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="gap-2"
-                onClick={() => setIsDialogOpen(true)}
-              >
-                <Code2 className="h-4 w-4" />
-                Submit Your Project
-              </Button>
-            </motion.div>
-          </div>
-        </section>
-
-{/* Modal/Dialog for Project Submission */}
-<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-  <DialogContent className="sm:max-w-[600px]">
-    <DialogHeader>
-      <DialogTitle>Submit Your Project Idea</DialogTitle>
-      <DialogDescription>
-        Share your project details to find the perfect collaborators.
-      </DialogDescription>
-    </DialogHeader>
-    <div className="space-y-6 py-4">
-      {/* Project Title */}
-      <div className="space-y-2">
-        <Label htmlFor="title">Project Title</Label>
-        <Input id="title" placeholder="Enter your project title" />
-      </div>
-
-      {/* Project Description */}
-      <div className="space-y-2">
-        <Label htmlFor="description">Project Description</Label>
-        <Textarea 
-          id="description" 
-          placeholder="Describe your project idea, goals, and vision..."
-          className="h-32"
-        />
-      </div>
-
-      {/* Required Technologies */}
-      <div className="space-y-2">
-  <Label>Required Technologies</Label>
-  <TechSelect
-    onSelect={(techs) => {
-      // Handle selected technologies
-      console.log('Selected techs:', techs);
-    }}
-  />
-</div>
-
-      {/* Project Status */}
-      <div className="space-y-2">
-        <Label>Project Status</Label>
-        <Select>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select project status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="not-started">Not Started</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="planning">Planning Phase</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Team Requirements */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Team Size</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select size" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="2-3">2-3 Members</SelectItem>
-              <SelectItem value="4-6">4-6 Members</SelectItem>
-              <SelectItem value="6+">6+ Members</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="relative my-20">
+        {/* Thicker horizontal lines */}
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+          <div className="w-full border-t-2 border-black/20 dark:border-white/20"></div>
         </div>
         
-        <div className="space-y-2">
-          <Label>Duration</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select duration" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="short">1-2 months</SelectItem>
-              <SelectItem value="medium">3-6 months</SelectItem>
-              <SelectItem value="long">6+ months</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Complexity Level */}
-      <div className="space-y-2">
-        <Label>Project Complexity</Label>
-        <div className="space-y-4">
-          <Slider
-            defaultValue={[50]}
-            max={100}
-            step={1}
-            className="slider"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Beginner</span>
-            <span>Intermediate</span>
-            <span>Advanced</span>
+        {/* OR text with improved shadow effect */}
+        <div className="relative flex justify-center">
+          <div className="group relative">
+            {/* Improved shadow element with multiple layers for 3D effect */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%+8px)] h-[calc(100%+8px)] rounded-full bg-black/10 dark:bg-white/10 blur-md transform-gpu transition-all duration-300 group-hover:blur-lg group-hover:scale-110" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%+4px)] h-[calc(100%+4px)] rounded-full bg-black/5 dark:bg-white/5 blur-sm transform-gpu transition-all duration-300 group-hover:blur-md group-hover:scale-105" />
+            
+            {/* Main OR element */}
+            <span className="relative inline-flex items-center justify-center bg-white dark:bg-black px-8 py-3 text-base font-semibold rounded-full border-2 border-black/20 dark:border-white/20 transition-all duration-300 group-hover:transform group-hover:-translate-y-1">
+              <span className="bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+                OR
+              </span>
+            </span>
           </div>
         </div>
       </div>
-    </div>
-    <DialogFooter>
-    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-      <Button type="submit">Submit Project</Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+
+{/* Have a Project Idea Section */}
+<ProjectSubmission/>
+<Footer />
     </main>
   );
 }

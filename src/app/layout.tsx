@@ -1,8 +1,8 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Black_Ops_One, Orbitron, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
+import PageTransition from "@/components/PageTransition";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -47,7 +47,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <PageTransition>{children}</PageTransition>
         </ThemeProvider>
       </body>
     </html>

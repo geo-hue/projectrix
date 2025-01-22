@@ -1,6 +1,6 @@
-'use client';
-
+import React from 'react';
 import { Icon } from '@iconify/react';
+import { motion } from 'framer-motion';
 
 const technologies = [
   // Row 1 - Frontend
@@ -37,7 +37,7 @@ const technologies = [
   { name: 'Redis', icon: 'logos:redis' },
   { name: 'GraphQL', icon: 'logos:graphql' },
 
-  // Row 3 - DevOps, Cloud & Tools
+  // Row 3 - DevOps & Cloud
   { name: 'Docker', icon: 'logos:docker-icon' },
   { name: 'Kubernetes', icon: 'logos:kubernetes' },
   { name: 'AWS', icon: 'logos:aws' },
@@ -55,64 +55,53 @@ const technologies = [
   { name: 'Netlify', icon: 'logos:netlify' }
 ];
 
+const TechCard = ({ tech }: { tech: { name: string; icon: string } }) => {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.05, y: -5 }}
+      className="relative group"
+    >
+      {/* Shadow element */}
+      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-xl transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
+      
+      {/* Main card */}
+      <div className="relative flex flex-col items-center justify-center w-28 h-32 rounded-xl bg-white dark:bg-black border border-black/20 dark:border-white/20 p-4 transition-all duration-300">
+        {/* Icon */}
+        <div className="h-12 w-12 mb-3 flex items-center justify-center relative">
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-900/20 dark:from-blue-400/20 dark:to-blue-700/20 blur-xl rounded-full" />
+          <Icon icon={tech.icon} className="w-full h-full relative z-10" />
+        </div>
+        
+        {/* Name */}
+        <span className="text-xs text-center font-medium">{tech.name}</span>
+      </div>
+    </motion.div>
+  );
+};
+
 const TechScroll = () => {
   return (
-    <div className="w-full overflow-hidden">
-      <div className="flex flex-col gap-8">
+    <div className="relative w-full overflow-hidden">
+      {/* Gradient overlays */}
+      <div className="absolute left-0 top-0 w-32 h-full bg-gradient-to-r from-background to-transparent z-10" />
+      <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-background to-transparent z-10" />
+      
+      <div className="flex flex-col gap-16">
         {/* First Row */}
         <div className="flex animate-scroll-left">
           <div className="flex gap-8 items-center [&>*]:flex-shrink-0">
-            {technologies.slice(0, 15).map((tech, index) => (
-              <div
-                key={`row1-${index}`}
-                className="flex flex-col items-center justify-center w-24 h-24 rounded-lg bg-card border border-border/40 p-4 hover:scale-105 transition-transform"
-              >
-                <div className="h-10 w-10 mb-2 flex items-center justify-center">
-                  <Icon icon={tech.icon} className="w-full h-full" />
-                </div>
-                <span className="text-xs text-center font-medium">{tech.name}</span>
-              </div>
-            ))}
-            {/* Duplicate for seamless loop */}
-            {technologies.slice(0, 15).map((tech, index) => (
-              <div
-                key={`row1-dup-${index}`}
-                className="flex flex-col items-center justify-center w-24 h-24 rounded-lg bg-card border border-border/40 p-4 hover:scale-105 transition-transform"
-              >
-                <div className="h-10 w-10 mb-2 flex items-center justify-center">
-                  <Icon icon={tech.icon} className="w-full h-full" />
-                </div>
-                <span className="text-xs text-center font-medium">{tech.name}</span>
-              </div>
+            {[...technologies.slice(0, 15), ...technologies.slice(0, 15)].map((tech, index) => (
+              <TechCard key={`row1-${index}`} tech={tech} />
             ))}
           </div>
         </div>
 
-        {/* Second Row (Reverse Direction) */}
+        {/* Second Row */}
         <div className="flex animate-scroll-right">
           <div className="flex gap-8 items-center [&>*]:flex-shrink-0">
-            {technologies.slice(15, 30).map((tech, index) => (
-              <div
-                key={`row2-${index}`}
-                className="flex flex-col items-center justify-center w-24 h-24 rounded-lg bg-card border border-border/40 p-4 hover:scale-105 transition-transform"
-              >
-                <div className="h-10 w-10 mb-2 flex items-center justify-center">
-                  <Icon icon={tech.icon} className="w-full h-full" />
-                </div>
-                <span className="text-xs text-center font-medium">{tech.name}</span>
-              </div>
-            ))}
-            {/* Duplicate for seamless loop */}
-            {technologies.slice(15, 30).map((tech, index) => (
-              <div
-                key={`row2-dup-${index}`}
-                className="flex flex-col items-center justify-center w-24 h-24 rounded-lg bg-card border border-border/40 p-4 hover:scale-105 transition-transform"
-              >
-                <div className="h-10 w-10 mb-2 flex items-center justify-center">
-                  <Icon icon={tech.icon} className="w-full h-full" />
-                </div>
-                <span className="text-xs text-center font-medium">{tech.name}</span>
-              </div>
+            {[...technologies.slice(15, 30), ...technologies.slice(15, 30)].map((tech, index) => (
+              <TechCard key={`row2-${index}`} tech={tech} />
             ))}
           </div>
         </div>
@@ -120,28 +109,8 @@ const TechScroll = () => {
         {/* Third Row */}
         <div className="flex animate-scroll-left">
           <div className="flex gap-8 items-center [&>*]:flex-shrink-0">
-            {technologies.slice(30).map((tech, index) => (
-              <div
-                key={`row3-${index}`}
-                className="flex flex-col items-center justify-center w-24 h-24 rounded-lg bg-card border border-border/40 p-4 hover:scale-105 transition-transform"
-              >
-                <div className="h-10 w-10 mb-2 flex items-center justify-center">
-                  <Icon icon={tech.icon} className="w-full h-full" />
-                </div>
-                <span className="text-xs text-center font-medium">{tech.name}</span>
-              </div>
-            ))}
-            {/* Duplicate for seamless loop */}
-            {technologies.slice(30).map((tech, index) => (
-              <div
-                key={`row3-dup-${index}`}
-                className="flex flex-col items-center justify-center w-24 h-24 rounded-lg bg-card border border-border/40 p-4 hover:scale-105 transition-transform"
-              >
-                <div className="h-10 w-10 mb-2 flex items-center justify-center">
-                  <Icon icon={tech.icon} className="w-full h-full" />
-                </div>
-                <span className="text-xs text-center font-medium">{tech.name}</span>
-              </div>
+            {[...technologies.slice(30), ...technologies.slice(30)].map((tech, index) => (
+              <TechCard key={`row3-${index}`} tech={tech} />
             ))}
           </div>
         </div>

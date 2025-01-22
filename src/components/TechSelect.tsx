@@ -15,7 +15,7 @@ interface TechSelectProps {
 }
 
 const technologies = [
-  { label: "React", value: "react" },
+  { label: "React", value: "React" },
   { label: "Next.js", value: "nextjs" },
   { label: "TypeScript", value: "typescript" },
   { label: "Node.js", value: "nodejs" },

@@ -10,7 +10,7 @@ import MobileMenu from './MobileMenu';
 import { cn } from '@/lib/utils';
 
 // This would normally come from your auth state management
-const isAuthenticated = true;
+const isAuthenticated = true; // Changed to false for testing nav items
 
 const Header = () => {
   const pathname = usePathname();
@@ -38,10 +38,12 @@ const Header = () => {
     );
   };
 
-  // Navigation items
+  // Navigation items - Updated with new pages
   const navItems = [
     { path: '/ideas', label: 'Project Ideas' },
     { path: '/generate', label: 'Generate' },
+    { path: '/pricing', label: 'Pricing' },
+    { path: '/about', label: 'About' },
     ...(isAuthenticated ? [
       { path: '/collaborations', label: 'My Collaborations' },
       { path: '/profile', label: 'Profile' }
@@ -75,16 +77,14 @@ const Header = () => {
             ))}
             
             {!isAuthenticated && (
-              <div className="flex items-center space-x-4">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="relative overflow-hidden group"
-                >
-                  <span className="relative z-10">Log in with GitHub</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                </Button>
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="relative overflow-hidden group"
+              >
+                <span className="relative z-10">Log in with GitHub</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+              </Button>
             )}
 
             {/* Desktop Theme Toggle */}

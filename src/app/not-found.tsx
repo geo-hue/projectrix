@@ -51,7 +51,7 @@ export default function NotFound() {
             <Button 
               variant="default" 
               size="lg"
-              className="gap-2"
+className="w-full sm:w-auto gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
               asChild
             >
               <Link href="/">
@@ -62,7 +62,7 @@ export default function NotFound() {
             <Button 
               variant="outline" 
               size="lg"
-              className="gap-2"
+              className="w-full sm:w-auto gap-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
               onClick={() => window.history.back()}
             >
               <ArrowLeft className="h-4 w-4" />
