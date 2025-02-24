@@ -6,9 +6,11 @@ import { Brain, Code2, Users, Github, ArrowRight, Linkedin, Globe } from "lucide
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TechBackground from "@/components/TechBackground";
+import PageTransition from "@/components/PageTransition";
 
 const AboutPage = () => {
   return (
+    <PageTransition>
     <main className="min-h-screen bg-background relative">
         <TechBackground/>
       <Header />
@@ -231,6 +233,7 @@ const AboutPage = () => {
       
       <Footer />
     </main>
+    </PageTransition>
   );
 };
 

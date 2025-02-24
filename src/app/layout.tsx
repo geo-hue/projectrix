@@ -3,6 +3,9 @@ import { Plus_Jakarta_Sans, Black_Ops_One, Orbitron, Press_Start_2P } from "next
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import PageTransition from "@/components/PageTransition";
+import { Providers } from "./providers/provider";
+import { Toaster } from "sonner";
+import { ScrollProvider } from "@/components/ScrollContent";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -41,14 +44,19 @@ export default function RootLayout({
       <body
         className={`${plusJakartaSans.variable} ${blackOpsOne.variable} ${orbitron.variable} ${pressStart2P.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <PageTransition>{children}</PageTransition>
-        </ThemeProvider>
+        <Providers>
+          <ScrollProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Toaster richColors />
+              <PageTransition>{children}</PageTransition>
+            </ThemeProvider>
+          </ScrollProvider>
+        </Providers>
       </body>
     </html>
   );

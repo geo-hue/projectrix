@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import PageTransition from '@/components/PageTransition';
 
 // Example data
 const myRequests = [
@@ -95,6 +96,7 @@ const CollaborationsPage = () => {
   };
 
   return (
+    <PageTransition>
     <main className="min-h-screen bg-background">
       <Header />
       
@@ -294,6 +296,7 @@ const CollaborationsPage = () => {
       
       <Footer />
     </main>
+    </PageTransition>
   );
 };
 

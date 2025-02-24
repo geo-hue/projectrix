@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import PageTransition from '@/components/PageTransition';
 
 const ProfileSkeleton = () => (
   <div className="space-y-8">
@@ -39,10 +40,12 @@ const ProfileSkeleton = () => (
   </div>
 );
 
+
 export default function ProfilePage() {
   const isLoading = false; // Replace with actual loading state
 
   return (
+    <PageTransition>
     <main className="min-h-screen bg-background">
       <Header />
 
@@ -306,5 +309,6 @@ export default function ProfilePage() {
         </div>
       </footer>
     </main>
+    </PageTransition>
   );
 }

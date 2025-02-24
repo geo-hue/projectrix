@@ -8,9 +8,14 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useState } from "react";
 import TechBackground from "@/components/TechBackground";
+import PageTransition from "@/components/PageTransition";
+import { useAuth } from "../hooks/useAuth";
+import { useRouter } from "next/dist/client/components/navigation";
 
 const PricingPage = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number>(0);
+  const { user } = useAuth();
+  const router = useRouter();
 
   const plans = [
     {
@@ -23,7 +28,8 @@ const PricingPage = () => {
         "Public project listings",
         "GitHub integration",
         "Access to community features",
-      ]
+      ],
+      isCurrentPlan: user?.plan === "free"
     },
     {
       name: "Pro",
@@ -37,9 +43,34 @@ const PricingPage = () => {
         "Access to community features",
         "Early access to new features"
       ],
-      badge: "Most Popular"
+      badge: "Most Popular",
+      isCurrentPlan: user?.plan === "pro"
     }
   ];
+
+  const handlePlanAction = (planName: string) => {
+    if (!user) {
+      // If not logged in, they need to sign in first
+      router.push('/');
+      return;
+    }
+
+    if (planName === 'Free') {
+      // For free plan, redirect to generate page
+      router.push('/generate');
+    } else if (planName === 'Pro') {
+      // For pro plan, will add payment integration later
+      // For now, just show an alert
+      alert('Payment integration coming soon!');
+    }
+  };
+
+  const getPlanButtonText = (plan: any) => {
+    if (!user) return "Get Started";
+    if (plan.isCurrentPlan) return "Current Plan";
+    return plan.name === "Free" ? "Generate Ideas" : "Upgrade Now";
+  };
+
 
   const faqs = [
     {
@@ -61,6 +92,7 @@ const PricingPage = () => {
   };
 
   return (
+    <PageTransition>
     <main className="min-h-screen bg-background">
         <TechBackground/>
       <Header/>
@@ -91,8 +123,25 @@ const PricingPage = () => {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="flex"
               >
-                <Card className={`relative flex flex-col w-full ${plan.name === 'Pro' ? 'border-primary shadow-lg ring-2 ring-primary/20' : ''}`}>
-                  {plan.badge && (
+                
+              <Card className={`relative flex flex-col w-full transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 ${
+                    plan.name === 'Pro' ? 'border-primary ring-2 ring-primary/20' : ''
+                  }${
+                    plan.isCurrentPlan ? 'border-green-500 ring-2 ring-green-500/20' : ''
+                  }`}
+                >
+                  {/* Current Plan Badge */}
+                  {plan.isCurrentPlan && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 pt-6">
+                      <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-green-500 text-white shadow-lg">
+                        <Check className="h-4 w-4" />
+                        Current Plan
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Pro Badge */}
+                  {!plan.isCurrentPlan && plan.badge && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 pt-6">
                       <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-black dark:bg-white text-white dark:text-black shadow-lg">
                         <Sparkles className="h-4 w-4" />
@@ -101,14 +150,23 @@ const PricingPage = () => {
                     </div>
                   )}
                   
-                  <CardHeader className={plan.badge ? "pt-8" : ""}>
+                  <CardHeader className={(plan.badge || plan.isCurrentPlan) ? "pt-8" : ""}>
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                    <CardDescription>{plan.description}</CardDescription>
+                    <CardDescription>
+                      {plan.description}
+                      {user && plan.name === 'Free' && (
+                        <div className="mt-2 text-sm">
+                          <span className="font-medium text-primary">
+                            {user.projectIdeasLeft} project ideas
+                          </span> remaining this month
+                        </div>
+                      )}
+                    </CardDescription>
                   </CardHeader>
                   
                   <CardContent className="space-y-6 flex-grow">
-                    {/* Price */}
-                    <div className="flex items-baseline gap-2">
+                {/* Price */}
+                <div className="flex items-baseline gap-2">
                       <span className="text-4xl font-bold">${plan.price}</span>
                       <span className="text-muted-foreground">/month</span>
                     </div>
@@ -135,16 +193,17 @@ const PricingPage = () => {
                           : 'bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)]'
                       }`}
                       size="lg"
+                      onClick={() => handlePlanAction(plan.name)}
+                      disabled={plan.isCurrentPlan}
                     >
-                      Get Started
-                      {plan.name === 'Pro' && <Sparkles className="h-4 w-4" />}
+                      {getPlanButtonText(plan)}
+                      {plan.name === 'Pro' && !plan.isCurrentPlan && <Sparkles className="h-4 w-4" />}
                     </Button>
                   </CardFooter>
                 </Card>
               </motion.div>
             ))}
           </div>
-
           {/* FAQ Section */}
           <motion.div 
             className="mt-20 max-w-3xl mx-auto"
@@ -253,6 +312,7 @@ const PricingPage = () => {
       </section>
       <Footer/>
     </main>
+    </PageTransition>
   );
 };
 

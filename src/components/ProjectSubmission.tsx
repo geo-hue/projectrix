@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
 import { Code2, Clock, Users, Layers } from 'lucide-react';
 import { TechSelect } from '@/components/TechSelect';
+import { ComplexitySlider } from './ComplexitySlider';
 
 interface ProjectData {
     title: string;
@@ -90,11 +90,6 @@ const formatMetric = (value: string, type: 'duration' | 'teamSize') => {
       setProjectData(prev => ({ ...prev, [field]: value }));
     };
   
-    const getComplexityLabel = (value: number): string => {
-      if (value <= 33) return "Beginner";
-      if (value <= 66) return "Intermediate";
-      return "Advanced";
-    };
 
   return (
     <section className="container px-4 mx-auto pt-8 pb-8">
@@ -157,9 +152,10 @@ const formatMetric = (value: string, type: 'duration' | 'teamSize') => {
 
               <div className="space-y-2">
                 <Label>Required Technologies</Label>
-                <TechSelect
-                  onSelect={(techs) => handleInputChange('technologies', techs)}
-                />
+                <TechSelect 
+  onSelect={(selectedTechs) => console.log(selectedTechs)} 
+  defaultValue={[]} 
+/>
               </div>
 
               <div className="space-y-2">
@@ -206,21 +202,12 @@ const formatMetric = (value: string, type: 'duration' | 'teamSize') => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <Label>Project Complexity</Label>
-                <Slider
-                  value={[projectData.complexity]}
-                  onValueChange={(value) => handleInputChange('complexity', value[0])}
-                  max={100}
-                  step={1}
-                  className="slider"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Beginner</span>
-                  <span>Intermediate</span>
-                  <span>Advanced</span>
-                </div>
-              </div>
+              <div className="space-y-2">
+  <ComplexitySlider
+    defaultValue={projectData.complexity}
+    onChange={(value) => handleInputChange('complexity', value)}
+  />
+</div>
             </CardContent>
             <CardFooter>
             <Button 
@@ -262,9 +249,24 @@ const formatMetric = (value: string, type: 'duration' | 'teamSize') => {
                     <span className="text-sm">{formatMetric(projectData.teamSize, 'teamSize') || "Team Size"}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{getComplexityLabel(projectData.complexity)}</span>
-                  </div>
+  <Layers className="h-4 w-4 text-muted-foreground" />
+  <span className={`
+    px-2 py-1 rounded-full text-xs font-medium text-white
+    bg-gradient-to-r ${projectData.complexity <= 33 
+      ? 'from-emerald-500 to-emerald-700'
+      : projectData.complexity <= 66 
+        ? 'from-blue-500 to-blue-700'
+        : 'from-purple-500 to-purple-700'
+    }
+  `}>
+    {projectData.complexity <= 33 
+      ? "Beginner" 
+      : projectData.complexity <= 66 
+        ? "Intermediate" 
+        : "Advanced"
+    }
+  </span>
+</div>
                 </div>
 
                 <div>

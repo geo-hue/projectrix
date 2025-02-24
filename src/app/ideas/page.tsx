@@ -20,6 +20,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import PageTransition from '@/components/PageTransition';
 
 // Example project data (this would come from your API)
 const exampleProjects = [
@@ -365,6 +366,7 @@ const ProjectDetailsModal = ({ project, isOpen, onClose }) => {
 
 const ProjectIdeasPage = () => {
     return (
+      <PageTransition>
       <div className="min-h-screen bg-background flex flex-col">
         <Header />
         
@@ -391,6 +393,7 @@ const ProjectIdeasPage = () => {
         </main>
         <Footer />
     </div>
+    </PageTransition>
   );
 };
 
