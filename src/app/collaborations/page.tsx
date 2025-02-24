@@ -80,7 +80,7 @@ const myProjects = [
 ];
 
 const CollaborationsPage = () => {
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status:any) => {
     switch(status) {
       case 'pending':
         return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500">Pending</Badge>;
