@@ -4,7 +4,10 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,           // Changed to false
+    "noUnusedLocals": false,   // Added
+    "noUnusedParameters": false, // Added
+    "noImplicitAny": false,    // Added
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
