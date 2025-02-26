@@ -53,13 +53,32 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
+      // Get current Firebase token before signing out
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('No authenticated user');
+      }
+
+      const token = await currentUser.getIdToken();
+      
+      // First, call our backend logout
+      await dispatch(logoutUser(token)).unwrap();
+      
+      // Then sign out from Firebase
       await auth.signOut();
-      await dispatch(logoutUser()).unwrap();
+      
       toast.success('Logged out successfully');
       router.push('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
       toast.error('Logout failed');
+      
+      // Attempt to clean up even if there was an error
+      try {
+        await auth.signOut();
+      } catch (signOutError) {
+        console.error('Firebase signout error:', signOutError);
+      }
     }
   };
 

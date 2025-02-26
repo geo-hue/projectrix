@@ -13,9 +13,35 @@
   import TechBackground from '@/components/TechBackground';
   import TextRevealLoader from '@/components/TextRevealLoader';
   import PageTransition from '@/components/PageTransition';
-  import { useAuth } from './hooks/useAuth';
   import { useRouter } from 'next/navigation';
   import FeatureSlider from '@/components/FeatureSlider';
+import { useAuth } from './context/AuthContext';
+
+  const styles = `
+  .card-container {
+    perspective: 1000px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .sticky-card {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    transform-style: preserve-3d;
+    transform-origin: center center;
+    will-change: transform;
+  }
+
+  .content-section {
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    background: var(--background);
+  }
+`;
 
 
   export default function Home() {
@@ -32,6 +58,26 @@
     }, []);
     
     
+    
+    useEffect(() => {
+      // Add styles to document
+      const styleSheet = document.createElement("style");
+      styleSheet.textContent = styles;
+      document.head.appendChild(styleSheet);
+  
+      // Cleanup
+      return () => {
+        document.head.removeChild(styleSheet);
+      };
+    }, []);
+
+    const handleLogin = async () => {
+      try {
+        await login();
+      } catch (error) {
+        console.error('Login error:', error);
+      }
+    };
 
     return (
       <PageTransition>
@@ -40,29 +86,34 @@
           <TextRevealLoader/>
         ) : (
           <>
-          <Header/>
-          <motion.main
-            key="main"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="min-h-screen bg-background relative"
-          >
-            {/* Hero Section with all hero content inside */}
-            <section className="relative bg-background">
-              <TechBackground/>
-              <div className="container px-4 mx-auto pb-12 md:pb-20 mt-20 md:mt-20">
-                <div className="max-w-4xl mx-auto text-center">
-                  <motion.h1 
-                    className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent font-orbitron"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                Transform Ideas into 
-                <br /> Collaborative Projects
-              </motion.h1>
-              
+         <Header/>
+            <div className="card-container">
+              {/* Card 1: Hero Section */}
+              <div className="sticky-card">
+                <section className="relative bg-background min-h-screen pt-28">
+                  <TechBackground/>
+                  <div className="container px-4 mx-auto pb-12 md:pb-20 ">
+                    <div className="max-w-4xl mx-auto text-center">
+                    <motion.h1 
+          className="text-4xl md:text-6xl font-bold mb-6 pb-2 font-orbitron relative inline-block"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <span className="bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+            Transform Ideas into
+          </span>
+          <br /> 
+          <span className="text-black dark:text-white">
+            Collaborative Projects
+          </span>
+          <motion.div
+            className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-blue-600/50 to-blue-400/50"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          />
+        </motion.h1>  
               <motion.p 
                 className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
                 initial={{ opacity: 0, y: 20 }}
@@ -123,7 +174,9 @@
       <FeatureSlider />
   </div>
   </section>
+  </div>
 
+ <div className='content-section'>
   <div 
   className="relative bg-background dark:bg-black dark:bg-opacity-[0.97] z-30"
 >
@@ -287,7 +340,7 @@
     <Button 
       size="lg" 
       className="gap-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-      onClick={() => user ? router.push('/generate') : login()}
+      onClick={() => user ? router.push('/generate') : handleLogin()}
     >
       {user ? (
         <>Generate Ideas <ArrowRight className="h-4 w-4" /></>
@@ -302,7 +355,8 @@
   {/* Footer */}
   <Footer/>
   </div>
-      </motion.main>
+  </div>
+      </div>
       </>
       )}
           </AnimatePresence>

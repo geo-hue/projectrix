@@ -9,12 +9,16 @@ import Footer from "@/components/Footer";
 import { useState } from "react";
 import TechBackground from "@/components/TechBackground";
 import PageTransition from "@/components/PageTransition";
-import { useAuth } from "../hooks/useAuth";
-import { useRouter } from "next/dist/client/components/navigation";
+import { useAuth } from "../context/AuthContext";
+import { useRouter } from "next/navigation"; 
+import { toast } from "sonner";
 
 const PricingPage = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number>(0);
-  const { user } = useAuth();
+  const { user, login } = useAuth(); // Using new Auth Context
+  console.log('Pricing Page - Full User Object:', user);
+  console.log('Pricing Page - User Plan:', user?.plan);
+  console.log('Pricing Page - Project Ideas Left:', user?.projectIdeasLeft);
   const router = useRouter();
 
   const plans = [
@@ -29,7 +33,7 @@ const PricingPage = () => {
         "GitHub integration",
         "Access to community features",
       ],
-      isCurrentPlan: user?.plan === "free"
+      isCurrentPlan: user ? (user.plan === "free" || !user.plan) : false // Only set current if logged in
     },
     {
       name: "Pro",
@@ -44,14 +48,20 @@ const PricingPage = () => {
         "Early access to new features"
       ],
       badge: "Most Popular",
-      isCurrentPlan: user?.plan === "pro"
+      isCurrentPlan: user ? user.plan === "pro" : false // Only set current if logged in
     }
   ];
 
-  const handlePlanAction = (planName: string) => {
+  // Handle plan selection or upgrade
+  const handlePlanAction = async (planName: string) => {
     if (!user) {
-      // If not logged in, they need to sign in first
-      router.push('/');
+      // If not logged in, they need to sign in first (for any plan)
+      try {
+        await login();
+        toast.info("Please select a plan after logging in");
+      } catch (error) {
+        console.error("Login error:", error);
+      }
       return;
     }
 
@@ -60,8 +70,8 @@ const PricingPage = () => {
       router.push('/generate');
     } else if (planName === 'Pro') {
       // For pro plan, will add payment integration later
-      // For now, just show an alert
-      alert('Payment integration coming soon!');
+      // For now, just show a toast
+      toast.success('Payment integration coming soon!');
     }
   };
 
@@ -100,110 +110,126 @@ const PricingPage = () => {
         <div className="container px-4 mx-auto">
           {/* Header */}
           <motion.div 
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent font-orbitron">
-              Simple, Transparent Pricing
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Choose the perfect plan for your development journey. Start for free and upgrade as you grow.
-            </p>
-          </motion.div>
-
-          {/* Pricing Cards */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {plans.map((plan, index) => (
-              <motion.div
-                key={plan.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="flex"
-              >
-                
-              <Card className={`relative flex flex-col w-full transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 ${
-                    plan.name === 'Pro' ? 'border-primary ring-2 ring-primary/20' : ''
-                  }${
-                    plan.isCurrentPlan ? 'border-green-500 ring-2 ring-green-500/20' : ''
-                  }`}
-                >
-                  {/* Current Plan Badge */}
-                  {plan.isCurrentPlan && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 pt-6">
-                      <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-green-500 text-white shadow-lg">
-                        <Check className="h-4 w-4" />
-                        Current Plan
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Pro Badge */}
-                  {!plan.isCurrentPlan && plan.badge && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 pt-6">
-                      <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-black dark:bg-white text-white dark:text-black shadow-lg">
-                        <Sparkles className="h-4 w-4" />
-                        {plan.badge}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <CardHeader className={(plan.badge || plan.isCurrentPlan) ? "pt-8" : ""}>
-                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                    <CardDescription>
-                      {plan.description}
-                      {user && plan.name === 'Free' && (
-                        <div className="mt-2 text-sm">
-                          <span className="font-medium text-primary">
-                            {user.projectIdeasLeft} project ideas
-                          </span> remaining this month
-                        </div>
-                      )}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-6 flex-grow">
-                {/* Price */}
-                <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold">${plan.price}</span>
-                      <span className="text-muted-foreground">/month</span>
-                    </div>
-
-                    {/* Features */}
-                    <div className="space-y-3">
-                      <span className="text-sm font-medium">Includes:</span>
-                      <ul className="space-y-3">
-                        {plan.features.map((feature, i) => (
-                          <li key={i} className="flex items-center gap-2 text-sm">
-                            <Check className="h-4 w-4 text-primary" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </CardContent>
-                  
-                  <CardFooter className="mt-auto">
-                    <Button 
-                      className={`w-full gap-2 transform transition-all active:translate-y-1 active:shadow-none ${
-                        plan.name === 'Pro' 
-                          ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)]' 
-                          : 'bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)]'
-                      }`}
-                      size="lg"
-                      onClick={() => handlePlanAction(plan.name)}
-                      disabled={plan.isCurrentPlan}
-                    >
-                      {getPlanButtonText(plan)}
-                      {plan.name === 'Pro' && !plan.isCurrentPlan && <Sparkles className="h-4 w-4" />}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            ))}
+  className="text-center mb-16"
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+>
+  <h1 className="text-4xl md:text-5xl font-bold mb-6 font-orbitron mt-12 relative inline-block">
+    <span className="bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+      Simple, Transparent
+    </span>{" "}
+    <span className="text-black dark:text-white">
+      Pricing
+    </span>
+    <motion.div
+      className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-blue-600/50 to-blue-400/50"
+      initial={{ width: "0%" }}
+      animate={{ width: "100%" }}
+      transition={{ delay: 0.5, duration: 0.8 }}
+    />
+  </h1>
+  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+    Choose the perfect plan for your development journey. Start for free and upgrade as you grow.
+  </p>
+</motion.div>
+    {/* Pricing Cards */}
+<div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+  {plans.map((plan, index) => (
+    <motion.div
+      key={plan.name}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className="relative group"
+    >
+      {/* Background shadow element - similar to story cards */}
+      <div className={`absolute inset-0 bg-gradient-to-r ${
+        plan.name === 'Free' 
+          ? 'from-blue-600/20 to-blue-400/20 transform rotate-3' 
+          : 'from-blue-400/20 to-blue-600/20 transform -rotate-3'
+      } rounded-lg`} />
+      
+      <Card className={`relative flex flex-col w-full transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 ${
+        plan.name === 'Pro' ? 'border-primary ring-2 ring-primary/20' : ''
+      }${
+        plan.isCurrentPlan ? 'border-green-500 ring-2 ring-green-500/20' : ''
+      } bg-white dark:bg-black border border-black/20 dark:border-white/20`}
+      >
+        {/* Current Plan Badge - Only show if user is logged in and it's their current plan */}
+        {user && plan.isCurrentPlan && (
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 pt-6">
+            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-green-500 text-white shadow-lg">
+              <Check className="h-4 w-4" />
+              Current Plan
+            </span>
           </div>
+        )}
+        
+        {/* Pro Badge */}
+        {(!plan.isCurrentPlan || !user) && plan.badge && (
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 pt-6">
+            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-black dark:bg-white text-white dark:text-black shadow-lg">
+              <Sparkles className="h-4 w-4" />
+              {plan.badge}
+            </span>
+          </div>
+        )}
+        
+        <CardHeader className={(plan.badge || (user && plan.isCurrentPlan)) ? "pt-8" : ""}>
+          <CardTitle className="text-2xl">{plan.name}</CardTitle>
+          <CardDescription>
+            {plan.description}
+            {user && plan.name === 'Free' && (
+              <div className="mt-2 text-sm">
+                <span className="font-medium text-primary">
+                  {user.projectIdeasLeft} project ideas
+                </span> remaining this month
+              </div>
+            )}
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-6 flex-grow">
+          {/* Price */}
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-bold">${plan.price}</span>
+            <span className="text-muted-foreground">/month</span>
+          </div>
+
+          {/* Features */}
+          <div className="space-y-3">
+            <span className="text-sm font-medium">Includes:</span>
+            <ul className="space-y-3">
+              {plan.features.map((feature, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-primary" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </CardContent>
+        
+        <CardFooter className="mt-auto">
+          <Button 
+            className={`w-full gap-2 transform transition-all active:translate-y-1 active:shadow-none ${
+              plan.name === 'Pro' 
+                ? 'bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)]' 
+                : 'bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)]'
+            }`}
+            size="lg"
+            onClick={() => handlePlanAction(plan.name)}
+            disabled={user && plan.isCurrentPlan} // Only disable if user is logged in and it's their current plan
+          >
+            {getPlanButtonText(plan)}
+            {plan.name === 'Pro' && (!user || !plan.isCurrentPlan) && <Sparkles className="h-4 w-4" />}
+          </Button>
+        </CardFooter>
+      </Card>
+    </motion.div>
+  ))}
+</div>
           {/* FAQ Section */}
           <motion.div 
             className="mt-20 max-w-3xl mx-auto"

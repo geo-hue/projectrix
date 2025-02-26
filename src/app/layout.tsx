@@ -6,6 +6,7 @@ import PageTransition from "@/components/PageTransition";
 import { Providers } from "./providers/provider";
 import { Toaster } from "sonner";
 import { ScrollProvider } from "@/components/ScrollContent";
+import AuthWrapper from "./hooks/AuthWrapper";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -53,7 +54,9 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <Toaster richColors />
+              <AuthWrapper>
               <PageTransition>{children}</PageTransition>
+              </AuthWrapper>
             </ThemeProvider>
           </ScrollProvider>
         </Providers>

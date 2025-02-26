@@ -1,14 +1,12 @@
-'use client'
-import React, { useState } from 'react';
-import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  Clock,
-  Users,
-  Layers,
-  ChevronRight,
-  Code2
+  Filter,
+  Sparkles,
+  BookOpen,
+  Loader2
 } from 'lucide-react';
 import {
   Select,
@@ -17,382 +15,264 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import PageTransition from '@/components/PageTransition';
+import TechBackground from '@/components/TechBackground';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/app/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import ProjectCard from '@/components/ProjectCard';
 
-// Example project data (this would come from your API)
-const exampleProjects = [
-  {
-    id: 1,
-    title: "AI-Powered Chat Application",
-    description: "A real-time chat platform with AI capabilities",
-    duration: "2-3 months",
-    teamSize: "3-4 members",
-    level: "Intermediate",
-    technologies: ["React", "Node.js", "Socket.io", "MongoDB", "OpenAI API"],
-    roles: [
-      { title: "Frontend Lead", filled: false },
-      { title: "Frontend Developer", filled: true },
-      { title: "Backend Developer", filled: false },
-      { title: "AI/ML Integration Specialist", filled: false }
-    ],
-    projectDescription: "Build a modern chat application that incorporates AI capabilities for enhanced user interaction. The application will feature real-time messaging, AI-powered message suggestions, and automated responses."
-  },
-  {
-    id: 2,
-    title: "E-Learning Platform",
-    description: "Interactive learning platform with course management",
-    duration: "3-4 months",
-    teamSize: "4-5 members",
-    level: "Advanced",
-    technologies: ["Next.js", "Django", "PostgreSQL", "AWS"],
-    roles: [
-      { title: "Frontend Developer", filled: false },
-      { title: "UI/UX Designer", filled: false },
-      { title: "Backend Developer", filled: true },
-      { title: "DevOps Engineer", filled: false }
-    ],
-    projectDescription: "Develop a comprehensive e-learning platform with features like course creation, progress tracking, interactive assessments, and real-time collaboration tools."
-  },
-  {
-    id: 3,
-    title: "Fitness Tracking App",
-    description: "Mobile-first fitness tracking application",
-    duration: "2 months",
-    teamSize: "2-3 members",
-    level: "Intermediate",
-    technologies: ["React Native", "Firebase", "Node.js", "MongoDB"],
-    roles: [
-      { title: "Mobile Developer", filled: false },
-      { title: "Backend Developer", filled: false },
-      { title: "UI Designer", filled: true }
-    ],
-    projectDescription: "Create a fitness tracking application with workout planning, progress monitoring, and social features for sharing achievements."
-  }
-];
-
-const ProjectDetailsModal = ({ project, isOpen, onClose }) => {
-    const [isApplying, setIsApplying] = useState(false);
-    const availableRoles = project.roles.filter(role => !role.filled);
-  
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-white dark:bg-zinc-900 border-2 dark:border-zinc-800">
-          <DialogHeader className="border-b pb-4 dark:border-zinc-800">
-            <DialogTitle className="text-2xl font-bold">{project.title}</DialogTitle>
-            <DialogDescription>{project.description}</DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-4">
-            {/* Project Stats */}
-            <div className="grid grid-cols-3 gap-4 bg-muted/50 dark:bg-zinc-800/50 p-4 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{project.duration}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{project.teamSize}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{project.level}</span>
-              </div>
-            </div>
-  
-            {/* Required Technologies */}
-            <div className="bg-muted/20 dark:bg-zinc-800/50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium mb-2">Required Technologies</h3>
-              <div className="flex flex-wrap gap-2">
-                {project.technologies.map((tech, index) => (
-                  <Badge key={index}>{tech}</Badge>
-                ))}
-              </div>
-            </div>
-  
-            {/* Project Description */}
-            <div className="bg-muted/20 dark:bg-zinc-800/50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium mb-2">Project Description</h3>
-              <p className="text-muted-foreground">{project.projectDescription}</p>
-            </div>
-  
-            {/* Team Structure */}
-            <div className="bg-muted/20 dark:bg-zinc-800/50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium mb-2">Team Structure</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Required Roles</h4>
-                  <ul className="list-disc list-inside text-muted-foreground">
-                    {project.roles.map((role, index) => (
-                      <li key={index} className={role.filled ? "opacity-50" : ""}>
-                        {role.title} {role.filled && "(Filled)"}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Role Responsibilities</h4>
-                  <ul className="list-disc list-inside text-muted-foreground">
-                    <li>Frontend: UI components, real-time updates</li>
-                    <li>UI/UX: Design system, user experience</li>
-                    <li>Backend: API, database, WebSocket server</li>
-                    <li>AI: ML models, OpenAI integration</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-  
-            {/* Features */}
-            <div className="bg-muted/20 dark:bg-zinc-800/50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium mb-2">Project Features</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Core Features</h4>
-                  <ul className="list-disc list-inside text-muted-foreground">
-                    <li>Real-time messaging system</li>
-                    <li>User authentication</li>
-                    <li>Message history & search</li>
-                    <li>File sharing capabilities</li>
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Advanced Features</h4>
-                  <ul className="list-disc list-inside text-muted-foreground">
-                    <li>Smart message suggestions</li>
-                    <li>Automated responses</li>
-                    <li>Sentiment analysis</li>
-                    <li>Language translation</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-  
-            {/* Learning Outcomes */}
-            <div className="bg-muted/20 dark:bg-zinc-800/50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium mb-2">Learning Outcomes</h3>
-              <ul className="list-disc list-inside text-muted-foreground">
-                <li>Real-time application architecture</li>
-                <li>AI/ML integration in web applications</li>
-                <li>State management in real-time systems</li>
-                <li>WebSocket implementation</li>
-              </ul>
-            </div>
-          </div>
-  
-          <div className="flex justify-end space-x-4 mt-6 pt-4 border-t dark:border-zinc-800">
-            {!isApplying ? (
-              <>
-                <Button 
-                  variant="outline"
-                  onClick={() => setIsApplying(true)}
-                >
-                  Apply to Collaborate
-                </Button>
-                <Button 
-                  variant="ghost"
-                  onClick={onClose}
-                >
-                  Close
-                </Button>
-              </>
-            ) : (
-              <div className="w-full space-y-4">
-                <Select>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select role to apply for" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableRoles.map((role, index) => (
-                      <SelectItem key={index} value={role.title.toLowerCase()}>
-                        {role.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex gap-2">
-                  <Button 
-                    className="flex-1 gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90"
-                  >
-                    <Code2 className="h-4 w-4" />
-                    Submit Application
-                  </Button>
-                  <Button 
-                    variant="ghost"
-                    className="flex-1"
-                    onClick={() => setIsApplying(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-  const ProjectCard = ({ project }) => {
-    const [isApplying, setIsApplying] = useState(false);
-    const [showDetails, setShowDetails] = useState(false);
-    const availableRoles = project.roles.filter(role => !role.filled);
-  
-    return (
-      <>
-        <div className="group relative">
-          {/* Background shadow element */}
-          <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-          
-          {/* Main card content */}
-          <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 flex flex-col h-full">
-            <CardHeader className="space-y-2">
-              <CardTitle className="text-xl">{project.title}</CardTitle>
-              <CardDescription>{project.description}</CardDescription>
-            </CardHeader>
-            
-            <div className="flex-grow">
-              <CardContent className="space-y-4">
-                {/* Project Stats */}
-                <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{project.duration}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{project.teamSize}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Layers className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{project.level}</span>
-                  </div>
-                </div>
-  
-                {/* Required Technologies */}
-                <div>
-                  <h3 className="text-sm font-medium mb-1">Technologies</h3>
-                  <div className="flex flex-wrap gap-1">
-                    {project.technologies.map((tech, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">{tech}</Badge>
-                    ))}
-                  </div>
-                </div>
-  
-                {/* Available Roles */}
-                <div>
-                  <h3 className="text-sm font-medium mb-1">Available Roles</h3>
-                  <div className="flex flex-wrap gap-1">
-                    {project.roles.map((role, index) => (
-                      <Badge 
-                        key={index}
-                        variant={role.filled ? "secondary" : "default"}
-                        className={`text-xs ${role.filled ? "opacity-50" : ""}`}
-                      >
-                        {role.title} {role.filled && "(Filled)"}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </div>
-  
-            <CardFooter className="mt-auto pt-6 border-t">
-              <div className="w-full flex flex-col gap-2">
-                {!isApplying ? (
-                  <>
-                    <Button 
-                      className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                      size="lg"
-                      onClick={() => setIsApplying(true)}
-                    >
-                      Apply to Collaborate
-                    </Button>
-                    <Button 
-                      className="w-full bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                      size="lg"
-                      onClick={() => setShowDetails(true)}
-                    >
-                      View Details
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role to apply for" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableRoles.map((role, index) => (
-                          <SelectItem key={index} value={role.title.toLowerCase()}>
-                            {role.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex gap-2">
-                      <Button 
-                        className="flex-1 gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                        size="lg"
-                      >
-                        <Code2 className="h-4 w-4" />
-                        Apply
-                      </Button>
-                      <Button 
-                        className="flex-1 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                        size="lg"
-                        onClick={() => setIsApplying(false)}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardFooter>
-          </Card>
-        </div>
-  
-        <ProjectDetailsModal 
-          project={project}
-          isOpen={showDetails}
-          onClose={() => setShowDetails(false)}
-        />
-      </>
-    );
-  };
-
+// Import the API hooks
+import { 
+  useGetPublishedProjectsQuery, 
+  useGetAvailableTechnologiesQuery,
+  useGetAvailableRolesQuery 
+} from '@/app/api/publishedProjectsApiSlice';
 
 const ProjectIdeasPage = () => {
-    return (
-      <PageTransition>
-      <div className="min-h-screen bg-background flex flex-col">
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  
+  // State for filters
+  const [filterTech, setFilterTech] = useState('all');
+  const [filterComplexity, setFilterComplexity] = useState('all');
+  const [filterRole, setFilterRole] = useState('all');
+
+  // Create derived query parameters based on filters
+  const queryParams = {
+    ...(filterTech !== 'all' && { technology: filterTech }),
+    ...(filterComplexity !== 'all' && { complexity: filterComplexity }),
+    ...(filterRole !== 'all' && { role: filterRole })
+  };
+  
+  // Use the API hooks with the filters
+  const { 
+    data: projectsData, 
+    isLoading: projectsLoading, 
+    error: projectsError
+  } = useGetPublishedProjectsQuery(queryParams);
+
+  const { 
+    data: technologiesData, 
+    isLoading: technologiesLoading 
+  } = useGetAvailableTechnologiesQuery();
+
+  const { 
+    data: rolesData, 
+    isLoading: rolesLoading 
+  } = useGetAvailableRolesQuery();
+
+  // Add custom CSS for the blue background patterns and effects
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+      .tech-grid-bg {
+        background-image: linear-gradient(to right, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+                         linear-gradient(to bottom, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      
+      .blue-glow {
+        background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+      }
+    `;
+    document.head.appendChild(styleSheet);
+
+    return () => {
+      document.head.removeChild(styleSheet);
+    };
+  }, []);
+
+  // Calculate if any data is loading
+  const isLoading = projectsLoading || technologiesLoading || rolesLoading;
+
+  return (
+    <PageTransition>
+      <div className="min-h-screen bg-background tech-grid-bg relative overflow-hidden">
         <Header />
+        <TechBackground />
         
-        <main className="flex-grow">
+        {/* Subtle blue glow effects */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blue-glow -z-10 opacity-60"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-96 h-96 rounded-full blue-glow -z-10 opacity-60"></div>
+        
+        <main className="flex-grow relative z-10">
           <div className="container px-4 mx-auto py-8">
             <div className="space-y-8">
               <div className="text-center">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent font-orbitron">
-                  Available Projects
+                <h1 className="text-4xl md:text-5xl font-bold mb-4 font-orbitron mt-20 md:mt-20 relative inline-block">
+                  <span className="bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+                    Available
+                  </span>{" "}
+                  <span className="text-black dark:text-white">
+                    Projects
+                  </span>
+                  <motion.div
+                    className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-blue-600/50 to-blue-400/50"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  />
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   Browse through available projects and find opportunities to collaborate with other developers.
                 </p>
               </div>
-  
+
+              {/* Filters Section */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="bg-white/50 dark:bg-black/50 p-4 rounded-lg backdrop-blur-sm border border-black/10 dark:border-white/10"
+              >
+                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+                  <div className="flex gap-4 flex-wrap">
+                    <div>
+                      <label className="text-sm font-medium block mb-1">Technology</label>
+                      <Select value={filterTech} onValueChange={setFilterTech}>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="All Technologies" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Technologies</SelectItem>
+                          {technologiesData?.technologies?.map((tech, idx) => (
+                            <SelectItem key={idx} value={tech}>{tech}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium block mb-1">Complexity</label>
+                      <Select value={filterComplexity} onValueChange={setFilterComplexity}>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="All Levels" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Levels</SelectItem>
+                          <SelectItem value="Beginner">Beginner</SelectItem>
+                          <SelectItem value="Intermediate">Intermediate</SelectItem>
+                          <SelectItem value="Advanced">Advanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium block mb-1">Available Role</label>
+                      <Select value={filterRole} onValueChange={setFilterRole}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="All Roles" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Roles</SelectItem>
+                          {rolesData?.roles?.map((role, idx) => (
+                            <SelectItem key={idx} value={role}>{role}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => {
+                        setFilterTech('all');
+                        setFilterComplexity('all');
+                        setFilterRole('all');
+                      }}
+                    >
+                      <Filter className="h-4 w-4" />
+                      Reset Filters
+                    </Button>
+                    <Button 
+                      className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+                      onClick={() => router.push('/generate')}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Create Your Own Project
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+
               {/* Projects Grid */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {exampleProjects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
-                ))}
-              </div>
+              {isLoading ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-2 animate-pulse"></div>
+                      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg"></div>
+                      <div className="relative h-[550px] rounded-lg bg-white/80 dark:bg-black/80 animate-pulse border border-black/20 dark:border-white/20"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : projectsError ? (
+                <div className="text-center py-20">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 inline-block"
+                  >
+                    <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                      <BookOpen className="h-8 w-8 text-red-500" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Error loading projects</h3>
+                    <p className="text-muted-foreground mb-6">There was a problem loading the projects. Please try again later.</p>
+                    <Button 
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => window.location.reload()}
+                    >
+                      <Loader2 className="h-4 w-4" />
+                      Retry
+                    </Button>
+                  </motion.div>
+                </div>
+              ) : projectsData?.projects && projectsData.projects.length > 0 ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {projectsData.projects.map((project) => (
+                    <motion.div
+                      key={project._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <ProjectCard project={project} height={400} />
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 inline-block"
+                  >
+                    <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <BookOpen className="h-8 w-8 text-primary/70" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">No matching projects found</h3>
+                    <p className="text-muted-foreground mb-6">Try adjusting your filters or create your own project.</p>
+                    <Button 
+                      className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+                      onClick={() => router.push('/generate')}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Generate New Project
+                    </Button>
+                  </motion.div>
+                </div>
+              )}
             </div>
           </div>
         </main>
         <Footer />
-    </div>
+      </div>
     </PageTransition>
   );
 };

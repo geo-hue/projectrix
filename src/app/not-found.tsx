@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background mt-12">
       <Header />
       
       <div className="container mx-auto px-4">

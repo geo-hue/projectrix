@@ -9,6 +9,7 @@ interface ComplexitySliderProps {
 export function ComplexitySlider({ onChange, defaultValue = 50 }: ComplexitySliderProps) {
   const [value, setValue] = useState(defaultValue);
 
+  // This function returns the display label (with capital first letter)
   const getComplexityLabel = (value: number) => {
     if (value <= 33) return "Beginner";
     if (value <= 66) return "Intermediate";

@@ -119,14 +119,50 @@ body {
   }
 }
 
+  /* Smooth scrolling for the entire page */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+
+  /* Ensure proper stacking context */
+  .sticky {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+   /* Custom scrollbar for better visual feedback */
+   ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Optimize performance */
+  .optimize-gpu {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
 .mt-screen {
   margin-top: 100vh;
 }
 
 html {
+  overflow-x: hidden;
   height: 100%;
 }
-
 body {
   min-height: 100%;
   overflow-x: hidden;
@@ -263,4 +299,13 @@ body {
 /* Ensure dropdown is above other content */
 [data-radix-popper-content-wrapper] {
   z-index: 50;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+ }
+  body {
+    @apply bg-background text-foreground;
+ }
 }

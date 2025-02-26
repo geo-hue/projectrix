@@ -53,44 +53,44 @@ const FeatureSlider = () => {
 
   return (
     <motion.div 
-      className="feature-slider md:grid md:grid-cols-3 md:gap-8 max-w-5xl mx-auto mt-20"
+      className="feature-slider max-w-5xl mx-auto mt-20"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
     >
-      {/* Mobile Slider */}
-      <div className="md:hidden w-full">
+      {/* Mobile and Tablet Slider */}
+      <div className="lg:hidden w-full">
         <div 
           ref={scrollRef}
           className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4"
           style={{ 
             scrollBehavior: 'smooth',
-            overflowY: 'hidden' // Prevent vertical scrolling
+            overflowY: 'hidden'
           }}
         >
           {features.map((feature, index) => (
             <div 
               key={index}
               data-index={index}
-              className="group relative flex-none w-[85vw] snap-center h-full"
+              className="group relative flex-none w-[85vw] sm:w-[45vw] md:w-[40vw] snap-center h-full"
             >
               {/* Background shadow element */}
               <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-2 translate-y-2 rounded-lg transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
               
               {/* Main card content */}
-              <div className="relative flex flex-col items-center text-center p-8 rounded-lg bg-white dark:bg-black border border-black dark:border-white transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 h-full">
-                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 transform transition-transform duration-300 group-hover:scale-110">
+              <div className="relative flex flex-col items-center text-center p-6 sm:p-8 rounded-lg bg-white dark:bg-black border border-black dark:border-white transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 h-full">
+                <div className="h-12 sm:h-14 w-12 sm:w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 transform transition-transform duration-300 group-hover:scale-110">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">{feature.title}</h3>
+                <p className="text-sm sm:text-base text-muted-foreground">{feature.description}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Scroll Indicators */}
-        <div className="flex justify-center gap-2 mt-4 md:hidden">
+        <div className="flex justify-center gap-2 mt-4 lg:hidden">
           {features.map((_, index) => (
             <button
               key={index}
@@ -109,21 +109,23 @@ const FeatureSlider = () => {
       </div>
 
       {/* Desktop Grid */}
-      {features.map((feature, index) => (
-        <div key={index} className="group relative hidden md:block">
-          {/* Background shadow element */}
-          <div className="absolute inset-0 bg-black dark:bg-white translate-x-2 translate-y-2 rounded-lg transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
-          
-          {/* Main card content */}
-          <div className="relative flex flex-col items-center text-center p-8 rounded-lg bg-white dark:bg-black border border-black dark:border-white transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 transform transition-transform duration-300 group-hover:scale-110">
-              {feature.icon}
+      <div className="hidden lg:grid grid-cols-3 gap-8">
+        {features.map((feature, index) => (
+          <div key={index} className="group relative">
+            {/* Background shadow element */}
+            <div className="absolute inset-0 bg-black dark:bg-white translate-x-2 translate-y-2 rounded-lg transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+            
+            {/* Main card content */}
+            <div className="relative flex flex-col items-center text-center p-8 rounded-lg bg-white dark:bg-black border border-black dark:border-white transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
+              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 transform transition-transform duration-300 group-hover:scale-110">
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+              <p className="text-muted-foreground">{feature.description}</p>
             </div>
-            <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-            <p className="text-muted-foreground">{feature.description}</p>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </motion.div>
   );
 };

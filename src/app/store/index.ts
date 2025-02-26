@@ -3,9 +3,9 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storageSystem from 'redux-persist/lib/storage';
 import userReducer from './features/userSlice';
-import generateReducer from './features/generateSlice';
+import { apiSlice } from '../api/apiSlice';
 
-// Create a custom storage object
+// Create a custom storage object for SSR
 const createNoopStorage = () => {
   return {
     getItem(_key: string) {
@@ -27,28 +27,20 @@ const customStorage = typeof window !== 'undefined'
 const persistConfig = {
   key: 'root',
   storage: customStorage,
-  whitelist: ['user', 'generate']
+  whitelist: ['user']
 };
 
 const persistedUserReducer = persistReducer(persistConfig, userReducer);
-const persistedGenerateReducer = persistReducer(
-  {
-    ...persistConfig,
-    key: 'generate',
-    whitelist: ['projects', 'currentProject']
-  }, 
-  generateReducer
-);
 
 export const store = configureStore({
   reducer: {
     user: persistedUserReducer,
-    generate: persistedGenerateReducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }),
+    }).concat(apiSlice.middleware),
 });
 
 export const persistor = persistStore(store);

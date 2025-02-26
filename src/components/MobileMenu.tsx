@@ -7,13 +7,14 @@ import { X, Github, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserData } from '@/app/context/AuthContext';
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   isAuthenticated: boolean;
   currentPath: string;
-  user: any;
+  user: UserData | null; 
   loading: boolean;
   onLogin: () => void;
   onLogout: () => void;

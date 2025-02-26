@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Menu, Github, LogOut, Users, User } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/app/hooks/useAuth';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,13 +17,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from '@/app/context/AuthContext';
 
 const Header = () => {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Use the new auth context
   const { user, loading, login, logout } = useAuth();
-  const router = useRouter()
+  const router = useRouter();
   
   React.useEffect(() => {
     const handleScroll = () => {
@@ -70,7 +72,7 @@ const Header = () => {
   ];
 
   const headerClasses = cn(
-    "sticky top-0 z-40 w-full",
+    "fixed top-0 z-50 w-full",
     "transition-all duration-200",
     "border-b border-border/40",
     isScrolled 
@@ -79,10 +81,27 @@ const Header = () => {
     "supports-[backdrop-filter]:bg-background/60"
   );
 
+  // Handle login click
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  // Handle logout click
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <>
-            <header className={headerClasses}>
+      <header className={headerClasses}>
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
@@ -124,57 +143,57 @@ const Header = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent 
-  className="w-64 bg-white dark:bg-black border border-black/10 dark:border-white/10 shadow-lg rounded-xl overflow-hidden p-2"
-  align="end" 
-  forceMount
->
-  <DropdownMenuLabel className="pb-2 border-b border-black/10 dark:border-white/10">
-    <div className="flex items-center space-x-4">
-      <Avatar className="h-12 w-12 border-2 border-black/10 dark:border-white/10">
-        <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
-        <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200">
-          {user.name.charAt(0)}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex flex-col">
-        <p className="text-sm font-semibold">{user.name}</p>
-        <p className="text-xs text-muted-foreground">@{user.username}</p>
-      </div>
-    </div>
-  </DropdownMenuLabel>
-  
-  <div className="py-2">
-    <DropdownMenuItem 
-      onClick={() => router.push('/profile')}
-      className="cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 rounded-md transition-colors duration-200 ease-in-out focus:bg-black/5 dark:focus:bg-white/10"
-    >
-      <User className="mr-2 h-4 w-4 text-muted-foreground" />
-      <span>Profile</span>
-    </DropdownMenuItem>
-    
-    <DropdownMenuItem 
-      onClick={() => router.push('/collaborations')}
-      className="cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 rounded-md transition-colors duration-200 ease-in-out focus:bg-black/5 dark:focus:bg-white/10"
-    >
-      <Users className="mr-2 h-4 w-4 text-muted-foreground" />
-      <span>My Collaborations</span>
-    </DropdownMenuItem>
-  </div>
-  
-  <DropdownMenuSeparator className="bg-black/10 dark:bg-white/10" />
-  
-  <DropdownMenuItem 
-    onClick={logout}
-    className="cursor-pointer text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-300 rounded-md transition-colors duration-200 ease-in-out focus:bg-red-50 dark:focus:bg-red-950"
-  >
-    <LogOut className="mr-2 h-4 w-4" />
-    <span>Sign out</span>
-  </DropdownMenuItem>
-</DropdownMenuContent>
+                    className="w-64 bg-white dark:bg-black border border-black/10 dark:border-white/10 shadow-lg rounded-xl overflow-hidden p-2"
+                    align="end" 
+                    forceMount
+                  >
+                    <DropdownMenuLabel className="pb-2 border-b border-black/10 dark:border-white/10">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12 border-2 border-black/10 dark:border-white/10">
+                          <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
+                          <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200">
+                            {user.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <p className="text-sm font-semibold">{user.name}</p>
+                          <p className="text-xs text-muted-foreground">@{user.username}</p>
+                        </div>
+                      </div>
+                    </DropdownMenuLabel>
+                    
+                    <div className="py-2">
+                      <DropdownMenuItem 
+                        onClick={() => router.push('/profile')}
+                        className="cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 rounded-md transition-colors duration-200 ease-in-out focus:bg-black/5 dark:focus:bg-white/10"
+                      >
+                        <User className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem 
+                        onClick={() => router.push('/collaborations')}
+                        className="cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 rounded-md transition-colors duration-200 ease-in-out focus:bg-black/5 dark:focus:bg-white/10"
+                      >
+                        <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <span>My Collaborations</span>
+                      </DropdownMenuItem>
+                    </div>
+                    
+                    <DropdownMenuSeparator className="bg-black/10 dark:bg-white/10" />
+                    
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="cursor-pointer text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-300 rounded-md transition-colors duration-200 ease-in-out focus:bg-red-50 dark:focus:bg-red-950"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
                 <Button 
-                  onClick={login}
+                  onClick={handleLogin}
                   variant="outline" 
                   size="sm"
                   className="relative overflow-hidden group gap-2"
@@ -202,7 +221,7 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - You'll need to update MobileMenu component too */}
       <MobileMenu 
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
@@ -210,11 +229,10 @@ const Header = () => {
         currentPath={pathname}
         user={user}
         loading={loading}
-        onLogin={login}
-        onLogout={logout}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
       />
     </>
   );
-};
-
-export default Header;
+}
+  export default Header;
