@@ -6,12 +6,32 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Code2, Clock, Users, Layers, PlusCircle, X } from 'lucide-react';
+import { Code2, Clock, Users, Layers, PlusCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { TechSelect } from '@/components/TechSelect';
 import { ComplexitySlider } from './ComplexitySlider';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
 import { useSubmitUserProjectMutation } from '@/app/api/projectApiSlice';
+
+// Added CollapsibleSection component
+const CollapsibleSection = ({ title, children, isOpen, toggle }) => {
+  return (
+    <div className="border rounded-md overflow-hidden">
+      <button 
+        onClick={toggle} 
+        className="w-full p-3 text-left flex justify-between items-center bg-muted/30 hover:bg-muted/50 transition-colors"
+      >
+        <span className="font-medium">{title}</span>
+        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </button>
+      {isOpen && (
+        <div className="p-3">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface ProjectData {
   title: string;
@@ -83,6 +103,36 @@ const ProjectSubmission = () => {
   const { isAuthenticated, login } = useAuth();
   const [submitUserProject, { isLoading: isSubmitting }] = useSubmitUserProjectMutation();
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  
+  // Added state for collapsible sections
+  const [expandedSections, setExpandedSections] = useState({
+    features: false,
+    teamStructure: false,
+    learningOutcomes: false,
+    projectDetails: false
+  });
+  const [showAllSections, setShowAllSections] = useState(false);
+
+  // Function to toggle a specific section
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Function to toggle all sections
+  const toggleAllSections = () => {
+    const newValue = !showAllSections;
+    setShowAllSections(newValue);
+    setExpandedSections({
+      features: newValue,
+      teamStructure: newValue,
+      learningOutcomes: newValue,
+      projectDetails: newValue
+    });
+  };
+  
   const [projectData, setProjectData] = useState<ProjectData>({
     title: "",
     subtitle: "",
@@ -203,109 +253,114 @@ const ProjectSubmission = () => {
   };
 
   // Handle form submission
- // Handle form submission
-const handleSubmit = async () => {
-  // Check authentication
-  if (!isAuthenticated) {
-    try {
-      await login();
-      toast.info('Please try submitting your project after logging in');
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Please login to submit a project');
+  const handleSubmit = async () => {
+    // Check authentication
+    if (!isAuthenticated) {
+      try {
+        await login();
+        toast.info('Please try submitting your project after logging in');
+      } catch (error) {
+        console.error('Login error:', error);
+        toast.error('Please login to submit a project');
+      }
+      return;
     }
+
+    // Validate required fields
+    if (!projectData.title) {
+      toast.error('Project title is required');
+      return;
+    }
+
+    if (!projectData.description) {
+      toast.error('Project description is required');
+      return;
+    }
+
+    if (projectData.technologies.length === 0) {
+      toast.error('At least one technology is required');
+      return;
+    }
+
+    if (!projectData.teamSize) {
+      toast.error('Team size in Project Details is required');
+      return;
+    }
+
+    if (!projectData.duration) {
+      toast.error('Project duration in Project Details is required');
+      return;
+    }
+
+    const hasEmptyRoleTitle = projectData.teamStructure.roles.some(role => !role.title.trim());
+  if (hasEmptyRoleTitle) {
+    toast.error('Team roles in Team Structure is required');
     return;
   }
 
-  // Validate required fields
-  if (!projectData.title) {
-    toast.error('Project title is required');
-    return;
-  }
-
-  if (!projectData.description) {
-    toast.error('Project description is required');
-    return;
-  }
-
-  if (projectData.technologies.length === 0) {
-    toast.error('At least one technology is required');
-    return;
-  }
-
-  if (!projectData.teamSize) {
-    toast.error('Team size is required');
-    return;
-  }
-
-  if (!projectData.duration) {
-    toast.error('Project duration is required');
-    return;
-  }
-
-  // Format data for API request
-  // Note: We're sending primitive values, not nested objects
-  const formattedData = {
-    title: projectData.title,
-    subtitle: projectData.subtitle,
-    description: projectData.description,
-    technologies: projectData.technologies,
-    status: projectData.status,
-    teamSize: projectData.teamSize,
-    duration: projectData.duration, 
-    complexity: projectData.complexity, // Send as number
-    features: {
-      core: projectData.features.core.filter(f => f.trim()),
-      additional: projectData.features.additional.filter(f => f.trim())
-    },
-    teamStructure: {
-      roles: projectData.teamStructure.roles.map(role => ({
-        title: role.title,
-        skills: role.skills,
-        responsibilities: role.responsibilities.filter(r => r.trim())
-      }))
-    },
-    learningOutcomes: projectData.learningOutcomes.filter(o => o.trim()),
-    category: 'web' // Default category
-  };
-
-  console.log('Submitting project data:', formattedData);
-
-  try {
-    const result = await submitUserProject(formattedData).unwrap();
-    toast.success('Project submitted successfully');
-    
-    // Reset form
-    setProjectData({
-      title: "",
-      subtitle: "",
-      description: "",
-      technologies: [],
-      status: "",
-      teamSize: "",
-      duration: "",
-      complexity: 50,
+    // Format data for API request
+    // Note: We're sending primitive values, not nested objects
+    const formattedData = {
+      title: projectData.title,
+      subtitle: projectData.subtitle,
+      description: projectData.description,
+      technologies: projectData.technologies,
+      status: projectData.status,
+      teamSize: projectData.teamSize,
+      duration: projectData.duration, 
+      complexity: projectData.complexity, // Send as number
       features: {
-        core: [""],
-        additional: [""]
+        core: projectData.features.core.filter(f => f.trim()),
+        additional: projectData.features.additional.filter(f => f.trim())
       },
       teamStructure: {
-        roles: [
-          {
-            title: "",
-            skills: [],
-            responsibilities: [""]
-          }
-        ]
+        roles: projectData.teamStructure.roles.map(role => ({
+          title: role.title,
+          skills: role.skills,
+          responsibilities: role.responsibilities.filter(r => r.trim())
+        }))
       },
-      learningOutcomes: [""]
-    });
-    setHasStartedTyping(false);
-  } catch (error: any) {
-    console.error('Submit project error:', error);
-    toast.error(error.data?.message || 'Failed to submit project');
-  }
-};
+      learningOutcomes: projectData.learningOutcomes.filter(o => o.trim()),
+      category: 'web' // Default category
+    };
+
+    console.log('Submitting project data:', formattedData);
+
+    try {
+      const result = await submitUserProject(formattedData).unwrap();
+      toast.success('Project submitted successfully');
+      
+      // Reset form
+      setProjectData({
+        title: "",
+        subtitle: "",
+        description: "",
+        technologies: [],
+        status: "",
+        teamSize: "",
+        duration: "",
+        complexity: 50,
+        features: {
+          core: [""],
+          additional: [""]
+        },
+        teamStructure: {
+          roles: [
+            {
+              title: "",
+              skills: [],
+              responsibilities: [""]
+            }
+          ]
+        },
+        learningOutcomes: [""]
+      });
+      setHasStartedTyping(false);
+    } catch (error: any) {
+      console.error('Submit project error:', error);
+      toast.error(error.data?.message || 'Failed to submit project');
+    }
+  };
 
   return (
     <section className="container px-4 mx-auto pt-8 pb-8">
@@ -340,7 +395,7 @@ const handleSubmit = async () => {
                 <CardDescription>Share your project information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Basic Project Information */}
+                {/* Basic Project Information - Always visible */}
                 <div className="space-y-2">
                   <Label>Project Title *</Label>
                   <Input 
@@ -384,238 +439,283 @@ const handleSubmit = async () => {
                   />
                 </div>
 
-                <div className="space-y-4">
-                  <Label>Core Features</Label>
-                  {projectData.features.core.map((feature, index) => (
-                    <div key={`core-${index}`} className="flex items-center gap-2">
-                      <Input 
-                        placeholder="E.g., User authentication"
-                        value={feature}
-                        onChange={(e) => handleFeatureChange(index, e.target.value, 'core')}
-                      />
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        type="button"
-                        onClick={() => removeFeature(index, 'core')}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+               
+                <div className="flex justify-center">
                   <Button 
                     variant="outline" 
-                    size="sm" 
-                    type="button"
-                    onClick={() => addFeature('core')}
-                    className="flex items-center gap-1"
+                    onClick={toggleAllSections}
+                    className="flex items-center gap-1 w-full"
                   >
-                    <PlusCircle className="h-4 w-4" />
-                    Add Core Feature
+                    {showAllSections ? 
+                      <><ChevronUp className="h-4 w-4" /> Hide All Additional Fields</> : 
+                      <><ChevronDown className="h-4 w-4" /> Show All Additional Fields</>
+                    }
                   </Button>
-                </div>
+                </div> 
 
-                <div className="space-y-4">
-                  <Label>Additional Features</Label>
-                  {projectData.features.additional.map((feature, index) => (
-                    <div key={`additional-${index}`} className="flex items-center gap-2">
-                      <Input 
-                        placeholder="E.g., Advanced reporting"
-                        value={feature}
-                        onChange={(e) => handleFeatureChange(index, e.target.value, 'additional')}
-                      />
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        type="button"
-                        onClick={() => removeFeature(index, 'additional')}
+                {/* Collapsible Sections */}
+
+                <CollapsibleSection 
+                  title="Project Details" 
+                  isOpen={expandedSections.projectDetails}
+                  toggle={() => toggleSection('projectDetails')}
+                >
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Project Status</Label>
+                      <Select 
+                        value={projectData.status} 
+                        onValueChange={(value) => handleInputChange('status', value)}
                       >
-                        <X className="h-4 w-4" />
-                      </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="planning">Planning Phase</SelectItem>
+                          <SelectItem value="not-started">Not Started</SelectItem>
+                          <SelectItem value="in-progress">In Progress</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    type="button"
-                    onClick={() => addFeature('additional')}
-                    className="flex items-center gap-1"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    Add Additional Feature
-                  </Button>
-                </div>
 
-                <div className="space-y-4">
-                  <Label>Team Structure</Label>
-                  {projectData.teamStructure.roles.map((role, roleIndex) => (
-                    <div key={`role-${roleIndex}`} className="space-y-3 p-3 border rounded-md">
-                      <div className="flex items-center justify-between">
-                        <Label>Role {roleIndex + 1}</Label>
-                        {projectData.teamStructure.roles.length > 1 && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Team Size</Label>
+                        <Select 
+                          value={projectData.teamSize} 
+                          onValueChange={(value) => handleInputChange('teamSize', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="solo">Solo Project</SelectItem>
+                            <SelectItem value="small">2-3 Members</SelectItem>
+                            <SelectItem value="medium">4-6 Members</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Duration</Label>
+                        <Select 
+                          value={projectData.duration} 
+                          onValueChange={(value) => handleInputChange('duration', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select duration" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="small">1-2 weeks</SelectItem>
+                            <SelectItem value="medium">1-2 months</SelectItem>
+                            <SelectItem value="large">3+ months</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <ComplexitySlider
+                        defaultValue={projectData.complexity}
+                        onChange={(value) => handleInputChange('complexity', value)}
+                      />
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection 
+                  title="Team Structure" 
+                  isOpen={expandedSections.teamStructure}
+                  toggle={() => toggleSection('teamStructure')}
+                >
+                  <div className="space-y-4">
+                    {projectData.teamStructure.roles.map((role, roleIndex) => (
+                      <div key={`role-${roleIndex}`} className="space-y-3 p-3 border rounded-md">
+                        <div className="flex items-center justify-between">
+                          <Label>Role {roleIndex + 1}</Label>
+                          {projectData.teamStructure.roles.length > 1 && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              type="button"
+                              onClick={() => removeRole(roleIndex)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                        
+                        <Input 
+                          placeholder="Role title (e.g., Frontend Developer)"
+                          value={role.title}
+                          onChange={(e) => handleRoleChange(roleIndex, 'title', e.target.value)}
+                        />
+                        
+                        <div className="space-y-2">
+                          <Label className="text-sm">Required Skills</Label>
+                          <TechSelect 
+                            onSelect={(techs) => handleRoleChange(roleIndex, 'skills', techs)}
+                            defaultValue={role.skills}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label className="text-sm">Responsibilities</Label>
+                          {role.responsibilities.map((resp, respIndex) => (
+                            <div key={`resp-${roleIndex}-${respIndex}`} className="flex items-center gap-2">
+                              <Input 
+                                placeholder="E.g., Build responsive UI components"
+                                value={resp}
+                                onChange={(e) => handleResponsibilityChange(roleIndex, respIndex, e.target.value)}
+                              />
+                              {role.responsibilities.length > 1 && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  type="button"
+                                  onClick={() => removeResponsibility(roleIndex, respIndex)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            type="button"
+                            onClick={() => addResponsibility(roleIndex)}
+                            className="flex items-center gap-1"
+                          >
+                            <PlusCircle className="h-4 w-4" />
+                            Add Responsibility
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={addRole}
+                      className="flex items-center gap-1"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      Add Role
+                    </Button>
+                  </div>
+                </CollapsibleSection>
+
+
+                <CollapsibleSection 
+                  title="Features" 
+                  isOpen={expandedSections.features}
+                  toggle={() => toggleSection('features')}
+                >
+                  <div className="space-y-4">
+                    <Label>Core Features</Label>
+                    {projectData.features.core.map((feature, index) => (
+                      <div key={`core-${index}`} className="flex items-center gap-2">
+                        <Input 
+                          placeholder="E.g., User authentication"
+                          value={feature}
+                          onChange={(e) => handleFeatureChange(index, e.target.value, 'core')}
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          type="button"
+                          onClick={() => removeFeature(index, 'core')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={() => addFeature('core')}
+                      className="flex items-center gap-1"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      Add Core Feature
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4 mt-4">
+                    <Label>Additional Features</Label>
+                    {projectData.features.additional.map((feature, index) => (
+                      <div key={`additional-${index}`} className="flex items-center gap-2">
+                        <Input 
+                          placeholder="E.g., Advanced reporting"
+                          value={feature}
+                          onChange={(e) => handleFeatureChange(index, e.target.value, 'additional')}
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          type="button"
+                          onClick={() => removeFeature(index, 'additional')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={() => addFeature('additional')}
+                      className="flex items-center gap-1"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      Add Additional Feature
+                    </Button>
+                  </div>
+                </CollapsibleSection>
+
+                
+
+                <CollapsibleSection 
+                  title="Learning Outcomes" 
+                  isOpen={expandedSections.learningOutcomes}
+                  toggle={() => toggleSection('learningOutcomes')}
+                >
+                  <div className="space-y-4">
+                    {projectData.learningOutcomes.map((outcome, index) => (
+                      <div key={`outcome-${index}`} className="flex items-center gap-2">
+                        <Input 
+                          placeholder="E.g., Understanding of state management"
+                          value={outcome}
+                          onChange={(e) => handleOutcomeChange(index, e.target.value)}
+                        />
+                        {projectData.learningOutcomes.length > 1 && (
                           <Button 
                             variant="ghost" 
                             size="icon"
                             type="button"
-                            onClick={() => removeRole(roleIndex)}
+                            onClick={() => removeOutcome(index)}
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
-                      
-                      <Input 
-                        placeholder="Role title (e.g., Frontend Developer)"
-                        value={role.title}
-                        onChange={(e) => handleRoleChange(roleIndex, 'title', e.target.value)}
-                      />
-                      
-                      <div className="space-y-2">
-                        <Label className="text-sm">Required Skills</Label>
-                        <TechSelect 
-                          onSelect={(techs) => handleRoleChange(roleIndex, 'skills', techs)}
-                          defaultValue={role.skills}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label className="text-sm">Responsibilities</Label>
-                        {role.responsibilities.map((resp, respIndex) => (
-                          <div key={`resp-${roleIndex}-${respIndex}`} className="flex items-center gap-2">
-                            <Input 
-                              placeholder="E.g., Build responsive UI components"
-                              value={resp}
-                              onChange={(e) => handleResponsibilityChange(roleIndex, respIndex, e.target.value)}
-                            />
-                            {role.responsibilities.length > 1 && (
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                type="button"
-                                onClick={() => removeResponsibility(roleIndex, respIndex)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          type="button"
-                          onClick={() => addResponsibility(roleIndex)}
-                          className="flex items-center gap-1"
-                        >
-                          <PlusCircle className="h-4 w-4" />
-                          Add Responsibility
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    type="button"
-                    onClick={addRole}
-                    className="flex items-center gap-1"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    Add Role
-                  </Button>
-                </div>
-
-                <div className="space-y-4">
-                  <Label>Learning Outcomes</Label>
-                  {projectData.learningOutcomes.map((outcome, index) => (
-                    <div key={`outcome-${index}`} className="flex items-center gap-2">
-                      <Input 
-                        placeholder="E.g., Understanding of state management"
-                        value={outcome}
-                        onChange={(e) => handleOutcomeChange(index, e.target.value)}
-                      />
-                      {projectData.learningOutcomes.length > 1 && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          type="button"
-                          onClick={() => removeOutcome(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    type="button"
-                    onClick={addOutcome}
-                    className="flex items-center gap-1"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    Add Learning Outcome
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Project Status</Label>
-                  <Select 
-                    value={projectData.status} 
-                    onValueChange={(value) => handleInputChange('status', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="planning">Planning Phase</SelectItem>
-                      <SelectItem value="not-started">Not Started</SelectItem>
-                      <SelectItem value="in-progress">In Progress</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Team Size</Label>
-                    <Select 
-                      value={projectData.teamSize} 
-                      onValueChange={(value) => handleInputChange('teamSize', value)}
+                    ))}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={addOutcome}
+                      className="flex items-center gap-1"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="solo">Solo Project</SelectItem>
-                        <SelectItem value="small">2-3 Members</SelectItem>
-                        <SelectItem value="medium">4-6 Members</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <PlusCircle className="h-4 w-4" />
+                      Add Learning Outcome
+                    </Button>
                   </div>
+                </CollapsibleSection>
 
-                  <div className="space-y-2">
-                    <Label>Duration</Label>
-                    <Select 
-                      value={projectData.duration} 
-                      onValueChange={(value) => handleInputChange('duration', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select duration" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small">1-2 weeks</SelectItem>
-                        <SelectItem value="medium">1-2 months</SelectItem>
-                        <SelectItem value="large">3+ months</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <ComplexitySlider
-                    defaultValue={projectData.complexity}
-                    onChange={(value) => handleInputChange('complexity', value)}
-                  />
-                </div>
+              
               </CardContent>
               <CardFooter>
                 <Button 

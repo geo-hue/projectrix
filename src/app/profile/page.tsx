@@ -24,15 +24,10 @@ import {
   Settings,
   CheckCircle2,
   ChevronRight,
-  BookOpen,
-  Globe,
-  Twitter,
-  Linkedin,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -45,11 +40,11 @@ import { useAuth } from '../context/AuthContext';
 import { motion } from "framer-motion";
 import TechBackground from '@/components/TechBackground';
 import { TechSelect } from '@/components/TechSelect';
-import { useGetSavedProjectsQuery, useGetProjectsQuery, usePublishProjectMutation } from '../api/projectApiSlice';
+import { useGetSavedProjectsQuery, useGetProjectsQuery, usePublishProjectMutation, useEditProjectMutation } from '../api/projectApiSlice';
 import { Project } from '../types/projectTypes';
 import ProjectDetails from '@/components/ProjectDetails';
-import { useGetUserProfileQuery, useUpdateUserProfileMutation } from '../api/userProfileApiSlice';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import ProjectEditDialog from '@/components/ProjectEditDialog';
+import PublishConfirmationDialog from '@/components/PublishConfirmationDialog';
 
 const ProfileSkeleton = () => (
   <div className="space-y-8">
@@ -72,7 +67,9 @@ const ProfileSkeleton = () => (
   </div>
 );
 
-const ProjectCard = ({ project, onView, onPublish }) => {
+
+
+const ProjectCard = ({ project, onView, onPublish, onEdit }) => {
   const statusColors = {
     draft: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
     published: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
@@ -143,6 +140,18 @@ const ProjectCard = ({ project, onView, onPublish }) => {
             >
               <ArrowRight className="h-3 w-3" /> View
             </Button>
+            {/* Edit button - only show for saved projects */}
+            {project.isSaved && !project.isPublished && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-1 gap-1"
+                onClick={() => onEdit(project)}
+              >
+                <EditIcon className="h-3 w-3" /> Edit
+              </Button>
+            )}
+            {/* Publish button - only show for unpublished projects */}
             {!project.isPublished && (
               <Button 
                 variant="ghost" 
@@ -179,12 +188,15 @@ export default function ProfilePage() {
   const { data: savedProjects, isLoading: savedProjectsLoading } = useGetSavedProjectsQuery();
   const { data: allProjects, isLoading: allProjectsLoading } = useGetProjectsQuery();
   const [publishProject, { isLoading: publishing }] = usePublishProjectMutation();
-  const { data: userProfile, isLoading: profileLoading } = useGetUserProfileQuery();
-const [updateUserProfile, { isLoading: isUpdating }] = useUpdateUserProfileMutation();
+
   
   // Project details modal state
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isProjectDetailsOpen, setIsProjectDetailsOpen] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+const [projectToPublish, setProjectToPublish] = useState(null);
   
   // Tab state
   const [activeTab, setActiveTab] = useState('projects');
@@ -201,90 +213,26 @@ const [updateUserProfile, { isLoading: isUpdating }] = useUpdateUserProfileMutat
   // Check if any data is loading
   const isLoading = savedProjectsLoading || allProjectsLoading;
 
-  const [editableProfile, setEditableProfile] = useState({
-    bio: "",
-    skills: [],
-    website: "",
-    githubProfile: "",
-    twitterProfile: "",
-    linkedinProfile: "",
-    availability: "available",
-    hoursPerWeek: "10-20 hours",
-    preferredTechnologies: [],
-    preferredRoles: [],
-    publicEmail: false
-  });
-
-  
-// Load profile data when available
-useEffect(() => {
-  if (userProfile?.profile) {
-    setEditableProfile({
-      bio: userProfile.profile.bio || "",
-      skills: userProfile.profile.skills || [],
-      website: userProfile.profile.website || "",
-      githubProfile: userProfile.profile.githubProfile || "",
-      twitterProfile: userProfile.profile.twitterProfile || "",
-      linkedinProfile: userProfile.profile.linkedinProfile || "",
-      availability: userProfile.profile.availability || "available",
-      hoursPerWeek: userProfile.profile.hoursPerWeek || "10-20 hours",
-      preferredTechnologies: userProfile.profile.preferredTechnologies || [],
-      preferredRoles: userProfile.profile.preferredRoles || [],
-      publicEmail: userProfile.profile.publicEmail || false
-    });
-    
-    // Also set the tech preferences from profile if available
-    if (userProfile.profile.preferredTechnologies?.length > 0) {
-      setTechPreferences(userProfile.profile.preferredTechnologies);
-    }
-  }
-}, [userProfile]);
-
-// Handle saving profile updates
-const handleSaveProfile = async () => {
-  try {
-    // Prepare the data to update
-    const updateData = {
-      ...editableProfile,
-      // Sync tech preferences to preferred technologies
-      preferredTechnologies: techPreferences
-    };
-    
-    await updateUserProfile(updateData).unwrap();
-    toast.success("Profile updated successfully");
-    setIsEditing(false);
-  } catch (error) {
-    console.error("Failed to update profile:", error);
-    toast.error("Failed to update profile");
-  }
-};
-
-// Toggle edit mode
-const toggleEditMode = () => {
-  if (isEditing) {
-    // If we're exiting edit mode, save changes
-    handleSaveProfile();
-  } else {
-    // Entering edit mode
-    setIsEditing(true);
-  }
-};
-
-// Handle input changes
-const handleProfileChange = (field, value) => {
-  setEditableProfile(prev => ({
-    ...prev,
-    [field]: value
-  }));
-};
-
   // Handle publishing a project
-  const handlePublishProject = async (projectId) => {
+  const handlePublishProject = (projectId) => {
+    const project = [...getDraftProjects(), ...getSavedProjects(), ...getPublishedProjects()]
+      .find(p => p._id === projectId);
+    
+    if (project) {
+      setProjectToPublish(project);
+      setPublishDialogOpen(true);
+    }
+  };
+
+  const confirmPublish = async () => {
     try {
-      await publishProject(projectId).unwrap();
+      await publishProject(projectToPublish._id).unwrap();
       toast.success('Project published successfully!');
+      setPublishDialogOpen(false);
+      setProjectToPublish(null);
     } catch (error) {
       toast.error('Failed to publish project');
+      setPublishDialogOpen(false);
     }
   };
 
@@ -369,6 +317,16 @@ const handleProfileChange = (field, value) => {
     }
   ];
 
+  const handleEditProject = (project) => {
+    setProjectToEdit(project);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setProjectToEdit(null);
+  };
+
   return (
     <PageTransition>
     <main className="min-h-screen bg-background tech-grid-bg relative overflow-hidden">
@@ -441,85 +399,25 @@ const handleProfileChange = (field, value) => {
                           </Badge>
                         </div>
                         
-                       <div className="flex gap-3 mb-2">
-  {isEditing ? (
-    <div className="space-y-2 w-full">
-      <div className="flex items-center gap-2">
-        <Github className="h-3 w-3 text-muted-foreground" />
-        <Input 
-          size="sm"
-          placeholder="GitHub username"
-          value={editableProfile.githubProfile}
-          onChange={(e) => handleProfileChange('githubProfile', e.target.value)}
-          className="h-8 text-xs"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <Globe className="h-3 w-3 text-muted-foreground" />
-        <Input 
-          size="sm"
-          placeholder="Website URL"
-          value={editableProfile.website}
-          onChange={(e) => handleProfileChange('website', e.target.value)}
-          className="h-8 text-xs"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <Twitter className="h-3 w-3 text-muted-foreground" />
-        <Input 
-          size="sm"
-          placeholder="Twitter username"
-          value={editableProfile.twitterProfile}
-          onChange={(e) => handleProfileChange('twitterProfile', e.target.value)}
-          className="h-8 text-xs"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <Linkedin className="h-3 w-3 text-muted-foreground" />
-        <Input
-          size="sm"
-          placeholder="LinkedIn username"
-          value={editableProfile.linkedinProfile}
-          onChange={(e) => handleProfileChange('linkedinProfile', e.target.value)}
-          className="h-8 text-xs"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="publicEmail"
-          checked={editableProfile.publicEmail}
-          onCheckedChange={(checked) => handleProfileChange('publicEmail', checked)}
-        />
-        <label htmlFor="publicEmail" className="text-xs cursor-pointer">
-          Make email public
-        </label>
-      </div>
-    </div>
-  ) : (
-    <>
-      <Button 
-        size="sm"
-        variant="outline" 
-        className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
-        onClick={() => window.open(editableProfile.githubProfile ? `https://github.com/${editableProfile.githubProfile}` : `https://github.com/${user?.username}`)}
-      >
-        <Github className="h-3 w-3" />
-        GitHub
-      </Button>
-      {editableProfile.website && (
-        <Button 
-          size="sm"
-          variant="outline" 
-          className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
-          onClick={() => window.open(editableProfile.website.startsWith('http') ? editableProfile.website : `https://${editableProfile.website}`)}
-        >
-          <Globe className="h-3 w-3" />
-          Website
-        </Button>
-      )}
-    </>
-  )}
-</div>
+                        <div className="flex gap-3 mb-2">
+                          <Button 
+                            size="sm"
+                            variant="outline" 
+                            className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
+                            onClick={() => window.open(`https://github.com/${user?.username}`)}
+                          >
+                            <Github className="h-3 w-3" />
+                            GitHub
+                          </Button>
+                          <Button 
+                            size="sm"
+                            variant="outline" 
+                            className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
+                          >
+                            <LinkIcon className="h-3 w-3" />
+                            Website
+                          </Button>
+                        </div>
 
                         {user?.plan !== "pro" && (
                           <Button 
@@ -535,68 +433,53 @@ const handleProfileChange = (field, value) => {
                       
                       {/* Right column with stats and quick actions */}
                       <div className="md:w-2/3 p-6">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-  <div>
-    <h2 className="text-xl font-semibold flex items-center gap-2">
-      Profile Overview
-      {!isEditing ? (
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          className="h-8 w-8 p-0"
-          onClick={() => setIsEditing(true)}
-        >
-          <EditIcon className="h-3.5 w-3.5" />
-        </Button>
-      ) : (
-        <Button 
-          size="sm" 
-          variant="ghost"
-          className="h-8 p-1 text-xs"
-          onClick={handleSaveProfile}
-          disabled={isUpdating}
-        >
-          {isUpdating ? (
-            <>
-              <Loader2 className="h-3 w-3 animate-spin mr-1" />
-              Saving...
-            </>
-          ) : "Save"}
-        </Button>
-      )}
-    </h2>
-    <p className="text-sm text-muted-foreground">
-      Joined {new Date(user?.createdAt || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}
-    </p>
-  </div>
-  
-  <div className="mt-4 md:mt-0">
-    <Button 
-      className="w-full md:w-auto gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-      onClick={() => router.push('/generate')}
-    >
-      <Sparkles className="h-4 w-4" />
-      Generate New Project
-    </Button>
-  </div>
-</div>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                          <div>
+                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                              Profile Overview
+                              {!isEditing ? (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => setIsEditing(true)}
+                                >
+                                  <EditIcon className="h-3.5 w-3.5" />
+                                </Button>
+                              ) : (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  className="h-8 p-1 text-xs"
+                                  onClick={() => setIsEditing(false)}
+                                >
+                                  Save
+                                </Button>
+                              )}
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                              Joined {new Date(user?.createdAt || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}
+                            </p>
+                          </div>
+                          
+                          <div className="mt-4 md:mt-0">
+                            <Button 
+                              className="w-full md:w-auto gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+                              onClick={() => router.push('/generate')}
+                            >
+                              <Sparkles className="h-4 w-4" />
+                              Generate New Project
+                            </Button>
+                          </div>
+                        </div>
                         
-                       {/* Bio Section */}
-<div className="mb-6">
-  <h3 className="text-sm font-medium mb-2">About</h3>
-  {isEditing ? (
-    <textarea
-      className="w-full min-h-24 p-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-      placeholder="Tell us about yourself..."
-      value={editableProfile.bio}
-      onChange={(e) => handleProfileChange('bio', e.target.value)}
-    />
-  ) : (
-    <p className="text-sm text-muted-foreground">
-      {editableProfile.bio || "Deeveloper passionate about building collaborative projects and learning new technologies. Looking for interesting opportunities to enhance my skills."}
-    </p>
-  )}
-</div>
+                        {/* Bio Section */}
+                        <div className="mb-6">
+                          <h3 className="text-sm font-medium mb-2">About</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {user?.bio || "Full-stack developer passionate about building collaborative projects and learning new technologies. Looking for interesting opportunities to enhance my skills."}
+                          </p>
+                        </div>
                         
                         {/* Skills */}
                         <div className="mb-6">
@@ -798,14 +681,15 @@ const handleProfileChange = (field, value) => {
                           </Card>
                         ) : (
                           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {getSavedProjects().map((project) => (
-                              <ProjectCard 
-                                key={project._id} 
-                                project={project} 
-                                onView={viewProject}
-                                onPublish={handlePublishProject}
-                              />
-                            ))}
+                          {getSavedProjects().map((project) => (
+    <ProjectCard 
+      key={project._id} 
+      project={project} 
+      onView={viewProject}
+      onPublish={handlePublishProject}
+      onEdit={handleEditProject}
+    />
+  ))}
                           </div>
                         )}
                       </TabsContent>
@@ -1025,55 +909,33 @@ const handleProfileChange = (field, value) => {
                   <div className="grid md:grid-cols-2 gap-6">
                     {/* Tech Stack Preferences */}
                     <div className="group relative">
-  <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-  <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-    <CardHeader className="flex flex-row items-start justify-between">
-      <div>
-        <CardTitle>Tech Stack</CardTitle>
-        <CardDescription>Technologies you want to work with</CardDescription>
-      </div>
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="rounded-full"
-        onClick={() => setIsEditing(!isEditing)}
-      >
-        <EditIcon className="h-4 w-4" />
-      </Button>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {techPreferences.map((tech, index) => (
-            <Badge key={index} variant="secondary">{tech}</Badge>
-          ))}
-        </div>
-        {isEditing && (
-          <TechSelect 
-            onSelect={setTechPreferences} 
-            defaultValue={techPreferences} 
-          />
-        )}
-      </div>
-    </CardContent>
-    {isEditing && (
-      <CardFooter>
-        <Button 
-          onClick={handleSaveProfile} 
-          className="w-full"
-          disabled={isUpdating}
-        >
-          {isUpdating ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Saving...
-            </>
-          ) : "Save Preferences"}
-        </Button>
-      </CardFooter>
-    )}
-  </Card>
-</div>
+                      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
+                      <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
+                        <CardHeader className="flex flex-row items-start justify-between">
+                          <div>
+                            <CardTitle>Tech Stack</CardTitle>
+                            <CardDescription>Technologies you want to work with</CardDescription>
+                          </div>
+                          <Button variant="ghost" size="icon" className="rounded-full">
+                            <EditIcon className="h-4 w-4" />
+                          </Button>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="flex flex-wrap gap-2">
+                              {techPreferences.map((tech, index) => (
+                                <Badge key={index} variant="secondary">{tech}</Badge>
+                              ))}
+                            </div>
+                            <TechSelect 
+                              onSelect={setTechPreferences} 
+                              defaultValue={techPreferences} 
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
                     {/* Project Preferences */}
                     <div className="group relative">
                       <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
@@ -1115,87 +977,37 @@ const handleProfileChange = (field, value) => {
 
                     {/* Availability */}
                     <div className="group relative">
-  <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-  <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-    <CardHeader className="flex flex-row items-start justify-between">
-      <div>
-        <CardTitle>Availability</CardTitle>
-        <CardDescription>Your collaboration availability</CardDescription>
-      </div>
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="rounded-full"
-        onClick={() => setIsEditing(!isEditing)}
-      >
-        <EditIcon className="h-4 w-4" />
-      </Button>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-6">
-        <div>
-          <h4 className="text-sm font-medium mb-3">Hours per Week</h4>
-          {isEditing ? (
-            <Select 
-              value={editableProfile.hoursPerWeek} 
-              onValueChange={(value) => handleProfileChange('hoursPerWeek', value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select hours" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1-5 hours">1-5 hours</SelectItem>
-                <SelectItem value="5-10 hours">5-10 hours</SelectItem>
-                <SelectItem value="10-20 hours">10-20 hours</SelectItem>
-                <SelectItem value="20+ hours">20+ hours</SelectItem>
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              <Badge>{editableProfile.hoursPerWeek}</Badge>
-            </div>
-          )}
-        </div>
-        <div>
-          <h4 className="text-sm font-medium mb-3">Status</h4>
-          {isEditing ? (
-            <Select 
-              value={editableProfile.availability} 
-              onValueChange={(value) => handleProfileChange('availability', value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select availability" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="available">Available for Collaboration</SelectItem>
-                <SelectItem value="limited">Limited Availability</SelectItem>
-                <SelectItem value="unavailable">Not Available Currently</SelectItem>
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="flex gap-2">
-              <Badge className={
-                editableProfile.availability === 'available' 
-                  ? "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
-                  : editableProfile.availability === 'limited'
-                    ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20"
-                    : "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
-              }>
-                {editableProfile.availability === 'available' 
-                  ? "Available for Collaboration" 
-                  : editableProfile.availability === 'limited'
-                    ? "Limited Availability"
-                    : "Not Available Currently"
-                }
-              </Badge>
-            </div>
-          )}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-</div>
-
+                      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
+                      <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
+                        <CardHeader className="flex flex-row items-start justify-between">
+                          <div>
+                            <CardTitle>Availability</CardTitle>
+                            <CardDescription>Your collaboration availability</CardDescription>
+                          </div>
+                          <Button variant="ghost" size="icon" className="rounded-full">
+                            <EditIcon className="h-4 w-4" />
+                          </Button>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-6">
+                            <div>
+                              <h4 className="text-sm font-medium mb-3">Hours per Week</h4>
+                              <div className="flex flex-wrap gap-2">
+                                <Badge>10-20 hours</Badge>
+                              </div>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium mb-3">Status</h4>
+                              <div className="flex gap-2">
+                                <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+                                  Available for Collaboration
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
 
                     {/* Communication */}
                     <div className="group relative">
@@ -1245,6 +1057,20 @@ const handleProfileChange = (field, value) => {
         onClose={() => setIsProjectDetailsOpen(false)}
       />
 
+<PublishConfirmationDialog
+      isOpen={publishDialogOpen}
+      onClose={() => setPublishDialogOpen(false)}
+      onConfirm={confirmPublish}
+      projectTitle={projectToPublish?.title || ""}
+    />
+
+{projectToEdit && (
+          <ProjectEditDialog
+            project={projectToEdit}
+            isOpen={isEditDialogOpen}
+            onClose={handleCloseEditDialog}
+          />
+        )}
       <Footer />
     </main>
     </PageTransition>

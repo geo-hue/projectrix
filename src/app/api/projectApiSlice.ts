@@ -104,6 +104,8 @@ export const projectApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: (result, error, id) => [{ type: 'Projects', id }],
     }),
+    
+    // Submit user project
     submitUserProject: builder.mutation<ProjectResponse, any>({
       query: (projectData) => ({
         url: '/submit-project',
@@ -111,6 +113,49 @@ export const projectApiSlice = apiSlice.injectEndpoints({
         body: projectData,
       }),
       invalidatesTags: ['Projects', 'SavedProjects'],
+    }),
+    
+    // Edit project (new)
+    editProject: builder.mutation<ProjectResponse, { projectId: string, projectData: any }>({
+      query: ({ projectId, projectData }) => ({
+        url: `/projects/${projectId}/edit`,
+        method: 'PUT',
+        body: projectData,
+      }),
+      invalidatesTags: ['Projects', 'SavedProjects', 'CurrentProject'],
+      // Optimistic update
+      async onQueryStarted({ projectId }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          
+          // Update projects list
+          dispatch(
+            projectApiSlice.util.updateQueryData('getProjects', undefined, (draft) => {
+              const projectIndex = draft.projects.findIndex(p => p._id === projectId);
+              if (projectIndex !== -1) {
+                draft.projects[projectIndex] = data.project;
+              }
+            })
+          );
+          
+          // Update saved projects list
+          dispatch(
+            projectApiSlice.util.updateQueryData('getSavedProjects', undefined, (draft) => {
+              const projectIndex = draft.projects.findIndex(p => p._id === projectId);
+              if (projectIndex !== -1) {
+                draft.projects[projectIndex] = data.project;
+              }
+            })
+          );
+
+          // Update current project if it's the same
+          dispatch(
+            projectApiSlice.util.updateQueryData('getProject', projectId, () => {
+              return { success: true, project: data.project };
+            })
+          );
+        } catch {}
+      },
     }),
   }),
 });
@@ -124,5 +169,6 @@ export const {
   useStartProjectMutation,
   usePublishProjectMutation,
   useGetProjectQuery,
-  useSubmitUserProjectMutation
+  useSubmitUserProjectMutation,
+  useEditProjectMutation  
 } = projectApiSlice;
