@@ -2,12 +2,35 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react';
 
+// Define types for user and profile
+interface User {
+  avatar?: string;
+}
+
+interface Profile {
+  bio?: string;
+  skills?: any;
+  website?: string;
+  githubProfile?: string;
+  twitterProfile?: string;
+  linkedinProfile?: string;
+  availability?: string;
+  hoursPerWeek?: number;
+  preferredTechnologies?: any;
+  preferredRoles?: any;
+}
+
+// Result of profile completion calculation
+interface ProfileCompletionResult {
+  percentage: number;
+  missingFields: string[];
+}
+
 // This calculates profile completion percentage based on fields filled out
-const calculateProfileCompletion = (user, profile) => {
+const calculateProfileCompletion = (user: User, profile: Profile): ProfileCompletionResult => {
   if (!user || !profile) return { percentage: 0, missingFields: [] };
   
   const fields = [
@@ -34,7 +57,18 @@ const calculateProfileCompletion = (user, profile) => {
   return { percentage, missingFields };
 };
 
-const ProfileCompletionCard = ({ user, profile, onStartEdit }) => {
+interface ProfileCompletionCardProps {
+  user: User;
+  profile: Profile;
+  onStartEdit: () => void;
+}
+
+
+const ProfileCompletionCard = ({ 
+  user, 
+  profile, 
+  onStartEdit 
+}: ProfileCompletionCardProps) => {
   const { percentage, missingFields } = calculateProfileCompletion(user, profile);
   
   // Determine status message and color based on completion percentage
@@ -72,12 +106,27 @@ const ProfileCompletionCard = ({ user, profile, onStartEdit }) => {
         </CardHeader>
         
         <CardContent>
-          <div className="mb-4">
+          <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium">{percentage}% complete</span>
-              <span className={`text-sm font-medium ${statusColor}`}>{statusMessage}</span>
+              <span className={`text-sm font-medium animate-bounce ${statusColor}`}>{statusMessage} </span>
             </div>
-            <Progress value={percentage} className="h-2" />
+            
+            {/* Enhanced progress indicator */}
+            <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-1">
+              <div 
+                className={`h-full bg-blue-500 rounded-full transition-all duration-500 ease-out`}
+                style={{ width: `${percentage}%` }}
+              ></div>
+            </div>
+            
+            {/* Milestone markers */}
+            <div className="flex justify-between w-full px-0.5 text-xs text-gray-500">
+              <div className={`${percentage >= 25 ? statusColor : ''}`}>25%</div>
+              <div className={`${percentage >= 50 ? statusColor : ''}`}>50%</div>
+              <div className={`${percentage >= 75 ? statusColor : ''}`}>75%</div>
+              <div className={`${percentage >= 100 ? statusColor : ''}`}>100%</div>
+            </div>
           </div>
           
           {missingFields.length > 0 && (
