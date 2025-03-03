@@ -36,6 +36,7 @@ const MobileMenu = ({
     { path: '/pricing', label: 'Pricing' },
     { path: '/about', label: 'About' },
     ...(isAuthenticated ? [
+      { path: '/feedback', label:'Feedback'},
       { path: '/collaborations', label: 'My Collaborations' },
       { path: '/profile', label: 'Profile' }
     ] : [])

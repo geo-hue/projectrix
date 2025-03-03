@@ -19,6 +19,7 @@ export type UserData = {
   projectIdeasLeft?: number;
   projectsGenerated?: number;
   createdAt?: string;
+  role?: string;
 };
 
 // Define context type

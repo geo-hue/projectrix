@@ -66,6 +66,7 @@ const Header = () => {
     { path: '/pricing', label: 'Pricing' },
     { path: '/about', label: 'About' },
     ...(user ? [
+      { path: '/feedback', label: 'Feedback' },
       { path: '/collaborations', label: 'My Collaborations' },
       { path: '/profile', label: 'Profile' }
     ] : [])

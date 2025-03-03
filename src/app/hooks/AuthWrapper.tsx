@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 // Public routes that don't require authentication
-const publicRoutes = ['/', '/about', '/pricing', '/ideas', '/generate'];
+const publicRoutes = ['/', '/about', '/pricing', '/ideas', '/generate',];
 
 interface AuthWrapperProps {
   children: React.ReactNode;
