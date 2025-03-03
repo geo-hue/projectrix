@@ -24,7 +24,9 @@ import {
   Settings,
   CheckCircle2,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  Save,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,12 +41,15 @@ import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { motion } from "framer-motion";
 import TechBackground from '@/components/TechBackground';
-import { TechSelect } from '@/components/TechSelect';
-import { useGetSavedProjectsQuery, useGetProjectsQuery, usePublishProjectMutation, useEditProjectMutation } from '../api/projectApiSlice';
+import { useGetSavedProjectsQuery, useGetProjectsQuery, usePublishProjectMutation } from '../api/projectApiSlice';
 import { Project } from '../types/projectTypes';
 import ProjectDetails from '@/components/ProjectDetails';
 import ProjectEditDialog from '@/components/ProjectEditDialog';
 import PublishConfirmationDialog from '@/components/PublishConfirmationDialog';
+import ProfileCompletionCard from '@/components/ProfileCompletionCard';
+import ProfileEditForm from '@/components/ProfileEditForm';
+import { useGetUserProfileQuery, useUpdateUserProfileMutation } from '../api/userProfileApiSlice';
+import MyFeedback from '@/components/MyFeedback';
 
 const ProfileSkeleton = () => (
   <div className="space-y-8">
@@ -66,8 +71,6 @@ const ProfileSkeleton = () => (
     </div>
   </div>
 );
-
-
 
 const ProjectCard = ({ project, onView, onPublish, onEdit }) => {
   const statusColors = {
@@ -187,8 +190,8 @@ export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth();
   const { data: savedProjects, isLoading: savedProjectsLoading } = useGetSavedProjectsQuery();
   const { data: allProjects, isLoading: allProjectsLoading } = useGetProjectsQuery();
+  const { data: userProfileData, isLoading: userProfileLoading, refetch: refetchUserProfile } = useGetUserProfileQuery();
   const [publishProject, { isLoading: publishing }] = usePublishProjectMutation();
-
   
   // Project details modal state
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -196,22 +199,17 @@ export default function ProfilePage() {
   const [projectToEdit, setProjectToEdit] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
-const [projectToPublish, setProjectToPublish] = useState(null);
+  const [projectToPublish, setProjectToPublish] = useState(null);
   
   // Tab state
   const [activeTab, setActiveTab] = useState('projects');
   const [activeProjectsTab, setActiveProjectsTab] = useState('saved');
   
-  // State for tech stack preferences
-  const [techPreferences, setTechPreferences] = useState([
-    'React', 'TypeScript', 'Node.js', 'MongoDB', 'Next.js'
-  ]);
-
-  // State for editing mode (for future functionality)
+  // Profile editing state
   const [isEditing, setIsEditing] = useState(false);
   
   // Check if any data is loading
-  const isLoading = savedProjectsLoading || allProjectsLoading;
+  const isLoading = savedProjectsLoading || allProjectsLoading || userProfileLoading;
 
   // Handle publishing a project
   const handlePublishProject = (projectId) => {
@@ -252,7 +250,6 @@ const [projectToPublish, setProjectToPublish] = useState(null);
     return allProjects.projects.filter(p => p.isPublished);
   };
 
-  // Redirect if not authenticated
   // Redirect if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -326,6 +323,12 @@ const [projectToPublish, setProjectToPublish] = useState(null);
     setIsEditDialogOpen(false);
     setProjectToEdit(null);
   };
+  
+  const handleEditProfileSuccess = () => {
+    setIsEditing(false);
+    refetchUserProfile();
+    toast.success('Profile updated successfully!');
+  };
 
   return (
     <PageTransition>
@@ -352,21 +355,28 @@ const [projectToPublish, setProjectToPublish] = useState(null);
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="group relative">
-                <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-2 translate-y-2 rounded-xl transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
-                
-                <Card className="relative overflow-hidden bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 rounded-xl">
-                  {/* Add decorative blue gradients */}
-                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-600/10 to-blue-400/10 dark:from-blue-700/10 dark:to-blue-400/10 rounded-full blur-2xl"></div>
-                    <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-tr from-blue-400/10 to-blue-600/10 dark:from-blue-400/10 dark:to-blue-700/10 rounded-full blur-2xl"></div>
-                  </div>
-                  <CardContent className="p-0">
-                    <div className="md:flex">
-                      {/* Left column with profile image and basic info */}
-                      <div className="md:w-1/3 bg-gradient-to-br from-primary/5 to-primary/10 p-6 flex flex-col items-center justify-center">
-                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-background shadow-xl overflow-hidden mb-4">
-                                                      {user?.avatar ? (
+              {isEditing ? (
+                <ProfileEditForm 
+                  profile={userProfileData?.profile} 
+                  onCancel={() => setIsEditing(false)} 
+                  onSuccess={handleEditProfileSuccess} 
+                />
+              ) : (
+                <div className="group relative">
+                  <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-2 translate-y-2 rounded-xl transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+                  
+                  <Card className="relative overflow-hidden bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 rounded-xl">
+                    {/* Add decorative blue gradients */}
+                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                      <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-600/10 to-blue-400/10 dark:from-blue-700/10 dark:to-blue-400/10 rounded-full blur-2xl"></div>
+                      <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-tr from-blue-400/10 to-blue-600/10 dark:from-blue-400/10 dark:to-blue-700/10 rounded-full blur-2xl"></div>
+                    </div>
+                    <CardContent className="p-0">
+                      <div className="md:flex">
+                        {/* Left column with profile image and basic info */}
+                        <div className="md:w-1/3 bg-gradient-to-br from-primary/5 to-primary/10 p-6 flex flex-col items-center justify-center">
+                          <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-background shadow-xl overflow-hidden mb-4">
+                            {user?.avatar ? (
                               <img 
                                 src={user.avatar}
                                 alt={`${user.name}'s profile`}
@@ -382,62 +392,66 @@ const [projectToPublish, setProjectToPublish] = useState(null);
                                 <span className="text-4xl font-bold">{user?.name?.charAt(0) || "U"}</span>
                               </div>
                             )}
-                        </div>
-                        
-                        <h1 className="text-2xl md:text-3xl font-bold text-center mb-1">{user?.name || "GitHub User"}</h1>
-                        <p className="text-muted-foreground text-center mb-4">@{user?.username || "username"}</p>
-                        
-                        <div className="flex flex-wrap justify-center gap-2 mb-6">
-                          <Badge variant="secondary" className="gap-1">
-                            <Clock className="h-3 w-3" /> Available
-                          </Badge>
-                          <Badge 
-                            variant={user?.plan === "pro" ? "default" : "outline"} 
-                            className={`gap-1 ${user?.plan === "pro" ? 'bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 text-white' : ''}`}
-                          >
-                            {user?.plan === "pro" ? "Pro Plan" : "Free Plan"}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex gap-3 mb-2">
-                          <Button 
-                            size="sm"
-                            variant="outline" 
-                            className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
-                            onClick={() => window.open(`https://github.com/${user?.username}`)}
-                          >
-                            <Github className="h-3 w-3" />
-                            GitHub
-                          </Button>
-                          <Button 
-                            size="sm"
-                            variant="outline" 
-                            className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
-                          >
-                            <LinkIcon className="h-3 w-3" />
-                            Website
-                          </Button>
-                        </div>
+                          </div>
+                          
+                          <h1 className="text-2xl md:text-3xl font-bold text-center mb-1">{user?.name || "GitHub User"}</h1>
+                          <p className="text-muted-foreground text-center mb-4">@{user?.username || "username"}</p>
+                          
+                          <div className="flex flex-wrap justify-center gap-2 mb-6">
+                            <Badge variant="secondary" className="gap-1">
+                              <Clock className="h-3 w-3" /> {userProfileData?.profile?.availability || "Available"}
+                            </Badge>
+                            <Badge 
+                              variant={user?.plan === "pro" ? "default" : "outline"} 
+                              className={`gap-1 ${user?.plan === "pro" ? 'bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 text-white' : ''}`}
+                            >
+                              {user?.plan === "pro" ? "Pro Plan" : "Free Plan"}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex gap-3 mb-2">
+                            {userProfileData?.profile?.githubProfile && (
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
+                                onClick={() => window.open(userProfileData.profile.githubProfile)}
+                              >
+                                <Github className="h-3 w-3" />
+                                GitHub
+                              </Button>
+                            )}
+                            {userProfileData?.profile?.website && (
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
+                                onClick={() => window.open(userProfileData.profile.website)}
+                              >
+                                <Globe className="h-3 w-3" />
+                                Website
+                              </Button>
+                            )}
+                          </div>
 
-                        {user?.plan !== "pro" && (
-                          <Button 
-                            size="sm"
-                            className="mt-4 gap-1 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_2px_0_0_rgba(0,0,0,1)] dark:shadow-[0_2px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                            onClick={() => router.push('/pricing')}
-                          >
-                            <Sparkles className="h-3 w-3" />
-                            Upgrade to Pro
-                          </Button>
-                        )}
-                      </div>
-                      
-                      {/* Right column with stats and quick actions */}
-                      <div className="md:w-2/3 p-6">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-                          <div>
-                            <h2 className="text-xl font-semibold flex items-center gap-2">
-                              Profile Overview
-                              {!isEditing ? (
+                          {user?.plan !== "pro" && (
+                            <Button 
+                              size="sm"
+                              className="mt-4 gap-1 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_2px_0_0_rgba(0,0,0,1)] dark:shadow-[0_2px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+                              onClick={() => router.push('/pricing')}
+                            >
+                              <Sparkles className="h-3 w-3" />
+                              Upgrade to Pro
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {/* Right column with stats and quick actions */}
+                        <div className="md:w-2/3 p-6">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                            <div>
+                              <h2 className="text-xl font-semibold flex items-center gap-2">
+                                Profile Overview
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
@@ -446,86 +460,106 @@ const [projectToPublish, setProjectToPublish] = useState(null);
                                 >
                                   <EditIcon className="h-3.5 w-3.5" />
                                 </Button>
-                              ) : (
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  className="h-8 p-1 text-xs"
-                                  onClick={() => setIsEditing(false)}
-                                >
-                                  Save
-                                </Button>
-                              )}
-                            </h2>
+                              </h2>
+                              <p className="text-sm text-muted-foreground">
+                                Joined {new Date(user?.createdAt || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}
+                              </p>
+                            </div>
+                            
+                            <div className="mt-4 md:mt-0">
+                              <Button 
+                                className="w-full md:w-auto gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+                                onClick={() => router.push('/generate')}
+                              >
+                                <Sparkles className="h-4 w-4" />
+                                Generate New Project
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Bio Section */}
+                          <div className="mb-6">
+                            <h3 className="text-sm font-medium mb-2">About</h3>
                             <p className="text-sm text-muted-foreground">
-                              Joined {new Date(user?.createdAt || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}
+                              {userProfileData?.profile?.bio || "Tell others about yourself by editing your profile."}
                             </p>
                           </div>
                           
-                          <div className="mt-4 md:mt-0">
-                            <Button 
-                              className="w-full md:w-auto gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                              onClick={() => router.push('/generate')}
-                            >
-                              <Sparkles className="h-4 w-4" />
-                              Generate New Project
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {/* Bio Section */}
-                        <div className="mb-6">
-                          <h3 className="text-sm font-medium mb-2">About</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {user?.bio || "Full-stack developer passionate about building collaborative projects and learning new technologies. Looking for interesting opportunities to enhance my skills."}
-                          </p>
-                        </div>
-                        
-                        {/* Skills */}
-                        <div className="mb-6">
-                          <h3 className="text-sm font-medium mb-2">Skills</h3>
-                          <div className="flex flex-wrap gap-1.5">
-                            {techPreferences.map((tech, index) => (
-                              <Badge key={index} variant="secondary">{tech}</Badge>
-                            ))}
-                            <Button variant="outline" size="sm" className="h-6 gap-1 text-xs">
-                              <Plus className="h-3 w-3" /> Edit
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="bg-black/5 dark:bg-white/5 rounded-lg p-3">
-                            <p className="text-xs text-muted-foreground">Projects Generated</p>
-                            <p className="text-2xl font-bold">{user?.projectsGenerated || 0}</p>
-                          </div>
-                          <div className="bg-black/5 dark:bg-white/5 rounded-lg p-3">
-                            <p className="text-xs text-muted-foreground">Active Collaborations</p>
-                            <p className="text-2xl font-bold">{user?.projectsCollaborated || 0}</p>
-                          </div>
-                          <div className="bg-black/5 dark:bg-white/5 rounded-lg p-3">
-                            <p className="text-xs text-muted-foreground">Published Projects</p>
-                            <p className="text-2xl font-bold">{getPublishedProjects().length}</p>
-                          </div>
-                          <div className="bg-primary/10 rounded-lg p-3 relative overflow-hidden">
-                            <div className="relative z-10">
-                              <p className="text-xs text-muted-foreground">Project Ideas Left</p>
-                              <p className="text-2xl font-bold">{user?.projectIdeasLeft || 0}</p>
+                          {/* Skills */}
+                          <div className="mb-6">
+                            <h3 className="text-sm font-medium mb-2">Skills</h3>
+                            <div className="flex flex-wrap gap-1.5">
+                              {userProfileData?.profile?.skills && userProfileData.profile.skills.length > 0 ? (
+                                userProfileData.profile.skills.map((skill, index) => (
+                                  <Badge key={index} variant="secondary">{skill}</Badge>
+                                ))
+                              ) : (
+                                <p className="text-sm text-muted-foreground">Add your skills by editing your profile.</p>
+                              )}
                             </div>
-                            {user?.plan !== "pro" && (
-                              <div className="absolute bottom-1 right-2">
-                                <Sparkles className="h-8 w-8 text-primary/20" />
+                          </div>
+                          
+                          {/* Preferred Technologies */}
+                          {userProfileData?.profile?.preferredTechnologies && userProfileData.profile.preferredTechnologies.length > 0 && (
+                            <div className="mb-6">
+                              <h3 className="text-sm font-medium mb-2">Preferred Technologies</h3>
+                              <div className="flex flex-wrap gap-1.5">
+                                {userProfileData.profile.preferredTechnologies.map((tech, index) => (
+                                  <Badge key={index} variant="outline">{tech}</Badge>
+                                ))}
                               </div>
-                            )}
+                            </div>
+                          )}
+                          
+                          {/* Stats Grid */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-black/5 dark:bg-white/5 rounded-lg p-3">
+                              <p className="text-xs text-muted-foreground">Projects Generated</p>
+                              <p className="text-2xl font-bold">{user?.projectsGenerated || 0}</p>
+                            </div>
+                            <div className="bg-black/5 dark:bg-white/5 rounded-lg p-3">
+                              <p className="text-xs text-muted-foreground">Active Collaborations</p>
+                              <p className="text-2xl font-bold">{user?.projectsCollaborated || 0}</p>
+                            </div>
+                            <div className="bg-black/5 dark:bg-white/5 rounded-lg p-3">
+                              <p className="text-xs text-muted-foreground">Published Projects</p>
+                              <p className="text-2xl font-bold">{getPublishedProjects().length}</p>
+                            </div>
+                            <div className="bg-primary/10 rounded-lg p-3 relative overflow-hidden">
+                              <div className="relative z-10">
+                                <p className="text-xs text-muted-foreground">Project Ideas Left</p>
+                                <p className="text-2xl font-bold">{user?.projectIdeasLeft || 0}</p>
+                              </div>
+                              {user?.plan !== "pro" && (
+                                <div className="absolute bottom-1 right-2">
+                                  <Sparkles className="h-8 w-8 text-primary/20" />
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </motion.div>
+
+            {/* Profile Completion Card */}
+            {!isEditing && (
+              <motion.div
+                className="mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <ProfileCompletionCard 
+                  user={user} 
+                  profile={userProfileData?.profile}
+                  onStartEdit={() => setIsEditing(true)}
+                />
+              </motion.div>
+            )}
 
             {/* Main Content Tabs */}
             <motion.div
@@ -552,9 +586,9 @@ const [projectToPublish, setProjectToPublish] = useState(null);
                     <Users className="h-4 w-4 mr-2" />
                     Collaborations
                   </TabsTrigger>
-                  <TabsTrigger value="preferences" className="py-2.5">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Preferences
+                  <TabsTrigger value="feedback" className="py-2.5">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    My Feedback
                   </TabsTrigger>
                 </TabsList>
 
@@ -628,17 +662,14 @@ const [projectToPublish, setProjectToPublish] = useState(null);
                                 project={project} 
                                 onView={viewProject}
                                 onPublish={handlePublishProject}
+                                onEdit={handleEditProject}
                               />
                             ))}
                             <div className="group relative">
-                      {/* Blue gradient background with opposite orientation */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400/15 to-blue-600/15 dark:from-blue-400/15 dark:to-blue-700/15 rounded-lg transform -rotate-2 transition-transform duration-300 group-hover:-rotate-1"></div>
-                      {/* Blue gradient background effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/15 to-blue-400/15 dark:from-blue-700/15 dark:to-blue-400/15 rounded-lg transform rotate-2 transition-transform duration-300 group-hover:rotate-1"></div>
-                        {/* Add blue rotated gradient background with reverse colors */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-blue-600/20 rounded-lg transform -rotate-3 transition-transform duration-300 group-hover:-rotate-2"></div>
-                  {/* Add blue rotated gradient background like in the Story section */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-3 transition-transform duration-300 group-hover:rotate-2"></div>
+                              {/* Blue gradient background with opposite orientation */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/15 to-blue-600/15 dark:from-blue-400/15 dark:to-blue-700/15 rounded-lg transform -rotate-2 transition-transform duration-300 group-hover:-rotate-1"></div>
+                              {/* Blue gradient background effect */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/15 to-blue-400/15 dark:from-blue-700/15 dark:to-blue-400/15 rounded-lg transform rotate-2 transition-transform duration-300 group-hover:rotate-1"></div>
                               <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
                               <Card 
                                 className="relative border-dashed hover:border-primary/50 cursor-pointer transition-colors group flex flex-col justify-center items-center h-full bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1"
@@ -681,15 +712,15 @@ const [projectToPublish, setProjectToPublish] = useState(null);
                           </Card>
                         ) : (
                           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {getSavedProjects().map((project) => (
-    <ProjectCard 
-      key={project._id} 
-      project={project} 
-      onView={viewProject}
-      onPublish={handlePublishProject}
-      onEdit={handleEditProject}
-    />
-  ))}
+                            {getSavedProjects().map((project) => (
+                              <ProjectCard 
+                                key={project._id} 
+                                project={project} 
+                                onView={viewProject}
+                                onPublish={handlePublishProject}
+                                onEdit={handleEditProject}
+                              />
+                            ))}
                           </div>
                         )}
                       </TabsContent>
@@ -723,6 +754,7 @@ const [projectToPublish, setProjectToPublish] = useState(null);
                                 project={project} 
                                 onView={viewProject}
                                 onPublish={handlePublishProject}
+                                onEdit={handleEditProject}
                               />
                             ))}
                           </div>
@@ -904,145 +936,9 @@ const [projectToPublish, setProjectToPublish] = useState(null);
                   </div>
                 </TabsContent>
 
-                {/* Preferences Tab */}
-                <TabsContent value="preferences">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Tech Stack Preferences */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                      <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                        <CardHeader className="flex flex-row items-start justify-between">
-                          <div>
-                            <CardTitle>Tech Stack</CardTitle>
-                            <CardDescription>Technologies you want to work with</CardDescription>
-                          </div>
-                          <Button variant="ghost" size="icon" className="rounded-full">
-                            <EditIcon className="h-4 w-4" />
-                          </Button>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div className="flex flex-wrap gap-2">
-                              {techPreferences.map((tech, index) => (
-                                <Badge key={index} variant="secondary">{tech}</Badge>
-                              ))}
-                            </div>
-                            <TechSelect 
-                              onSelect={setTechPreferences} 
-                              defaultValue={techPreferences} 
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Project Preferences */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                      <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                        <CardHeader className="flex flex-row items-start justify-between">
-                          <div>
-                            <CardTitle>Project Preferences</CardTitle>
-                            <CardDescription>Your ideal project settings</CardDescription>
-                          </div>
-                          <Button variant="ghost" size="icon" className="rounded-full">
-                            <EditIcon className="h-4 w-4" />
-                          </Button>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-6">
-                            <div>
-                              <h4 className="text-sm font-medium mb-3">Complexity Level</h4>
-                              <div className="flex flex-wrap gap-2">
-                                <Badge>Intermediate</Badge>
-                                <Badge>Advanced</Badge>
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium mb-3">Project Duration</h4>
-                              <div className="flex flex-wrap gap-2">
-                                <Badge>1-3 months</Badge>
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium mb-3">Team Size</h4>
-                              <div className="flex flex-wrap gap-2">
-                                <Badge>2-4 members</Badge>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Availability */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                      <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                        <CardHeader className="flex flex-row items-start justify-between">
-                          <div>
-                            <CardTitle>Availability</CardTitle>
-                            <CardDescription>Your collaboration availability</CardDescription>
-                          </div>
-                          <Button variant="ghost" size="icon" className="rounded-full">
-                            <EditIcon className="h-4 w-4" />
-                          </Button>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-6">
-                            <div>
-                              <h4 className="text-sm font-medium mb-3">Hours per Week</h4>
-                              <div className="flex flex-wrap gap-2">
-                                <Badge>10-20 hours</Badge>
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium mb-3">Status</h4>
-                              <div className="flex gap-2">
-                                <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
-                                  Available for Collaboration
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Communication */}
-                    <div className="group relative">
-                      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                      <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                        <CardHeader className="flex flex-row items-start justify-between">
-                          <div>
-                            <CardTitle>Communication</CardTitle>
-                            <CardDescription>Your contact preferences</CardDescription>
-                          </div>
-                          <Button variant="ghost" size="icon" className="rounded-full">
-                            <EditIcon className="h-4 w-4" />
-                          </Button>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-6">
-                            <div>
-                              <h4 className="text-sm font-medium mb-3">Email</h4>
-                              <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 p-2 rounded-md">
-                                <Mail className="h-4 w-4 text-muted-foreground" />
-                                <span>{user?.email || 'user@example.com'}</span>
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium mb-3">Preferred Platforms</h4>
-                              <div className="flex gap-2">
-                                <Badge>Discord</Badge>
-                                <Badge>GitHub</Badge>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
+                {/* Feedback Tab */}
+                <TabsContent value="feedback">
+                  <MyFeedback />
                 </TabsContent>
               </Tabs>
             </motion.div>
@@ -1057,20 +953,20 @@ const [projectToPublish, setProjectToPublish] = useState(null);
         onClose={() => setIsProjectDetailsOpen(false)}
       />
 
-<PublishConfirmationDialog
-      isOpen={publishDialogOpen}
-      onClose={() => setPublishDialogOpen(false)}
-      onConfirm={confirmPublish}
-      projectTitle={projectToPublish?.title || ""}
-    />
+      <PublishConfirmationDialog
+        isOpen={publishDialogOpen}
+        onClose={() => setPublishDialogOpen(false)}
+        onConfirm={confirmPublish}
+        projectTitle={projectToPublish?.title || ""}
+      />
 
-{projectToEdit && (
-          <ProjectEditDialog
-            project={projectToEdit}
-            isOpen={isEditDialogOpen}
-            onClose={handleCloseEditDialog}
-          />
-        )}
+      {projectToEdit && (
+        <ProjectEditDialog
+          project={projectToEdit}
+          isOpen={isEditDialogOpen}
+          onClose={handleCloseEditDialog}
+        />
+      )}
       <Footer />
     </main>
     </PageTransition>

@@ -16,9 +16,12 @@ const calculateProfileCompletion = (user, profile) => {
     { name: 'Skills', value: profile.skills?.length > 0 },
     { name: 'Website', value: profile.website },
     { name: 'GitHub Profile', value: profile.githubProfile },
+    { name: 'Twitter Profile', value: profile.twitterProfile },
+    { name: 'LinkedIn Profile', value: profile.linkedinProfile },
     { name: 'Availability', value: profile.availability },
     { name: 'Hours Per Week', value: profile.hoursPerWeek },
     { name: 'Preferred Technologies', value: profile.preferredTechnologies?.length > 0 },
+    { name: 'Preferred Roles', value: profile.preferredRoles?.length > 0 },
   ];
   
   const completedFields = fields.filter(field => field.value).length;
