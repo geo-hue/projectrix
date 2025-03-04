@@ -17,7 +17,7 @@ export const collaborationApiSlice = apiSlice.injectEndpoints({
     // Get all requests made by the current user
     getMyCollaborationRequests: builder.query<{ success: boolean; requests: CollaborationRequest[] }, void>({
       query: () => ({
-        url: '/collaboration/my-requests',
+        url: '/my-requests',
         method: 'GET',
       }),
       providesTags: ['MyRequests']
@@ -26,7 +26,7 @@ export const collaborationApiSlice = apiSlice.injectEndpoints({
     // Get all collaboration requests received for projects owned by the current user
     getIncomingCollaborationRequests: builder.query<{ success: boolean; requests: CollaborationRequest[] }, void>({
       query: () => ({
-        url: '/collaboration/incoming-requests',
+        url: '/incoming-requests',
         method: 'GET',
       }),
       providesTags: ['IncomingRequests']
@@ -35,7 +35,7 @@ export const collaborationApiSlice = apiSlice.injectEndpoints({
     // Update the status of a collaboration request (accept/reject)
     updateCollaborationRequestStatus: builder.mutation<UpdateRequestResponse, { requestId: string; status: 'accepted' | 'rejected' }>({
       query: ({ requestId, status }) => ({
-        url: `/collaboration/request/${requestId}`,
+        url: `/request/${requestId}`,
         method: 'PATCH',
         body: { status },
       }),
@@ -45,7 +45,7 @@ export const collaborationApiSlice = apiSlice.injectEndpoints({
     // Get all projects the current user is collaborating on
     getMyCollaborations: builder.query<{ success: boolean; collaborations: any[] }, void>({
       query: () => ({
-        url: '/collaboration/my-collaborations',
+        url: '/my-collaborations',
         method: 'GET',
       }),
       providesTags: ['MyCollaborations']
