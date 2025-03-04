@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/app/context/AuthContext';
 import { toast } from 'sonner';
 import { useSubmitCollaborationRequestMutation } from '@/app/api/collaborationApiSlice';
+import RoleApplication from './RoleApplication';
 
 interface ProjectDetailsModalProps {
   project: any;
@@ -220,69 +221,19 @@ const ProjectDetailsModal = ({ project, isOpen, onClose }: ProjectDetailsModalPr
           </div>
         </div>
 
-        <div className="flex justify-end space-x-4 mt-6 pt-4 border-t border-black/10 dark:border-white/10">
-          {!isApplying ? (
-            <>
-              <Button 
-                variant="outline"
-                className="gap-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5"
-                onClick={handleApply}
-                disabled={!availableRoles.length}
-              >
-                <Star className="h-4 w-4" />
-                {availableRoles.length ? "Apply to Collaborate" : "All Roles Filled"}
-              </Button>
-              <Button 
-                variant="ghost"
-                onClick={onClose}
-              >
-                Close
-              </Button>
-            </>
-          ) : (
-            <div className="w-full space-y-4">
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select role to apply for" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableRoles.map((role, index) => (
-                    <SelectItem key={index} value={role.title}>
-                      {role.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <textarea
-                className="w-full p-3 border border-black/10 dark:border-white/10 rounded-md bg-transparent resize-none"
-                rows={3}
-                placeholder="Why do you want to join this project? (Optional)"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-              
-              <div className="flex gap-2">
-                <Button 
-                  className="flex-1 gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                  onClick={handleSubmitApplication}
-                  disabled={isSubmitting}
-                >
-                  <Code2 className="h-4 w-4" />
-                  {isSubmitting ? "Submitting..." : "Submit Application"}
-                </Button>
-                <Button 
-                  variant="ghost"
-                  className="flex-1"
-                  onClick={() => setIsApplying(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        <div className="mt-4">
+  <RoleApplication 
+    projectId={project._id}
+    roles={project.teamStructure?.roles || []}
+    publisherId={project.publisher?._id}
+    onSuccess={() => {
+      // Optionally refresh project data or close modal
+      // refreshProjectData();
+      // onClose();
+    }}
+  />
+</div>
+
       </DialogContent>
     </Dialog>
   );

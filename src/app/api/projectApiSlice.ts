@@ -88,12 +88,13 @@ export const projectApiSlice = apiSlice.injectEndpoints({
     }),
 
     // Publish a project
-    publishProject: builder.mutation<ActionResponse, string>({
-      query: (projectId) => ({
+    publishProject: builder.mutation<ActionResponse, { projectId: string, selectedRole?: string }>({
+      query: ({ projectId, selectedRole }) => ({
         url: `/projects/${projectId}/publish`,
         method: 'POST',
+        body: { selectedRole }, // Add the selectedRole to the request body
       }),
-      invalidatesTags: ['Projects', 'SavedProjects'],
+      invalidatesTags: ['Projects', 'SavedProjects', 'PublishedProjects'],
     }),
 
     // Get a single project by ID

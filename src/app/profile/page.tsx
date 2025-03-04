@@ -226,7 +226,10 @@ export default function ProfilePage() {
 
   const confirmPublish = async () => {
     try {
-      await publishProject(projectToPublish._id).unwrap();
+       await publishProject({
+      projectId: projectToPublish._id,
+      selectedRole: selectedRole // Pass the selected role to the API
+    }).unwrap();
       toast.success('Project published successfully!');
       setPublishDialogOpen(false);
       setProjectToPublish(null);
@@ -986,12 +989,13 @@ export default function ProfilePage() {
         onClose={() => setIsProjectDetailsOpen(false)}
       />
 
-      <PublishConfirmationDialog
-        isOpen={publishDialogOpen}
-        onClose={() => setPublishDialogOpen(false)}
-        onConfirm={confirmPublish}
-        projectTitle={projectToPublish?.title || ""}
-      />
+<PublishConfirmationDialog
+  isOpen={publishDialogOpen}
+  onClose={() => setPublishDialogOpen(false)}
+  onConfirm={confirmPublish}
+  projectTitle={projectToPublish?.title || ""}
+  project={projectToPublish} // Pass the full project data
+/>
 
       {projectToEdit && (
         <ProjectEditDialog

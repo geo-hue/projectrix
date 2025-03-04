@@ -46,13 +46,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
-import { 
-  useGetMyCollaborationRequestsQuery,
-  useGetIncomingCollaborationRequestsQuery,
-  useGetMyCollaborationsQuery,
-  useUpdateCollaborationRequestStatusMutation
-} from '@/app/api/collaborationApiSlice';
 import { useSendMessageMutation } from '@/app/api/messageApiSlice';
+import IncomingRequestsManager from '@/components/IncomingRequestsManager';
+import MyRequestsManager from '@/components/MyRequestsManager';
 
 const ProfileDialog = ({ isOpen, onClose, username }) => {
   const router = useRouter();
@@ -206,99 +202,6 @@ const CollaborationsPage = () => {
     };
   }, []);
 
-  // Example data (would be replaced with API data)
-  const exampleMyRequests  = [
-    {
-      _id: "req1",
-      projectId: {
-        _id: "proj1",
-        title: "AI-Powered Chat Application",
-        technologies: ["React", "Node.js", "Socket.io", "MongoDB", "OpenAI API"]
-      },
-      publisherId: {
-        _id: "user1",
-        name: "Jane Smith",
-        username: "janesmith",
-        avatar: "https://avatars.githubusercontent.com/u/12345"
-      },
-      role: "Frontend Developer",
-      status: "pending",
-      appliedAt: "2025-01-15T12:30:00.000Z"
-    },
-    {
-      _id: "req2",
-      projectId: {
-        _id: "proj2",
-        title: "E-Learning Platform",
-        technologies: ["Next.js", "Django", "PostgreSQL", "AWS"]
-      },
-      publisherId: {
-        _id: "user2",
-        name: "Mike Johnson",
-        username: "mikejohnson",
-        avatar: "https://avatars.githubusercontent.com/u/23456"
-      },
-      role: "Backend Developer",
-      status: "accepted",
-      appliedAt: "2025-01-10T09:45:00.000Z"
-    },
-    {
-      _id: "req3",
-      projectId: {
-        _id: "proj3",
-        title: "Fitness Tracking App",
-        technologies: ["React Native", "Firebase", "Node.js", "MongoDB"]
-      },
-      publisherId: {
-        _id: "user3",
-        name: "Samantha Lee",
-        username: "samlee",
-        avatar: "https://avatars.githubusercontent.com/u/34567"
-      },
-      role: "Mobile Developer",
-      status: "rejected",
-      appliedAt: "2025-01-05T14:20:00.000Z"
-    }
-  ];
-
-  const exampleIncomingRequests = [
-    {
-      _id: "ireq1",
-      projectId: {
-        _id: "myproj1",
-        title: "Task Management System",
-        technologies: ["React", "TypeScript", "Express", "MongoDB"]
-      },
-      applicantId: {
-        _id: "user4",
-        name: "Alex Brown",
-        username: "alexb",
-        avatar: "https://avatars.githubusercontent.com/u/45678"
-      },
-      role: "Frontend Lead",
-      message: "I have 5 years of experience with React and TypeScript. I'd love to contribute to this project!",
-      status: "pending",
-      appliedAt: "2025-01-18T10:15:00.000Z"
-    },
-    {
-      _id: "ireq2",
-      projectId: {
-        _id: "myproj1",
-        title: "Task Management System",
-        technologies: ["React", "TypeScript", "Express", "MongoDB"]
-      },
-      applicantId: {
-        _id: "user5",
-        name: "Emily Wilson",
-        username: "emilyw",
-        avatar: "https://avatars.githubusercontent.com/u/56789"
-      },
-      role: "Backend Developer",
-      message: "I specialize in Express and MongoDB. I've built several REST APIs and would be excited to work on this project.",
-      status: "pending",
-      appliedAt: "2025-01-19T16:30:00.000Z"
-    }
-  ];
 
   const exampleMyProjects = [
     {
@@ -325,11 +228,6 @@ const CollaborationsPage = () => {
   // Set loading and data states with example data
   useEffect(() => {
     setTimeout(() => {
-      setMyRequests(exampleMyRequests );
-      setMyRequestsLoading(false);
-      
-      setIncomingRequests(exampleIncomingRequests);
-      setIncomingRequestsLoading(false);
       
       setMyCollaborations(exampleMyProjects);
       setMyCollaborationsLoading(false);
@@ -337,11 +235,7 @@ const CollaborationsPage = () => {
   }, []);
 
   // State management for simulating API data
-  const [myRequestsLoading, setMyRequestsLoading] = useState(true);
-  const [incomingRequestsLoading, setIncomingRequestsLoading] = useState(true);
   const [myCollaborationsLoading, setMyCollaborationsLoading] = useState(true);
-  const [myRequests, setMyRequests] = useState([]);
-  const [incomingRequests, setIncomingRequests] = useState([]);
   const [myCollaborations, setMyCollaborations] = useState([]);
 
   const getStatusBadge = (status) => {
@@ -357,48 +251,6 @@ const CollaborationsPage = () => {
       default:
         return null;
     }
-  };
-
-  const handleAcceptRequest = async (requestId) => {
-    // Simulate API call
-    const updatedRequests = incomingRequests.map(req => 
-      req._id === requestId ? { ...req, status: 'accepted' } : req
-    );
-    setIncomingRequests(updatedRequests);
-    toast.success('Collaboration request accepted!');
-    
-    // In a real implementation, you would use:
-    // try {
-    //   await updateRequestStatus({
-    //     requestId,
-    //     status: 'accepted'
-    //   }).unwrap();
-    //   toast.success('Collaboration request accepted!');
-    // } catch (error) {
-    //   console.error('Update request error:', error);
-    //   toast.error('Failed to update request status');
-    // }
-  };
-
-  const handleRejectRequest = async (requestId) => {
-    // Simulate API call
-    const updatedRequests = incomingRequests.map(req => 
-      req._id === requestId ? { ...req, status: 'rejected' } : req
-    );
-    setIncomingRequests(updatedRequests);
-    toast.success('Collaboration request rejected.');
-    
-    // In a real implementation, you would use:
-    // try {
-    //   await updateRequestStatus({
-    //     requestId,
-    //     status: 'rejected'
-    //   }).unwrap();
-    //   toast.success('Collaboration request rejected.');
-    // } catch (error) {
-    //   console.error('Update request error:', error);
-    //   toast.error('Failed to update request status');
-    // }
   };
 
   const formatDate = (dateString) => {
@@ -450,236 +302,13 @@ const CollaborationsPage = () => {
 
               {/* My Requests Tab */}
               <TabsContent value="my-requests">
-                {myRequestsLoading ? (
-                  <div className="flex justify-center items-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : myRequests.length > 0 ? (
-                  <div className="grid gap-6">
-                    {myRequests.map((request) => (
-                      <motion.div 
-                        key={request._id} 
-                        className="group relative"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-1 transition-transform duration-300 group-hover:rotate-0"></div>
-                        <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                        <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                          <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <CardTitle>{request.projectId.title}</CardTitle>
-                                <CardDescription className="flex items-center gap-2 mt-1">
-                                  <Avatar 
-                                    className="h-6 w-6 cursor-pointer" 
-                                    onClick={() => setViewingProfile(request.publisherId)}
-                                  >
-                                    <AvatarImage 
-                                      src={request.publisherId.avatar} 
-                                      alt={request.publisherId.name}
-                                      onError={(e) => {
-                                        e.currentTarget.src = `https://avatar.vercel.sh/${request.publisherId.username}`;
-                                      }}
-                                    />
-                                    <AvatarFallback>{request.publisherId.name?.charAt(0) || 'U'}</AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm">
-                                    Owned by <span className="font-medium">{request.publisherId.name}</span>
-                                  </span>
-                                </CardDescription>
-                              </div>
-                              {getStatusBadge(request.status)}
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex items-center justify-between">
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                                <Badge variant="secondary">{request.role}</Badge>
-                                <span className="text-sm text-muted-foreground flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  Applied on {formatDate(request.appliedAt)}
-                                </span>
-                              </div>
-                              <div className="flex gap-2">
-                                {request.status === 'accepted' && (
-                                  <Button 
-                                    variant="outline"
-                                    className="gap-2"
-                                    onClick={() => setMessagingUser(request.publisherId)}
-                                  >
-                                    <MessageCircle className="h-4 w-4" />
-                                    Message
-                                  </Button>
-                                )}
-                                <Button 
-                                  variant="ghost" 
-                                  className="gap-2"
-                                  onClick={() => router.push(`/projects/${request.projectId._id}`)}
-                                >
-                                  View Project <ArrowRight className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 text-center"
-                  >
-                    <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <BookOpen className="h-8 w-8 text-primary/70" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">No Collaboration Requests Yet</h3>
-                    <p className="text-muted-foreground mb-6">
-                      You haven't applied to collaborate on any projects yet. Browse available projects to find ones that match your skills.
-                    </p>
-                    <Button 
-                      className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                      onClick={() => router.push('/ideas')}
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Browse Projects
-                    </Button>
-                  </motion.div>
-                )}
-              </TabsContent>
+  <MyRequestsManager />
+</TabsContent>
 
               {/* Incoming Requests Tab */}
-              <TabsContent value="incoming-requests">
-                {incomingRequestsLoading ? (
-                  <div className="flex justify-center items-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : incomingRequests.length > 0 ? (
-                  <div className="grid gap-6">
-                    {incomingRequests.map((request) => (
-                      <motion.div 
-                        key={request._id} 
-                        className="group relative"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-blue-600/20 rounded-lg transform -rotate-1 transition-transform duration-300 group-hover:rotate-0"></div>
-                        <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                        <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                          <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <CardTitle>{request.projectId.title}</CardTitle>
-                                <CardDescription className="mt-1">
-                                  Request for <span className="font-medium">{request.role}</span>
-                                </CardDescription>
-                              </div>
-                              {getStatusBadge(request.status)}
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex flex-col gap-6">
-                              {/* Applicant Info */}
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                <Avatar 
-                                  className="h-12 w-12 cursor-pointer" 
-                                  onClick={() => setViewingProfile(request.applicantId)}
-                                >
-                                  <AvatarImage 
-                                    src={request.applicantId.avatar} 
-                                    alt={request.applicantId.name}
-                                    onError={(e) => {
-                                      e.currentTarget.src = `https://avatar.vercel.sh/${request.applicantId.username}`;
-                                    }}
-                                  />
-                                  <AvatarFallback>{request.applicantId.name?.charAt(0) || 'U'}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <h4 className="font-medium">{request.applicantId.name}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    Applied on {formatDate(request.appliedAt)}
-                                  </p>
-                                </div>
-                                
-                                {/* Applicant Message - if exists */}
-                                {request.message && (
-                                  <div className="sm:ml-auto max-w-sm p-3 bg-muted/30 dark:bg-muted/10 rounded-lg">
-                                    <p className="text-sm italic">"{request.message}"</p>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              {/* Action Buttons - only show for pending requests */}
-                              {request.status === 'pending' && (
-                                <div className="flex flex-wrap gap-2 justify-end">
-                                  <Button 
-                                    variant="outline" 
-                                    className="gap-2"
-                                    onClick={() => setViewingProfile(request.applicantId)}
-                                  >
-                                    <UserCircle className="h-4 w-4" />
-                                    View Profile
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    className="gap-2"
-                                    onClick={() => setMessagingUser(request.applicantId)}
-                                  >
-                                    <MessageCircle className="h-4 w-4" />
-                                    Message
-                                  </Button>
-                                  <Button 
-                                    variant="outline"
-                                    className="gap-2 border-red-500/30 text-red-500 hover:bg-red-500/10"
-                                    onClick={() => handleRejectRequest(request._id)}
-                                  >
-                                    <XCircle className="h-4 w-4" />
-                                    Reject
-                                  </Button>
-                                  <Button 
-                                    className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                                    onClick={() => handleAcceptRequest(request._id)}
-                                  >
-                                    <CheckCircle2 className="h-4 w-4" />
-                                    Accept
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 text-center"
-                  >
-                    <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <Users className="h-8 w-8 text-primary/70" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">No Incoming Requests</h3>
-                    <p className="text-muted-foreground mb-6">
-                      You haven't received any collaboration requests yet. Publish a project to attract collaborators.
-                    </p>
-                    <Button 
-                      className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                      onClick={() => router.push('/generate')}
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      Create a Project
-                    </Button>
-                  </motion.div>
-                )}
-              </TabsContent>
+<TabsContent value="incoming-requests">
+  <IncomingRequestsManager />
+</TabsContent>
 
               {/* My Projects Tab */}
               <TabsContent value="my-projects">

@@ -1,3 +1,4 @@
+// app/api/collaborationApiSlice.ts
 import { apiSlice } from './apiSlice';
 import { CollaborationRequest, CollaborationResponse, UpdateRequestResponse } from '../types/collaborationTypes';
 
@@ -10,7 +11,7 @@ export const collaborationApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['MyRequests']
+      invalidatesTags: ['MyRequests', 'PublishedProjects']
     }),
     
     // Get all requests made by the current user
@@ -38,7 +39,7 @@ export const collaborationApiSlice = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { status },
       }),
-      invalidatesTags: ['IncomingRequests', 'MyProjects', 'PublishedProjects']
+      invalidatesTags: ['IncomingRequests', 'MyRequests', 'MyProjects', 'PublishedProjects']
     }),
     
     // Get all projects the current user is collaborating on
