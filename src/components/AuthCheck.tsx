@@ -71,7 +71,7 @@ const AuthCheck: React.FC<AuthCheckProps> = ({
           stiffness: 300, 
           damping: 20 
         }}
-        className="flex justify-center items-center min-h-[55vh] p-4"
+        className="flex justify-center items-center p-4"
       >
         <Card className="w-full max-w-md overflow-hidden shadow-2xl border-none bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
           {/* Decorative background shapes */}

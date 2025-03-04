@@ -137,24 +137,23 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
 
   return (
     <PageTransition>
-      <main className="min-h-screen bg-background relative">
+      <main className="min-h-screen bg-background flex flex-col">
         <Header />
         <TechBackground />
-        
-        <div className="mt-20">
-
-
-        <AuthCheck
-          fallbackMessage={`Please log in to view ${username}'s profile`}
-          showLoginButton={true}
-        >
-          {isLoading ? (
-            <div className="container mx-auto px-4 pt-24 pb-12 flex justify-center items-center min-h-[70vh]">
-              <div className="flex flex-col items-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-lg text-muted-foreground">Loading profile for {username}...</p>
-              </div>
-            </div>
+  
+        <div className="flex-grow flex flex-col justify-center">
+          <AuthCheck
+            fallbackMessage={`Please log in to view ${username}'s profile`}
+            showLoginButton={true}
+          >
+            <div className="container mx-auto px-4 py-12">
+              {isLoading ? (
+                <div className="flex justify-center items-center min-h-[70vh]">
+                  <div className="flex flex-col items-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                    <p className="text-lg text-muted-foreground">Loading profile for {username}...</p>
+                  </div>
+                </div>
           ) : error || !profileData ? (
             <div className="container mx-auto px-4 pt-24 pb-12 flex justify-center items-center min-h-[70vh]">
               <div className="text-center">
@@ -471,8 +470,10 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
               </div>
             </>
           )}
+          </div>
         </AuthCheck>
         </div>
+
         
         {/* Message Dialog */}
         {profileData && (
