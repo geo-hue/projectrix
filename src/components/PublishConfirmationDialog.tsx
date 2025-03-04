@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ExternalLink } from "lucide-react";
 import RoleSelectionDialog from './RoleSelectionDialog';
+import { toast } from 'sonner';
 
 interface PublishConfirmationDialogProps {
   isOpen: boolean;
@@ -39,7 +40,12 @@ const PublishConfirmationDialog = ({
   };
 
   const handleRoleSelected = async (selectedRole: string) => {
-    onConfirm(selectedRole);
+    try {
+      await onConfirm(selectedRole);
+    } catch (error) {
+      console.error('Error publishing project with role:', error);
+      toast.error('Failed to publish project. Please try again.');
+    }
   };
 
   return (

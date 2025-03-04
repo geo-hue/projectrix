@@ -11,7 +11,7 @@ export const collaborationApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['MyRequests', 'PublishedProjects']
+      invalidatesTags: ['MyRequests', 'PublishedProjects','IncomingRequests']
     }),
     
     // Get all requests made by the current user

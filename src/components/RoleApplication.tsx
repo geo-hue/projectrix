@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
-import { useSubmitCollaborationRequestMutation } from '@/app/api/collaborationApiSlice';
+import { useGetMyCollaborationRequestsQuery, useSubmitCollaborationRequestMutation } from '@/app/api/collaborationApiSlice';
 
 interface Role {
   title: string;
@@ -42,6 +42,20 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
   const [applicationMessage, setApplicationMessage] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submitRequest, { isLoading: isSubmitting }] = useSubmitCollaborationRequestMutation();
+  const { data: myRequestsData } = useGetMyCollaborationRequestsQuery();
+
+  const [appliedRoles, setAppliedRoles] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (myRequestsData?.requests && projectId) {
+      // Extract roles user has already applied for in this project
+      const applied = myRequestsData.requests
+        .filter(request => request.projectId._id === projectId)
+        .map(request => request.role);
+      
+      setAppliedRoles(applied);
+    }
+  }, [myRequestsData, projectId]);
 
   // Check if current user is the publisher
   const isPublisher = user?._id === publisherId;
@@ -64,25 +78,39 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
   };
 
   // Submit application
-  const handleSubmitApplication = async () => {
-    if (!selectedRole) return;
+const handleSubmitApplication = async () => {
+  if (!selectedRole) return;
+  
+  try {
+    // Check if user has already applied for this role
+    const result = await submitRequest({
+      projectId,
+      role: selectedRole,
+      message: applicationMessage.trim()
+    }).unwrap();
     
-    try {
-      await submitRequest({
-        projectId,
-        role: selectedRole,
-        message: applicationMessage.trim()
-      }).unwrap();
-      
-      toast.success('Application submitted successfully!');
-      setIsDialogOpen(false);
-      setApplicationMessage('');
-      if (onSuccess) onSuccess();
-    } catch (error: any) {
-      console.error('Error submitting application:', error);
-      toast.error(error.data?.message || 'Failed to submit application');
+    toast.success('Application submitted successfully!');
+    setIsDialogOpen(false);
+    setApplicationMessage('');
+    
+    // Update local state if needed
+    if (onSuccess) onSuccess();
+    
+    // Force reload request data
+    // This might be needed if the cache isn't updating properly
+    refetchRequests && refetchRequests();
+    
+  } catch (error: any) {
+    console.error('Error submitting application:', error);
+    
+    // Display specific error message from API if available
+    if (error.data?.message) {
+      toast.error(error.data.message);
+    } else {
+      toast.error('Failed to submit application');
     }
-  };
+  }
+};
 
   return (
     <>
@@ -99,30 +127,35 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            {roles.map((role) => (
-              <div 
-                key={role.title}
-                className={`border rounded-lg p-4 transition-colors 
-                  ${role.filled 
-                    ? 'bg-muted/20 border-muted/30' 
-                    : 'border-black/20 dark:border-white/20 hover:bg-primary/5'
-                  }
-                `}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium">{role.title}</h4>
-                  {role.filled ? (
-                    <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
-                      <CheckCircle2 className="mr-1 h-3 w-3" />
-                      Filled
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
-                      Available
-                    </Badge>
-                  )}
-                </div>
-                
+          {roles.map((role) => (
+  <div 
+    key={role.title}
+    className={`border rounded-lg p-4 transition-colors 
+      ${role.filled 
+        ? 'bg-muted/20 border-muted/30' 
+        : appliedRoles.includes(role.title)
+          ? 'bg-blue-500/10 border-blue-500/20'
+          : 'border-black/20 dark:border-white/20 hover:bg-primary/5'
+      }
+    `}
+  >
+    <div className="flex justify-between items-start mb-2">
+      <h4 className="font-medium">{role.title}</h4>
+      {role.filled ? (
+        <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+          <CheckCircle2 className="mr-1 h-3 w-3" />
+          Filled
+        </Badge>
+      ) : appliedRoles.includes(role.title) ? (
+        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+          Applied
+        </Badge>
+      ) : (
+        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+          Available
+        </Badge>
+      )}
+    </div>     
                 <div className="text-sm text-muted-foreground mb-3">
                   <strong>Responsibilities:</strong>
                   <ul className="ml-5 mt-1 list-disc space-y-1">
@@ -139,20 +172,22 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
                 </div>
                 
                 <Button
-                  className="w-full text-center text-sm mt-2"
-                  variant={role.filled ? "outline" : "default"}
-                  disabled={role.filled || isPublisher}
-                  onClick={() => handleRoleSelect(role.title)}
-                >
-                  {role.filled 
-                    ? 'Role Filled' 
-                    : isPublisher 
-                      ? 'Your Project' 
-                      : 'Apply for Role'
-                  }
-                </Button>
-              </div>
-            ))}
+      className="w-full text-center text-sm mt-2"
+      variant={role.filled || appliedRoles.includes(role.title) ? "outline" : "default"}
+      disabled={role.filled || isPublisher || appliedRoles.includes(role.title)}
+      onClick={() => handleRoleSelect(role.title)}
+    >
+      {role.filled 
+        ? 'Role Filled' 
+        : isPublisher 
+          ? 'Your Project'
+          : appliedRoles.includes(role.title)
+            ? 'Application Submitted'
+            : 'Apply for Role'
+      }
+    </Button>
+  </div>
+))}
           </div>
 
           {roles.length === 0 && (

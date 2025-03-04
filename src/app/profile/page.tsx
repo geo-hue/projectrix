@@ -224,21 +224,22 @@ export default function ProfilePage() {
     }
   };
 
-  const confirmPublish = async () => {
+  const confirmPublish = async (selectedRole) => {
     try {
-       await publishProject({
-      projectId: projectToPublish._id,
-      selectedRole: selectedRole // Pass the selected role to the API
-    }).unwrap();
-      toast.success('Project published successfully!');
+      await publishProject({
+        projectId: projectToPublish._id,
+        selectedRole
+      }).unwrap();
+      
+      toast.success('Project published successfully with your selected role!');
       setPublishDialogOpen(false);
       setProjectToPublish(null);
     } catch (error) {
+      console.error('Failed to publish project:', error);
       toast.error('Failed to publish project');
       setPublishDialogOpen(false);
     }
   };
-
   // Get draft, saved, and published projects
   const getDraftProjects = () => {
     if (!allProjects?.projects) return [];
