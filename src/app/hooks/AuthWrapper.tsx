@@ -21,7 +21,8 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
   const isPublicRoute = publicRoutes.includes(pathname) || 
                        pathname.startsWith('/ideas/') ||
                        pathname.startsWith('/about/') ||
-                       pathname.startsWith('/generate');
+                       pathname.startsWith('/generate') ||
+                       (pathname.startsWith('/profile/') && pathname !== '/profile');
 
   useEffect(() => {
     // Only redirect if not a public route, authentication check is completed, and user is not authenticated

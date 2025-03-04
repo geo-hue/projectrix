@@ -26,7 +26,9 @@ import {
   ChevronRight,
   BookOpen,
   Save,
-  Globe
+  Globe,
+  Linkedin,
+  Twitter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -409,31 +411,62 @@ export default function ProfilePage() {
                             </Badge>
                           </div>
                           
-                          <div className="flex gap-3 mb-2">
-                            {userProfileData?.profile?.githubProfile && (
-                              <Button 
-                                size="sm"
-                                variant="outline" 
-                                className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
-                                onClick={() => window.open(userProfileData.profile.githubProfile)}
-                              >
-                                <Github className="h-3 w-3" />
-                                GitHub
-                              </Button>
-                            )}
-                            {userProfileData?.profile?.website && (
-                              <Button 
-                                size="sm"
-                                variant="outline" 
-                                className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
-                                onClick={() => window.open(userProfileData.profile.website)}
-                              >
-                                <Globe className="h-3 w-3" />
-                                Website
-                              </Button>
-                            )}
-                          </div>
+                          <div className="flex gap-3 mb-2 relative z-10">
+  {userProfileData?.profile?.githubProfile && (
+    <Button 
+      size="sm"
+      variant="outline" 
+      className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer relative z-10"
+      onClick={() => window.open(userProfileData.profile.githubProfile, '_blank')}
+    >
+      <Github className="h-3 w-3" />
+      GitHub
+    </Button>
+  )}
+  {userProfileData?.profile?.website && (
+    <Button 
+      size="sm"
+      variant="outline" 
+      className="gap-1 bg-white dark:bg-black text-black dark:text-white border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer relative z-10"
+      onClick={() => window.open(userProfileData.profile.website, '_blank')}
+    >
+      <Globe className="h-3 w-3" />
+      Website
+    </Button>
+  )}
+</div>
 
+<div className="flex mt-4 md:mt-0 gap-2 relative z-10">
+  {userProfileData?.profile?.twitterProfile && (
+    <Button 
+      variant="ghost" 
+      size="icon"
+      onClick={() => window.open(userProfileData.profile.twitterProfile, '_blank')}
+    >
+      <Twitter className="h-4 w-4" />
+    </Button>
+  )}
+  
+  {userProfileData?.profile?.linkedinProfile && (
+    <Button 
+      variant="ghost" 
+      size="icon"
+      onClick={() => window.open(userProfileData.profile.linkedinProfile, '_blank')}
+    >
+      <Linkedin className="h-4 w-4" />
+    </Button>
+  )}
+  
+  {user?.email && userProfileData?.profile?.publicEmail && (
+    <Button 
+      variant="ghost" 
+      size="icon"
+      onClick={() => window.location.href = `mailto:${user.email}`}
+    >
+      <Mail className="h-4 w-4" />
+    </Button>
+  )}
+</div>
                           {user?.plan !== "pro" && (
                             <Button 
                               size="sm"
