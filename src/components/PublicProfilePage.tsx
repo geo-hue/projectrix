@@ -1,5 +1,4 @@
-'use client';
-
+'use client'
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -7,24 +6,19 @@ import {
   Github, 
   Mail, 
   Sparkles,
-  Users,
   Code2,
-  ExternalLink,
-  Calendar,
   Globe,
   MessageCircle,
   Twitter,
   Linkedin,
   Loader2,
   PanelRightOpen, 
-  BarChart4, 
   Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TechBackground from '@/components/TechBackground';
@@ -86,7 +80,7 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
   const [messageContent, setMessageContent] = useState('');
   
   // API hooks
-const { data, isLoading, error } = useGetPublicProfileQuery(username || '', {
+  const { data, isLoading, error } = useGetPublicProfileQuery(username || '', {
     // Skip the query if no username is provided
     skip: !username
   });
@@ -138,7 +132,7 @@ const { data, isLoading, error } = useGetPublicProfileQuery(username || '', {
       url = 'https://' + url;
     }
     
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   if (isLoading) {
@@ -159,8 +153,7 @@ const { data, isLoading, error } = useGetPublicProfileQuery(username || '', {
     );
   }
   
-{/* Modified User Not Found Section with Next.js Image */}
-if (error || !profileData) {
+  if (error || !profileData) {
     console.error('Profile fetch error:', error);
     return (
       <PageTransition>
@@ -188,20 +181,20 @@ if (error || !profileData) {
                 />
               </div>
               <h1 className="text-2xl font-bold mb-2">User Not Found</h1>
-            <p className="text-muted-foreground mb-2">
-              We couldn't find a user with the username "{username}".
-            </p>
-            {error && (
-              <p className="text-red-500 text-sm mb-6">
-                {(error as any)?.data?.message || 'Error loading profile'}
+              <p className="text-muted-foreground mb-2">
+                We couldn't find a user with the username "{username}".
               </p>
-            )}
-            <div className="flex justify-center gap-4">
-              <Button onClick={() => router.push('/ideas')}>
-                Browse Projects
-              </Button>
+              {error && (
+                <p className="text-red-500 text-sm mb-6">
+                  {(error as any)?.data?.message || 'Error loading profile'}
+                </p>
+              )}
+              <div className="flex justify-center gap-4">
+                <Button onClick={() => router.push('/ideas')}>
+                  Browse Projects
+                </Button>
+              </div>
             </div>
-          </div>
           </div>
           <Footer />
         </main>
@@ -387,6 +380,18 @@ if (error || !profileData) {
                             <div className="flex flex-wrap gap-1.5">
                               {profileData.profile.preferredTechnologies.map((tech, index) => (
                                 <Badge key={index} variant="outline">{tech}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Preferred Roles */}
+                        {profileData.profile?.preferredRoles && profileData.profile.preferredRoles.length > 0 && (
+                          <div className="mb-6">
+                            <h3 className="text-sm font-medium mb-2">Preferred Roles</h3>
+                            <div className="flex flex-wrap gap-1.5">
+                              {profileData.profile.preferredRoles.map((role, index) => (
+                                <Badge key={index} variant="outline" className="bg-blue-500/10 text-blue-800 dark:text-blue-300 border-blue-500/20">{role}</Badge>
                               ))}
                             </div>
                           </div>
