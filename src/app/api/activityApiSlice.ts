@@ -89,6 +89,14 @@ export const activityApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Activities'],
     }),
+
+    clearAllActivities: builder.mutation<MarkReadResponse, void>({
+        query: () => ({
+          url: '/activities',
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['Activities', 'UnreadCount'],
+      }),
   }),
 });
 
@@ -98,4 +106,5 @@ export const {
   useMarkActivityAsReadMutation,
   useMarkAllAsReadMutation,
   useDeleteActivityMutation,
+  useClearAllActivitiesMutation,
 } = activityApiSlice;

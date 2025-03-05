@@ -11,20 +11,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  MessageCircle, 
   ArrowRight,
   Calendar,
   Loader2, 
   AlertCircle,
-  Framer,
-  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useGetMyCollaborationRequestsQuery } from '@/app/api/collaborationApiSlice';
-
-import { Textarea } from '@/components/ui/textarea';
-import {  useCreateDiscordChannelMutation } from '@/app/api/discordApiSlice';
+import DiscordIntegration from './DiscordIntegration';
 
 const MyRequestsManager = () => {
   const router = useRouter();
@@ -33,8 +28,7 @@ const MyRequestsManager = () => {
     isLoading 
   } = useGetMyCollaborationRequestsQuery();
   
-  const [createDiscordChannel, { isLoading: isJoiningDiscord }] = useCreateDiscordChannelMutation();
-  const [discordProjectId, setDiscordProjectId] = useState<string | null>(null);
+
   
 
   // Handle view project
@@ -42,20 +36,6 @@ const MyRequestsManager = () => {
     router.push(`/projects/${projectId}`);
   };
 
-  const handleJoinDiscord = async (projectId: string) => {
-    setDiscordProjectId(projectId);
-    try {
-      const result = await createDiscordChannel(projectId).unwrap();
-      if (result.inviteLink) {
-        window.open(result.inviteLink, '_blank');
-      }
-    } catch (error) {
-      console.error('Error joining Discord channel:', error);
-      toast.error('Failed to join Discord channel');
-    } finally {
-      setDiscordProjectId(null);
-    }
-  };
   
 
   // Format date
@@ -164,19 +144,7 @@ const MyRequestsManager = () => {
                 </div>
                 <div className="flex gap-2">
                 {request.status === 'accepted' && (
-  <Button 
-    variant="outline"
-    className="gap-2"
-    onClick={() => handleJoinDiscord(request.projectId._id)}
-    disabled={discordProjectId === request.projectId._id}
-  >
-    {discordProjectId === request.projectId._id ? (
-      <Loader2 className="h-4 w-4 animate-spin" />
-    ) : (
-      <ExternalLink className="h-4 w-4" />
-    )}
-    Join Discord
-  </Button>
+  <DiscordIntegration projectId={request.projectId._id} />
 )}
                   <Button 
                     variant="ghost" 

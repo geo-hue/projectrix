@@ -10,20 +10,13 @@ import {
   ChevronRight,
   Code2
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from '@/app/context/AuthContext';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { useSubmitCollaborationRequestMutation } from '@/app/api/collaborationApiSlice';
 import ProjectDetailsModal from './ProjectDetailsModal';
+import RoleApplication from './RoleApplication';
 
 interface ProjectCardProps {
   project: any;
@@ -33,11 +26,8 @@ interface ProjectCardProps {
 const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
   const [isApplying, setIsApplying] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('');
   const { isAuthenticated, login } = useAuth();
   const router = useRouter();
-  
-  const [submitRequest, { isLoading: isSubmitting }] = useSubmitCollaborationRequestMutation();
   
   const availableRoles = project.teamStructure?.roles?.filter(role => !role.filled) || [];
 
@@ -55,35 +45,18 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
     setIsApplying(true);
   };
 
-  const handleSubmitApplication = async () => {
-    if (!selectedRole) {
-      toast.error('Please select a role');
-      return;
-    }
-
-    try {
-      await submitRequest({
-        projectId: project._id,
-        role: selectedRole,
-        message: ""
-      }).unwrap();
-      
-      toast.success('Application submitted successfully!');
-      setIsApplying(false);
-      setSelectedRole('');
-    } catch (error: any) {
-      console.error('Submit application error:', error);
-      toast.error(error.data?.message || 'Failed to submit application');
-    }
-  };
-  
-
   const handlePublisherClick = (e) => {
     e.stopPropagation(); // Prevent any parent click handlers from firing
     if (project.publisher?.username) {
-      // Navigate to internal profile page instead of GitHub
+      // Navigate to internal profile page 
       router.push(`/profile/${project.publisher.username}`);
     }
+  };
+
+  const handleApplicationSuccess = () => {
+    // Handle successful application
+    setIsApplying(false);
+    // You might want to refresh project data here or show a success message
   };
 
   return (
@@ -98,7 +71,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
         {/* Main card content */}
         <Card 
           className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 flex flex-col overflow-hidden"
-          style={{ height: `${height}px` }}
+          style={{ height: isApplying ? 'auto' : `${height}px` }}
         >
           {/* Blue gradient effects inside card */}
           <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
@@ -145,56 +118,67 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
             </div>
           </CardHeader>
           
-          <div className="flex-1 overflow-auto">
-            <CardContent className="space-y-4">
-              {/* Project Stats */}
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{project.duration?.estimate || "2-3 months"}</span>
+          <div className={`flex-1 ${isApplying ? '' : 'overflow-auto'}`}>
+            {!isApplying ? (
+              <CardContent className="space-y-4">
+                {/* Project Stats */}
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{project.duration?.estimate || "2-3 months"}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{project.teamSize?.count || "3-4 members"}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{project.complexity?.level || "Intermediate"}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{project.teamSize?.count || "3-4 members"}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Layers className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{project.complexity?.level || "Intermediate"}</span>
-                </div>
-              </div>
 
-              {/* Required Technologies */}
-              <div>
-                <h3 className="text-sm font-medium mb-1">Technologies</h3>
-                <div className="flex flex-wrap gap-1">
-                  {project.technologies?.slice(0, 5).map((tech, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">{tech}</Badge>
-                  ))}
-                  {project.technologies?.length > 5 && 
-                    <Badge variant="outline" className="text-xs">+{project.technologies.length - 5}</Badge>
-                  }
+                {/* Required Technologies */}
+                <div>
+                  <h3 className="text-sm font-medium mb-1">Technologies</h3>
+                  <div className="flex flex-wrap gap-1">
+                    {project.technologies?.slice(0, 5).map((tech, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">{tech}</Badge>
+                    ))}
+                    {project.technologies?.length > 5 && 
+                      <Badge variant="outline" className="text-xs">+{project.technologies.length - 5}</Badge>
+                    }
+                  </div>
                 </div>
-              </div>
 
-              {/* Available Roles */}
-              <div>
-                <h3 className="text-sm font-medium mb-1">Available Roles</h3>
-                <div className="flex flex-wrap gap-1">
-                  {project.teamStructure?.roles?.map((role, index) => (
-                    <Badge 
-                      key={index}
-                      variant={role.filled ? "secondary" : "default"}
-                      className={`text-xs ${role.filled ? "opacity-50" : ""}`}
-                    >
-                      {role.title} {role.filled && "(Filled)"}
-                    </Badge>
-                  ))}
+                {/* Available Roles */}
+                <div>
+                  <h3 className="text-sm font-medium mb-1">Available Roles</h3>
+                  <div className="flex flex-wrap gap-1">
+                    {project.teamStructure?.roles?.map((role, index) => (
+                      <Badge 
+                        key={index}
+                        variant={role.filled ? "secondary" : "default"}
+                        className={`text-xs ${role.filled ? "opacity-50" : ""}`}
+                      >
+                        {role.title} {role.filled && "(Filled)"}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
+              </CardContent>
+            ) : (
+              <CardContent className="pt-2">
+                <RoleApplication 
+                  projectId={project._id}
+                  roles={project.teamStructure?.roles || []}
+                  publisherId={project.publisher?._id}
+                  onSuccess={handleApplicationSuccess}
+                />
+              </CardContent>
+            )}
           </div>
 
-          <CardFooter className="mt-auto pt-6 border-t">
+          <CardFooter className={`${isApplying ? 'mt-2' : 'mt-auto'} pt-6 border-t`}>
             <div className="w-full flex flex-col gap-2">
               {!isApplying ? (
                 <>
@@ -214,37 +198,13 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
                   </Button>
                 </>
               ) : (
-                <div className="space-y-2">
-                  <Select value={selectedRole} onValueChange={setSelectedRole}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role to apply for" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableRoles.map((role, index) => (
-                        <SelectItem key={index} value={role.title}>
-                          {role.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex gap-2">
-                    <Button 
-                      className="flex-1 gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                      onClick={handleSubmitApplication}
-                      disabled={isSubmitting}
-                    >
-                      <Code2 className="h-4 w-4" />
-                      {isSubmitting ? "Submitting..." : "Apply"}
-                    </Button>
-                    <Button 
-                      className="flex-1 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                      onClick={() => setIsApplying(false)}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
+                <Button 
+                  className="w-full bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+                  onClick={() => setIsApplying(false)}
+                >
+                  <Code2 className="h-4 w-4 mr-2" />
+                  Back to Project
+                </Button>
               )}
             </div>
           </CardFooter>

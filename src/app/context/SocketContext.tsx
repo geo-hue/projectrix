@@ -43,7 +43,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     // Initialize Socket.io connection
     const token = localStorage.getItem('token');
-    const socketIo = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
+    const socketIo = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000', {
       auth: { token },
       transports: ['websocket'],
       autoConnect: true,

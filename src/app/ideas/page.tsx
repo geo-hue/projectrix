@@ -6,7 +6,9 @@ import {
   Filter,
   Sparkles,
   BookOpen,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import {
   Select,
@@ -20,7 +22,6 @@ import Header from '@/components/Header';
 import PageTransition from '@/components/PageTransition';
 import TechBackground from '@/components/TechBackground';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import ProjectCard from '@/components/ProjectCard';
 
@@ -33,18 +34,23 @@ import {
 
 const ProjectIdeasPage = () => {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
   
   // State for filters
   const [filterTech, setFilterTech] = useState('all');
   const [filterComplexity, setFilterComplexity] = useState('all');
   const [filterRole, setFilterRole] = useState('all');
+  
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const projectsPerPage = 12;
 
   // Create derived query parameters based on filters
   const queryParams = {
     ...(filterTech !== 'all' && { technology: filterTech }),
     ...(filterComplexity !== 'all' && { complexity: filterComplexity }),
-    ...(filterRole !== 'all' && { role: filterRole })
+    ...(filterRole !== 'all' && { role: filterRole }),
+    page: currentPage,
+    limit: projectsPerPage
   };
   
   // Use the API hooks with the filters
@@ -64,6 +70,23 @@ const ProjectIdeasPage = () => {
     isLoading: rolesLoading 
   } = useGetAvailableRolesQuery();
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterTech, filterComplexity, filterRole]);
+
+  const sortedProjects = projectsData?.projects ? [...projectsData.projects].sort((a, b) => {
+    // Count unfilled roles in project A
+    const unfilledRolesA = a.teamStructure?.roles?.filter(role => !role.filled)?.length || 0;
+    
+    // Count unfilled roles in project B
+    const unfilledRolesB = b.teamStructure?.roles?.filter(role => !role.filled)?.length || 0;
+    
+    // Sort by number of unfilled roles (descending)
+    return unfilledRolesB - unfilledRolesA;
+  }) : [];
+
+  
   // Add custom CSS for the blue background patterns and effects
   useEffect(() => {
     const styleSheet = document.createElement("style");
@@ -87,6 +110,17 @@ const ProjectIdeasPage = () => {
 
   // Calculate if any data is loading
   const isLoading = projectsLoading || technologiesLoading || rolesLoading;
+
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    // Make sure we don't go below page 1 or above the total pages
+    const totalPages = projectsData?.totalPages || 1;
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      // Scroll to top of projects section
+      document.getElementById('projects-section')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <PageTransition>
@@ -199,75 +233,141 @@ const ProjectIdeasPage = () => {
               </motion.div>
 
               {/* Projects Grid */}
-              {isLoading ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-2 animate-pulse"></div>
-                      <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg"></div>
-                      <div className="relative h-[550px] rounded-lg bg-white/80 dark:bg-black/80 animate-pulse border border-black/20 dark:border-white/20"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : projectsError ? (
-                <div className="text-center py-20">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 inline-block"
-                  >
-                    <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-                      <BookOpen className="h-8 w-8 text-red-500" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Error loading projects</h3>
-                    <p className="text-muted-foreground mb-6">There was a problem loading the projects. Please try again later.</p>
-                    <Button 
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() => window.location.reload()}
-                    >
-                      <Loader2 className="h-4 w-4" />
-                      Retry
-                    </Button>
-                  </motion.div>
-                </div>
-              ) : projectsData?.projects && projectsData.projects.length > 0 ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {projectsData.projects.map((project) => (
+              <div id="projects-section">
+                {isLoading ? (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: projectsPerPage }).map((_, i) => (
+                      <div key={i} className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-2 animate-pulse"></div>
+                        <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg"></div>
+                        <div className="relative h-[550px] rounded-lg bg-white/80 dark:bg-black/80 animate-pulse border border-black/20 dark:border-white/20"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : projectsError ? (
+                  <div className="text-center py-20">
                     <motion.div
-                      key={project._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5 }}
+                      className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 inline-block"
                     >
-                      <ProjectCard project={project} height={400} />
+                      <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                        <BookOpen className="h-8 w-8 text-red-500" />
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">Error loading projects</h3>
+                      <p className="text-muted-foreground mb-6">There was a problem loading the projects. Please try again later.</p>
+                      <Button 
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => window.location.reload()}
+                      >
+                        <Loader2 className="h-4 w-4" />
+                        Retry
+                      </Button>
                     </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-20">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 inline-block"
-                  >
-                    <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <BookOpen className="h-8 w-8 text-primary/70" />
+                  </div>
+                ) : projectsData?.projects && projectsData.projects.length > 0 ? (
+                  <>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sortedProjects.map((project) => (
+                        <motion.div
+                          key={project._id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5 }}
+                        >
+                          <ProjectCard project={project} height={400} />
+                        </motion.div>
+                      ))}
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">No matching projects found</h3>
-                    <p className="text-muted-foreground mb-6">Try adjusting your filters or create your own project.</p>
-                    <Button 
-                      className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                      onClick={() => router.push('/generate')}
+                    
+                    {/* Pagination */}
+                    {projectsData.totalPages > 1 && (
+                      <div className="mt-12 flex justify-center">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="h-10 w-10"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          
+                          <div className="flex items-center gap-2">
+                            {Array.from({ length: projectsData.totalPages }, (_, i) => i + 1)
+                              .filter(page => {
+                                // Show current page, first page, last page, and pages adjacent to current
+                                return (
+                                  page === 1 ||
+                                  page === projectsData.totalPages ||
+                                  Math.abs(page - currentPage) <= 1
+                                );
+                              })
+                              .map((page, index, array) => {
+                                // Add ellipsis if there are gaps in the sequence
+                                const showEllipsisBefore = index > 0 && page - array[index - 1] > 1;
+                                
+                                return (
+                                  <React.Fragment key={page}>
+                                    {showEllipsisBefore && (
+                                      <span className="px-2 text-muted-foreground">...</span>
+                                    )}
+                                    <Button
+                                      variant={currentPage === page ? "default" : "outline"}
+                                      onClick={() => handlePageChange(page)}
+                                      className={`h-10 w-10 ${
+                                        currentPage === page
+                                          ? "bg-primary text-primary-foreground"
+                                          : ""
+                                      }`}
+                                    >
+                                      {page}
+                                    </Button>
+                                  </React.Fragment>
+                                );
+                              })}
+                          </div>
+                          
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === projectsData.totalPages}
+                            className="h-10 w-10"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-20">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                      className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 inline-block"
                     >
-                      <Sparkles className="h-4 w-4" />
-                      Generate New Project
-                    </Button>
-                  </motion.div>
-                </div>
-              )}
+                      <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                        <BookOpen className="h-8 w-8 text-primary/70" />
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">No matching projects found</h3>
+                      <p className="text-muted-foreground mb-6">Try adjusting your filters or create your own project.</p>
+                      <Button 
+                        className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+                        onClick={() => router.push('/generate')}
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        Generate New Project
+                      </Button>
+                    </motion.div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </main>

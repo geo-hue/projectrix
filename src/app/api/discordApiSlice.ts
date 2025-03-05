@@ -1,10 +1,11 @@
-// app/api/discordApiSlice.ts
+// src/app/api/discordApiSlice.ts
 import { apiSlice } from './apiSlice';
 
 export interface DiscordResponse {
   success: boolean;
   message?: string;
-  inviteLink: string;
+  inviteLink?: string;
+  authUrl?: string; 
 }
 
 export const discordApiSlice = apiSlice.injectEndpoints({
@@ -24,10 +25,19 @@ export const discordApiSlice = apiSlice.injectEndpoints({
         method: 'GET',
       }),
     }),
+    
+    // Initialize Discord OAuth flow
+    initDiscordOAuth: builder.mutation<DiscordResponse, string>({
+      query: (projectId) => ({
+        url: `/discord/oauth/${projectId}`,
+        method: 'GET',
+      }),
+    }),
   }),
 });
 
 export const {
   useCreateDiscordChannelMutation,
   useGetDiscordInviteQuery,
+  useInitDiscordOAuthMutation,
 } = discordApiSlice;

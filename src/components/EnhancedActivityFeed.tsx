@@ -26,7 +26,8 @@ import {
   BarChart4,
   Filter,
   AlertCircle,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -37,10 +38,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useGetUserActivitiesQuery, useMarkActivityAsReadMutation, useDeleteActivityMutation } from '@/app/api/activityApiSlice';
+import { useGetUserActivitiesQuery, useMarkActivityAsReadMutation, useDeleteActivityMutation, useClearAllActivitiesMutation } from '@/app/api/activityApiSlice';
 import { useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import ConfirmationDialog from './DeleteConfirmationDialog';
 
 // Define activity filters for dropdown
 const activityFilters = [
@@ -59,8 +61,6 @@ const EnhancedActivityFeed = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   
   // Get paginated activities
   const { 
@@ -77,6 +77,8 @@ const EnhancedActivityFeed = () => {
   // Mutations
   const [markAsRead] = useMarkActivityAsReadMutation();
   const [deleteActivity, { isLoading: isDeleting }] = useDeleteActivityMutation();
+  const [clearAllActivities, { isLoading: isClearing }] = useClearAllActivitiesMutation();
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   
   // Calculate total pages
   const totalPages = activitiesData?.pagination?.pages || 1;
@@ -87,6 +89,22 @@ const EnhancedActivityFeed = () => {
       setPage(page - 1);
     }
   };
+
+  const handleClearAll = () => {
+    setConfirmClearOpen(true);
+  };
+  
+  const confirmClear = async () => {
+    try {
+      await clearAllActivities().unwrap();
+      refetch(); // Refresh the list
+      toast.success('All notifications cleared');
+      setConfirmClearOpen(false); // Close the dialog
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      toast.error('Failed to clear notifications');
+    }
+  };
   
   const handleNextPage = () => {
     if (page < totalPages) {
@@ -94,17 +112,7 @@ const EnhancedActivityFeed = () => {
     }
   };
   
-  // Handle search form submission
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setIsSearching(true);
-    // For now, just reset after a brief delay
-    setTimeout(() => {
-      setIsSearching(false);
-      toast.info('Search functionality coming soon!');
-    }, 1000);
-  };
-  
+
   // Handle filter change
   const handleFilterChange = (value) => {
     setFilter(value);
@@ -201,30 +209,6 @@ const EnhancedActivityFeed = () => {
         </div>
         
         <div className="flex gap-2">
-          {/* Search Box */}
-          <form onSubmit={handleSearch} className="relative">
-            <Input 
-              type="text"
-              placeholder="Search activities..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-8 w-52"
-            />
-            <Button 
-              type="submit" 
-              variant="ghost" 
-              size="icon" 
-              className="absolute right-0 top-0 h-full"
-              disabled={isSearching}
-            >
-              {isSearching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          </form>
-          
           {/* Filter Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -234,7 +218,10 @@ const EnhancedActivityFeed = () => {
                 {filter && <Badge variant="secondary" className="ml-1 text-xs px-1">1</Badge>}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuContent 
+  className="w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg" 
+  align="end"
+>
               <DropdownMenuLabel>Filter Activities</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup className="max-h-60 overflow-y-auto">
@@ -253,19 +240,36 @@ const EnhancedActivityFeed = () => {
               </DropdownMenuGroup>
               
               {filter && (
-                <div className="p-2 border-t">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full justify-center text-xs"
-                    onClick={() => handleFilterChange('')}
-                  >
-                    <X className="h-3 w-3 mr-1" /> Clear Filter
-                  </Button>
-                </div>
-              )}
-            </DropdownMenuContent>
+    <div className="p-2 border-t">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="w-full justify-center text-xs"
+        onClick={() => handleFilterChange('')}
+      >
+        <X className="h-3 w-3 mr-1" /> Clear Filter
+      </Button>
+    </div>
+  )}
+</DropdownMenuContent>
           </DropdownMenu>
+
+          {activitiesData && activitiesData.activities.length > 0 && (
+            <Button 
+              variant="outline" 
+              className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+              onClick={handleClearAll}
+              disabled={isClearing}
+            >
+              {isClearing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              Clear All
+            </Button>
+          )}
+
         </div>
       </div>
       
@@ -339,16 +343,7 @@ const EnhancedActivityFeed = () => {
                                 </Badge>
                               </div>
                             </div>
-                            
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={(e) => handleDeleteActivity(e, activity._id)}
-                              disabled={isDeleting}
-                            >
-                              <X className="h-4 w-4 text-muted-foreground" />
-                            </Button>
+                        
                           </div>
                         </div>
                       </div>
@@ -393,6 +388,17 @@ const EnhancedActivityFeed = () => {
           </Card>
         </div>
       </div>
+      <ConfirmationDialog
+  isOpen={confirmClearOpen}
+  onClose={() => setConfirmClearOpen(false)}
+  onConfirm={confirmClear}
+  title="Clear Activity History"
+  description="Are you sure you want to delete all notifications and activity history? This action will permanently remove all records from your user database and cannot be undone."
+  confirmText="Yes, Clear Everything"
+  cancelText="Cancel"
+  isLoading={isClearing}
+  variant="destructive"
+/>
     </div>
   );
 };

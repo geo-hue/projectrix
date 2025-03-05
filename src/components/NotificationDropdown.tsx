@@ -13,7 +13,7 @@ import {
   ExternalLink,
   User,
   MessageSquare,
-  Clock
+  Clock,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
@@ -32,7 +32,7 @@ import {
   useGetUnreadCountQuery, 
   useMarkActivityAsReadMutation,
   useMarkAllAsReadMutation,
-  useGetUserActivitiesQuery
+  useGetUserActivitiesQuery,
 } from '@/app/api/activityApiSlice';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -112,6 +112,7 @@ const NotificationDropdown = () => {
     }
   };
   
+  
   // View all activities
   const handleViewAll = () => {
     router.push('/profile?tab=activity');
@@ -142,6 +143,8 @@ const NotificationDropdown = () => {
     }
   };
   
+
+
   // Format date for activity
   const formatActivityDate = (dateString) => {
     const date = new Date(dateString);
@@ -162,6 +165,7 @@ const NotificationDropdown = () => {
   };
   
   return (
+    <>
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button 
@@ -193,36 +197,36 @@ const NotificationDropdown = () => {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-black/10 dark:border-white/10">
-          <DropdownMenuLabel className="font-semibold text-base m-0">
-            Notifications
-          </DropdownMenuLabel>
-          
-          {unreadCount > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 px-2 text-xs"
-                    onClick={handleMarkAllAsRead}
-                    disabled={isMarkingAllRead}
-                  >
-                    {isMarkingAllRead ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <CheckCheck className="h-3.5 w-3.5" />
-                    )}
-                    <span className="ml-1">Mark all read</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Mark all notifications as read</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-        </div>
+        <DropdownMenuLabel className="font-semibold text-base m-0">
+          Notifications
+        </DropdownMenuLabel>
+        
+        {unreadCount > 0 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 px-2 text-xs"
+                  onClick={handleMarkAllAsRead}
+                  disabled={isMarkingAllRead}
+                >
+                  {isMarkingAllRead ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <CheckCheck className="h-3.5 w-3.5" />
+                  )}
+                  <span className="ml-1">Mark all read</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Mark all notifications as read</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
         
         {/* Notifications list */}
         <div className="max-h-[350px] overflow-y-auto">
@@ -290,6 +294,7 @@ const NotificationDropdown = () => {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   );
 };
 

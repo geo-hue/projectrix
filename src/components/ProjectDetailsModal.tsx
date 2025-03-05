@@ -1,5 +1,5 @@
 // components/ProjectDetailsModal.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -7,28 +7,16 @@ import {
   DialogHeader, 
   DialogTitle 
 } from '@/components/ui/dialog';
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Clock,
   Users,
   Layers,
-  Star,
-  Code2,
   ExternalLink
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from '@/app/context/AuthContext';
-import { toast } from 'sonner';
-import { useSubmitCollaborationRequestMutation } from '@/app/api/collaborationApiSlice';
 import RoleApplication from './RoleApplication';
+import { useRouter } from 'next/navigation';
 
 interface ProjectDetailsModalProps {
   project: any;
@@ -37,58 +25,16 @@ interface ProjectDetailsModalProps {
 }
 
 const ProjectDetailsModal = ({ project, isOpen, onClose }: ProjectDetailsModalProps) => {
-  const [isApplying, setIsApplying] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('');
-  const [message, setMessage] = useState('');
-  const { isAuthenticated, login } = useAuth();
-  
-  const [submitRequest, { isLoading: isSubmitting }] = useSubmitCollaborationRequestMutation();
-  
-  const availableRoles = project?.teamStructure?.roles?.filter(role => !role.filled) || [];
+const router = useRouter();
 
-  const handleApply = async () => {
-    if (!isAuthenticated) {
-      try {
-        await login();
-        toast.info('Please try applying after logging in');
-      } catch (error) {
-        console.error('Login error:', error);
-      }
-      return;
-    }
-    
-    setIsApplying(true);
-  };
-
-  const handleSubmitApplication = async () => {
-    if (!selectedRole) {
-      toast.error('Please select a role');
-      return;
-    }
-
-    try {
-      await submitRequest({
-        projectId: project._id,
-        role: selectedRole,
-        message
-      }).unwrap();
-      
-      toast.success('Application submitted successfully!');
-      setIsApplying(false);
-      setSelectedRole('');
-      setMessage('');
-      onClose();
-    } catch (error: any) {
-      console.error('Submit application error:', error);
-      toast.error(error.data?.message || 'Failed to submit application');
+ const handlePublisherClick = (e) => {
+    e.stopPropagation(); // Prevent any parent click handlers from firing
+    if (project.publisher?.username) {
+      // Navigate to internal profile page 
+      router.push(`/profile/${project.publisher.username}`);
     }
   };
 
-  const handlePublisherClick = () => {
-    if (project?.publisher?.username) {
-      window.open(`https://github.com/${project.publisher.username}`, '_blank');
-    }
-  };
   
   if (!project) return null;
 

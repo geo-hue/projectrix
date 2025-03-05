@@ -25,8 +25,6 @@ import {
   ChevronLeft,
   User,
   CheckCircle2,
-  ExternalLink,
-  Github,
   Loader2,
   AlertCircle
 } from 'lucide-react';
@@ -34,9 +32,9 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/app/context/AuthContext';
 import { useGetPublishedProjectQuery } from '@/app/api/publishedProjectsApiSlice';
 import { useGetProjectQuery } from '@/app/api/projectApiSlice';
-import { useCreateDiscordChannelMutation } from '@/app/api/discordApiSlice';
 import { toast } from 'sonner';
 import RoleApplication from '@/components/RoleApplication';
+import DiscordIntegration from '@/components/DiscordIntegration';
 
 const ProjectDetailsPage = () => {
   const { id } = useParams();
@@ -62,7 +60,6 @@ const ProjectDetailsPage = () => {
     skip: !id || !isAuthenticated
   });
   
-  const [createDiscordChannel, { isLoading: isCreatingChannel }] = useCreateDiscordChannelMutation();
   
   // Merge data from both sources (prefer user's own project data if available)
   const projectData = userProjectData?.project || publishedProjectData?.project;
@@ -83,29 +80,6 @@ const ProjectDetailsPage = () => {
     }
   }, [projectData, user]);
   
-  const handleJoinDiscord = async () => {
-    if (!projectData) return;
-    
-    try {
-      const result = await createDiscordChannel(projectData._id).unwrap();
-      if (result.inviteLink) {
-        // Open Discord link in new tab
-        window.open(result.inviteLink, '_blank');
-        
-        // Show informative toast about the Discord channel privacy
-        toast.success(
-          <div>
-            <p className="font-medium mb-1">Discord channel opened</p>
-            <p className="text-sm">This invite gives you access to a private project channel. Only team members can see this channel.</p>
-          </div>,
-          { duration: 5000 }
-        );
-      }
-    } catch (error) {
-      console.error('Error joining Discord channel:', error);
-      toast.error('Failed to join Discord channel. Please try again later.');
-    }
-  };
   
   // Function to get the roles that are already filled
   const getFilledRoles = () => {
@@ -246,33 +220,7 @@ const ProjectDetailsPage = () => {
                     </div>
                     
                     {/* Quick Actions */}
-                    {(isOwner || isCollaborator) && (
-                      <div className="flex flex-wrap gap-3 mb-6">
-                        <Button 
-                          onClick={handleJoinDiscord}
-                          className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                          disabled={isCreatingChannel}
-                        >
-                          {isCreatingChannel ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <ExternalLink className="h-4 w-4" />
-                          )}
-                          Join Discord Channel
-                        </Button>
-                        
-                        {projectData.githubRepo && (
-                          <Button 
-                            variant="outline"
-                            className="gap-2"
-                            onClick={() => window.open(projectData.githubRepo, '_blank')}
-                          >
-                            <Github className="h-4 w-4" />
-                            GitHub Repository
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                    <DiscordIntegration projectId={projectData._id} />
                   </CardContent>
                 </Card>
               </motion.div>

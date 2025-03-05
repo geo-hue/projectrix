@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Card, 
   CardHeader, 
@@ -33,19 +33,16 @@ import TechBackground from '@/components/TechBackground';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
 import IncomingRequestsManager from '@/components/IncomingRequestsManager';
 import MyRequestsManager from '@/components/MyRequestsManager';
-import { useCreateDiscordChannelMutation } from '@/app/api/discordApiSlice';
 import { useGetMyCollaborationsQuery } from '@/app/api/collaborationApiSlice';
+import DiscordIntegration from '@/components/DiscordIntegration';
 
 const CollaborationsPage = () => {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   
-  const [createDiscordChannel, { isLoading: isDiscordLoading }] = useCreateDiscordChannelMutation();
-  const [isJoiningDiscord, setIsJoiningDiscord] = useState<string | null>(null);
   
   // Get actual collaboration data
   const { 
@@ -54,34 +51,7 @@ const CollaborationsPage = () => {
     error: myCollaborationsError
   } = useGetMyCollaborationsQuery();
 
-  const handleJoinDiscord = async (projectId: string) => {
-    if (!projectId) return;
-    
-    setIsJoiningDiscord(projectId); // If using this state
-    try {
-      const result = await createDiscordChannel(projectId).unwrap();
-      if (result.inviteLink) {
-        // Open Discord link in new tab
-        window.open(result.inviteLink, '_blank');
-        
-        // Show informative toast about the Discord channel privacy
-        toast.success(
-          <div>
-            <p className="font-medium mb-1">Discord channel opened</p>
-            <p className="text-sm">This invite gives you access to a private project channel. Only team members can see this channel.</p>
-          </div>,
-          { duration: 5000 }
-        );
-      }
-    } catch (error) {
-      console.error('Error joining Discord channel:', error);
-      toast.error('Failed to join Discord channel. Please try again later.');
-    } finally {
-      setIsJoiningDiscord(null); // If using this state
-    }
-  };
-
-  // Add custom CSS for the blue background patterns and effects
+  //  custom CSS for the blue background patterns and effects
   React.useEffect(() => {
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
@@ -326,25 +296,14 @@ const CollaborationsPage = () => {
                             </div>
                           </CardContent>
                           <CardFooter className="flex justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              className="gap-2"
-                              onClick={() => handleJoinDiscord(project._id)}
-                              disabled={isJoiningDiscord === project._id}
-                            >
-                              {isJoiningDiscord === project._id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <ExternalLink className="h-4 w-4" />
-                              )}
-                              Join Discord
-                            </Button>
-                            <Button 
-                              className="gap-2"
-                              onClick={() => router.push(`/projects/${project._id}`)}
-                            >
-                              View Project <ArrowRight className="h-4 w-4" />
-                            </Button>
+                          <DiscordIntegration projectId={project._id} />
+<Button 
+  className="gap-2"
+  onClick={() => router.push(`/projects/${project._id}`)}
+>
+  View Project <ArrowRight className="h-4 w-4" />
+</Button>
+
                           </CardFooter>
                         </Card>
                       </motion.div>
