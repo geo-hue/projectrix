@@ -46,9 +46,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
-import { useSendMessageMutation } from '@/app/api/messageApiSlice';
 import IncomingRequestsManager from '@/components/IncomingRequestsManager';
 import MyRequestsManager from '@/components/MyRequestsManager';
+import { useCreateDiscordChannelMutation } from '@/app/api/discordApiSlice';
 
 const ProfileDialog = ({ isOpen, onClose, username }) => {
   const router = useRouter();
@@ -105,67 +105,7 @@ const ProfileDialog = ({ isOpen, onClose, username }) => {
   );
 };
 
-const MessageDialog = ({ isOpen, onClose, receiverId, receiverName }) => {
-  const [message, setMessage] = useState('');
-  const [sendMessage, { isLoading }] = useSendMessageMutation();
-  
-  const handleSendMessage = async () => {
-    if (!message.trim()) {
-      toast.error('Please enter a message');
-      return;
-    }
-    
-    try {
-      await sendMessage({
-        receiverId,
-        content: message
-      }).unwrap();
-      
-      toast.success('Message sent successfully');
-      setMessage('');
-      onClose();
-    } catch (error) {
-      console.error('Send message error:', error);
-      toast.error('Failed to send message');
-    }
-  };
-  
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] bg-white dark:bg-black border-2 border-black/20 dark:border-white/20">
-        <DialogHeader>
-          <DialogTitle>Send Message to {receiverName}</DialogTitle>
-          <DialogDescription>
-            This message will be sent directly to the user
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex flex-col py-2">
-          <textarea
-            className="w-full p-3 border border-black/10 dark:border-white/10 rounded-md bg-transparent resize-none"
-            rows={5}
-            placeholder="Write your message here..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <p className="text-xs text-muted-foreground mt-2 mb-4">
-            Max 1000 characters. Please keep communication professional and project-related.
-          </p>
-          
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button onClick={handleSendMessage} disabled={isLoading || !message.trim()}>
-              {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <MessageCircle className="h-4 w-4 mr-2" />}
-              Send Message
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+
 
 const CollaborationsPage = () => {
   const router = useRouter();
@@ -175,6 +115,24 @@ const CollaborationsPage = () => {
   const [viewingProfile, setViewingProfile] = useState(null);
   const [messagingUser, setMessagingUser] = useState(null);
   
+  const [createDiscordChannel, { isLoading: isDiscordLoading }] = useCreateDiscordChannelMutation();
+const [isJoiningDiscord, setIsJoiningDiscord] = useState<string | null>(null);
+
+const handleJoinDiscord = async (projectId: string) => {
+  setIsJoiningDiscord(projectId);
+  try {
+    const result = await createDiscordChannel(projectId).unwrap();
+    if (result.inviteLink) {
+      window.open(result.inviteLink, '_blank');
+    }
+  } catch (error) {
+    console.error('Error joining Discord channel:', error);
+    toast.error('Failed to join Discord channel');
+  } finally {
+    setIsJoiningDiscord(null);
+  }
+};
+
   // API hooks - not actually connected for demo
   // const { data: myRequestsData, isLoading: myRequestsLoading } = { data: null, isLoading: true }; // useGetMyCollaborationRequestsQuery();
   // const { data: incomingRequestsData, isLoading: incomingRequestsLoading } = { data: null, isLoading: true }; // useGetIncomingCollaborationRequestsQuery();
@@ -319,96 +277,102 @@ const CollaborationsPage = () => {
                 ) : myCollaborations.length > 0 ? (
                   <div className="grid gap-6">
                     {myCollaborations.map((project) => (
-                      <motion.div 
-                        key={project._id} 
-                        className="group relative"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-1 transition-transform duration-300 group-hover:rotate-0"></div>
-                        <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                        <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                          <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <CardTitle>{project.title}</CardTitle>
-                                <CardDescription className="mt-1">
-                                  Last activity: {formatDate(project.lastActivity)}
-                                </CardDescription>
-                              </div>
-                              {getStatusBadge(project.status)}
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-6">
-                              {/* Technologies */}
-                              <div className="flex flex-wrap gap-2">
-                                {project.technologies.map((tech, index) => (
-                                  <Badge key={index} variant="outline">{tech}</Badge>
-                                ))}
-                              </div>
-                              
-                              {/* Team Members */}
-                              <div>
-                                <h4 className="text-sm font-medium mb-2">Team Members</h4>
-                                <div className="flex flex-wrap gap-4">
-                                  {project.teamMembers.map((member, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                      <Avatar className="h-8 w-8">
-                                        <AvatarImage 
-                                          src={member.avatar} 
-                                          alt={member.name}
-                                          onError={(e) => {
-                                            e.currentTarget.src = `https://avatar.vercel.sh/${member.name}`;
-                                          }}
-                                        />
-                                        <AvatarFallback>{member.name?.charAt(0) || 'U'}</AvatarFallback>
-                                      </Avatar>
-                                      <div>
-                                        <p className="text-sm font-medium">{member.name}</p>
-                                        <p className="text-xs text-muted-foreground">{member.role}</p>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
+      <motion.div 
+        key={project._id} 
+        className="group relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-1 transition-transform duration-300 group-hover:rotate-0"></div>
+        <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
+        <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>{project.title}</CardTitle>
+                <CardDescription className="mt-1">
+                  Last activity: {formatDate(project.lastActivity)}
+                </CardDescription>
+              </div>
+              {getStatusBadge(project.status)}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Technologies */}
+              <div className="flex flex-wrap gap-2">
+                {project.technologies.map((tech, index) => (
+                  <Badge key={index} variant="outline">{tech}</Badge>
+                ))}
+              </div>
+              
+                             {/* Team Members */}
+              <div>
+                <h4 className="text-sm font-medium mb-2">Team Members</h4>
+                <div className="flex flex-wrap gap-4">
+                  {project.teamMembers.map((member, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage 
+                          src={member.avatar} 
+                          alt={member.name}
+                          onError={(e) => {
+                            e.currentTarget.src = `https://avatar.vercel.sh/${member.name}`;
+                          }}
+                        />
+                        <AvatarFallback>{member.name?.charAt(0) || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">{member.name}</p>
+                        <p className="text-xs text-muted-foreground">{member.role}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                              {/* Open Roles */}
-                              <div>
-                                <h4 className="text-sm font-medium mb-2">Open Roles</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {project.teamStructure?.roles
-                                    .filter(role => !role.filled)
-                                    .map((role, index) => (
-                                      <Badge key={index} variant="outline">{role.title}</Badge>
-                                    ))
-                                  }
-                                  {project.teamStructure?.roles.filter(role => !role.filled).length === 0 && (
-                                    <span className="text-sm text-muted-foreground">All roles filled</span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="flex justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              className="gap-2"
-                              onClick={() => router.push(`/messages/project/${project._id}`)}
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                              Team Messages
-                            </Button>
-                            <Button 
-                              className="gap-2"
-                              onClick={() => router.push(`/projects/${project._id}`)}
-                            >
-                              View Project <ArrowRight className="h-4 w-4" />
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      </motion.div>
+              {/* Open Roles */}
+              <div>
+                <h4 className="text-sm font-medium mb-2">Open Roles</h4>
+                <div className="flex flex-wrap gap-2">
+                  {project.teamStructure?.roles
+                    .filter(role => !role.filled)
+                    .map((role, index) => (
+                      <Badge key={index} variant="outline">{role.title}</Badge>
+                    ))
+                  }
+                  {project.teamStructure?.roles.filter(role => !role.filled).length === 0 && (
+                    <span className="text-sm text-muted-foreground">All roles filled</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            {/* Replace Team Messages with Discord Join */}
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => handleJoinDiscord(project._id)}
+              disabled={isJoiningDiscord === project._id}
+            >
+              {isJoiningDiscord === project._id ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ExternalLink className="h-4 w-4" />
+              )}
+              Join Discord
+            </Button>
+            <Button 
+              className="gap-2"
+              onClick={() => router.push(`/projects/${project._id}`)}
+            >
+              View Project <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardFooter>
+        </Card>
+      </motion.div>
                     ))}
                   </div>
                 ) : (
@@ -455,12 +419,7 @@ const CollaborationsPage = () => {
           username={viewingProfile?.username}
         />
         
-        <MessageDialog 
-          isOpen={!!messagingUser} 
-          onClose={() => setMessagingUser(null)} 
-          receiverId={messagingUser?._id}
-          receiverName={messagingUser?.name}
-        />
+
         
         <Footer />
       </main>

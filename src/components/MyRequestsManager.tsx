@@ -16,21 +16,15 @@ import {
   Calendar,
   Loader2, 
   AlertCircle,
-  Framer
+  Framer,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useGetMyCollaborationRequestsQuery } from '@/app/api/collaborationApiSlice';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+
 import { Textarea } from '@/components/ui/textarea';
-import { useSendMessageMutation } from '@/app/api/messageApiSlice';
+import {  useCreateDiscordChannelMutation } from '@/app/api/discordApiSlice';
 
 const MyRequestsManager = () => {
   const router = useRouter();
@@ -39,45 +33,30 @@ const MyRequestsManager = () => {
     isLoading 
   } = useGetMyCollaborationRequestsQuery();
   
-  const [sendMessage, { isLoading: isSendingMessage }] = useSendMessageMutation();
+  const [createDiscordChannel, { isLoading: isJoiningDiscord }] = useCreateDiscordChannelMutation();
+  const [discordProjectId, setDiscordProjectId] = useState<string | null>(null);
   
-  // State for message dialog
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
-  const [messageReceiver, setMessageReceiver] = useState(null);
-  const [messageContent, setMessageContent] = useState('');
 
   // Handle view project
   const handleViewProject = (projectId: string) => {
     router.push(`/projects/${projectId}`);
   };
 
-  // Handle open message dialog
-  const handleOpenMessageDialog = (receiver) => {
-    setMessageReceiver(receiver);
-    setMessageDialogOpen(true);
-  };
-
-  // Handle send message
-  const handleSendMessage = async () => {
-    if (!messageReceiver || !messageContent.trim()) {
-      toast.error('Please enter a message');
-      return;
-    }
-
+  const handleJoinDiscord = async (projectId: string) => {
+    setDiscordProjectId(projectId);
     try {
-      await sendMessage({
-        receiverId: messageReceiver._id,
-        content: messageContent.trim()
-      }).unwrap();
-      
-      toast.success('Message sent successfully!');
-      setMessageDialogOpen(false);
-      setMessageContent('');
-    } catch (error: any) {
-      console.error('Error sending message:', error);
-      toast.error(error.data?.message || 'Failed to send message');
+      const result = await createDiscordChannel(projectId).unwrap();
+      if (result.inviteLink) {
+        window.open(result.inviteLink, '_blank');
+      }
+    } catch (error) {
+      console.error('Error joining Discord channel:', error);
+      toast.error('Failed to join Discord channel');
+    } finally {
+      setDiscordProjectId(null);
     }
   };
+  
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -184,16 +163,21 @@ const MyRequestsManager = () => {
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  {request.status === 'accepted' && (
-                    <Button 
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() => handleOpenMessageDialog(request.publisherId)}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Message
-                    </Button>
-                  )}
+                {request.status === 'accepted' && (
+  <Button 
+    variant="outline"
+    className="gap-2"
+    onClick={() => handleJoinDiscord(request.projectId._id)}
+    disabled={discordProjectId === request.projectId._id}
+  >
+    {discordProjectId === request.projectId._id ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : (
+      <ExternalLink className="h-4 w-4" />
+    )}
+    Join Discord
+  </Button>
+)}
                   <Button 
                     variant="ghost" 
                     className="gap-2"
@@ -208,54 +192,7 @@ const MyRequestsManager = () => {
         </div>
       ))}
 
-      {/* Message Dialog */}
-      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white dark:bg-black border border-black/20 dark:border-white/20">
-          <DialogHeader>
-            <DialogTitle>Send Message</DialogTitle>
-            <DialogDescription>
-              Your message will be sent directly to {messageReceiver?.name}.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="my-4">
-            <Textarea
-              placeholder="Type your message here..."
-              value={messageContent}
-              onChange={(e) => setMessageContent(e.target.value)}
-              className="h-32 resize-none"
-            />
-          </div>
-          
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setMessageDialogOpen(false)}
-              disabled={isSendingMessage}
-              className="gap-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSendMessage}
-              disabled={isSendingMessage || !messageContent.trim()}
-              className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-            >
-              {isSendingMessage ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <MessageCircle className="h-4 w-4" />
-                  Send Message
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    
     </div>
   );
 };
