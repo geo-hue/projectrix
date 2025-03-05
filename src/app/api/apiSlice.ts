@@ -37,7 +37,10 @@ export const apiSlice = createApi({
     'PublicProfile',
     'MyFeedback',
     'PublicFeedback',
-    'AdminFeedback'
+    'AdminFeedback',
+    'Activities',
+    'UnreadCount',
+    
   ],
   endpoints: () => ({}),
 });

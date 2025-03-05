@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/app/context/AuthContext';
+import NotificationDropdown from './NotificationDropdown';
 
 const Header = () => {
   const pathname = usePathname();
@@ -127,6 +128,7 @@ const Header = () => {
             ))}
             
             <div className="flex items-center gap-4">
+            {user && <NotificationDropdown />}
               <ThemeToggle />
               
               {loading ? (
@@ -209,6 +211,7 @@ const Header = () => {
 
           {/* Mobile Controls */}
           <div className="flex md:hidden items-center space-x-2">
+          {user && <NotificationDropdown />} 
             <ThemeToggle />
             <Button 
               variant="ghost" 

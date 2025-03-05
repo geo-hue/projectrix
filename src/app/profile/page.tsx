@@ -50,8 +50,9 @@ import ProjectEditDialog from '@/components/ProjectEditDialog';
 import PublishConfirmationDialog from '@/components/PublishConfirmationDialog';
 import ProfileCompletionCard from '@/components/ProfileCompletionCard';
 import ProfileEditForm from '@/components/ProfileEditForm';
-import { useGetUserProfileQuery, useUpdateUserProfileMutation } from '../api/userProfileApiSlice';
+import { useGetUserProfileQuery } from '../api/userProfileApiSlice';
 import MyFeedback from '@/components/MyFeedback';
+import EnhancedActivityFeed from '@/components/EnhancedActivityFeed';
 
 const ProfileSkeleton = () => (
   <div className="space-y-8">
@@ -185,19 +186,6 @@ const ProjectCard = ({ project, onView, onPublish, onEdit, onStart }) => {
   );
 };
 
-const ActivityItem = ({ date, title, description, icon: Icon }) => (
-  <div className="flex gap-4 py-3">
-    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-      <Icon className="h-5 w-5 text-primary" />
-    </div>
-    <div className="flex-1">
-      <p className="text-sm font-medium">{title}</p>
-      <p className="text-xs text-muted-foreground">{description}</p>
-      <p className="text-xs text-muted-foreground mt-1">{date}</p>
-    </div>
-  </div>
-);
-
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
@@ -321,27 +309,6 @@ const handleStartProject = async (projectId) => {
     }
   };
 
-  // Sample activity data (would come from API in real app)
-  const activities = [
-    { 
-      date: 'Today, 10:30 AM', 
-      title: 'Published a new project', 
-      description: 'Task Management System is now available for collaboration',
-      icon: ExternalLink
-    },
-    { 
-      date: 'Yesterday, 3:45 PM', 
-      title: 'Generated a new project idea', 
-      description: 'E-Commerce Dashboard with analytics features',
-      icon: Sparkles
-    },
-    { 
-      date: '3 days ago', 
-      title: 'Updated profile preferences', 
-      description: 'Added React Native and Flutter to skills',
-      icon: Settings
-    }
-  ];
 
   const handleEditProject = (project) => {
     setProjectToEdit(project);
@@ -832,41 +799,8 @@ const handleStartProject = async (projectId) => {
                   <div className="grid md:grid-cols-3 gap-8">
                     {/* Activity Feed */}
                     <div className="md:col-span-2">
-                      <div className="group relative">
-                        <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                        <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                        {/* Blue gradient background effect */}
-                        <div className="absolute inset-0 overflow-hidden">
-                          <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-blue-600/10 to-blue-400/10 dark:from-blue-700/10 dark:to-blue-400/10 rounded-full blur-xl"></div>
-                        </div>
-                          <CardHeader>
-                            <CardTitle className="text-xl flex items-center">
-                              <BarChart4 className="h-5 w-5 mr-2" /> 
-                              Recent Activity
-                            </CardTitle>
-                            <CardDescription>Your latest actions and achievements</CardDescription>
-                          </CardHeader>
-                          <CardContent className="pb-2">
-                            <div className="space-y-1 divide-y divide-border/30">
-                              {activities.map((activity, index) => (
-                                <ActivityItem
-                                  key={index}
-                                  date={activity.date}
-                                  title={activity.title}
-                                  description={activity.description}
-                                  icon={activity.icon}
-                                />
-                              ))}
-                            </div>
-                          </CardContent>
-                          <CardFooter>
-                            <Button variant="ghost" className="w-full justify-center gap-1">
-                              View All Activity <ChevronRight className="h-3 w-3" />
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      </div>
-                    </div>
+      <EnhancedActivityFeed />
+    </div>
 
                     {/* Stats Card */}
                     <div>
