@@ -96,9 +96,6 @@ const handleSubmitApplication = async () => {
     // Update local state if needed
     if (onSuccess) onSuccess();
     
-    // Force reload request data
-    // This might be needed if the cache isn't updating properly
-    refetchRequests && refetchRequests();
     
   } catch (error: any) {
     console.error('Error submitting application:', error);

@@ -120,12 +120,37 @@ const ProfileCompletionCard = ({
               ></div>
             </div>
             
-            {/* Milestone markers */}
-            <div className="flex justify-between w-full px-0.5 text-xs text-gray-500">
-              <div className={`${percentage >= 25 ? statusColor : ''}`}>25%</div>
-              <div className={`${percentage >= 50 ? statusColor : ''}`}>50%</div>
-              <div className={`${percentage >= 75 ? statusColor : ''}`}>75%</div>
-              <div className={`${percentage >= 100 ? statusColor : ''}`}>100%</div>
+            {/* Milestone markers with proper positioning */}
+            <div className="relative w-full h-4 mt-1">
+              {/* Marker for 0% */}
+              <div className="absolute left-0 top-0 flex flex-col items-center">
+                <div className="h-1 w-1 bg-gray-400 rounded-full mb-1"></div>
+                <span className="text-xs text-gray-500">0%</span>
+              </div>
+              
+              {/* Marker for 25% */}
+              <div className="absolute left-1/4 top-0 flex flex-col items-center -ml-1">
+                <div className={`h-1 w-1 ${percentage >= 25 ? 'bg-blue-500' : 'bg-gray-400'} rounded-full mb-1`}></div>
+                <span className={`text-xs ${percentage >= 25 ? statusColor : 'text-gray-500'}`}>25%</span>
+              </div>
+              
+              {/* Marker for 50% */}
+              <div className="absolute left-1/2 top-0 flex flex-col items-center -ml-1">
+                <div className={`h-1 w-1 ${percentage >= 50 ? 'bg-blue-500' : 'bg-gray-400'} rounded-full mb-1`}></div>
+                <span className={`text-xs ${percentage >= 50 ? statusColor : 'text-gray-500'}`}>50%</span>
+              </div>
+              
+              {/* Marker for 75% */}
+              <div className="absolute left-3/4 top-0 flex flex-col items-center -ml-1">
+                <div className={`h-1 w-1 ${percentage >= 75 ? 'bg-blue-500' : 'bg-gray-400'} rounded-full mb-1`}></div>
+                <span className={`text-xs ${percentage >= 75 ? statusColor : 'text-gray-500'}`}>75%</span>
+              </div>
+              
+              {/* Marker for 100% */}
+              <div className="absolute right-0 top-0 flex flex-col items-center">
+                <div className={`h-1 w-1 ${percentage >= 100 ? 'bg-blue-500' : 'bg-gray-400'} rounded-full mb-1`}></div>
+                <span className={`text-xs ${percentage >= 100 ? statusColor : 'text-gray-500'}`}>100%</span>
+              </div>
             </div>
           </div>
           

@@ -43,7 +43,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { motion } from "framer-motion";
 import TechBackground from '@/components/TechBackground';
-import { useGetSavedProjectsQuery, useGetProjectsQuery, usePublishProjectMutation } from '../api/projectApiSlice';
+import { useGetSavedProjectsQuery, useGetProjectsQuery, usePublishProjectMutation, useStartProjectMutation } from '../api/projectApiSlice';
 import { Project } from '../types/projectTypes';
 import ProjectDetails from '@/components/ProjectDetails';
 import ProjectEditDialog from '@/components/ProjectEditDialog';
@@ -74,7 +74,7 @@ const ProfileSkeleton = () => (
   </div>
 );
 
-const ProjectCard = ({ project, onView, onPublish, onEdit }) => {
+const ProjectCard = ({ project, onView, onPublish, onEdit, onStart }) => {
   const statusColors = {
     draft: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
     published: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
@@ -145,6 +145,17 @@ const ProjectCard = ({ project, onView, onPublish, onEdit }) => {
             >
               <ArrowRight className="h-3 w-3" /> View
             </Button>
+              {/* For draft projects: Show Save button instead of Publish */}
+              {!project.isSaved && !project.isPublished && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-1 gap-1"
+                onClick={() => onStart(project._id)} // Call onStart instead of onPublish for drafts
+              >
+                <Save className="h-3 w-3" /> Save
+              </Button>
+            )}
             {/* Edit button - only show for saved projects */}
             {project.isSaved && !project.isPublished && (
               <Button 
@@ -157,7 +168,7 @@ const ProjectCard = ({ project, onView, onPublish, onEdit }) => {
               </Button>
             )}
             {/* Publish button - only show for unpublished projects */}
-            {!project.isPublished && (
+            {project.isSaved && !project.isPublished && (
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -194,6 +205,7 @@ export default function ProfilePage() {
   const { data: allProjects, isLoading: allProjectsLoading } = useGetProjectsQuery();
   const { data: userProfileData, isLoading: userProfileLoading, refetch: refetchUserProfile } = useGetUserProfileQuery();
   const [publishProject, { isLoading: publishing }] = usePublishProjectMutation();
+  const [startProject, { isLoading: isStartingProject }] = useStartProjectMutation();
   
   // Project details modal state
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -212,6 +224,17 @@ export default function ProfilePage() {
   
   // Check if any data is loading
   const isLoading = savedProjectsLoading || allProjectsLoading || userProfileLoading;
+
+  
+const handleStartProject = async (projectId) => {
+  try {
+    await startProject(projectId).unwrap();
+    toast.success('Project saved successfully!');
+  } catch (error) {
+    console.error('Error saving project:', error);
+    toast.error('Failed to save project');
+  }
+};
 
   // Handle publishing a project
   const handlePublishProject = (projectId) => {
@@ -619,10 +642,10 @@ export default function ProfilePage() {
                     <BarChart4 className="h-4 w-4 mr-2" />
                     Activity
                   </TabsTrigger>
-                  <TabsTrigger value="collaborations" className="py-2.5">
+                  {/* <TabsTrigger value="collaborations" className="py-2.5">
                     <Users className="h-4 w-4 mr-2" />
                     Collaborations
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                   <TabsTrigger value="feedback" className="py-2.5">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     My Feedback
@@ -694,12 +717,13 @@ export default function ProfilePage() {
                         ) : (
                           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {getDraftProjects().map((project) => (
-                              <ProjectCard 
-                                key={project._id} 
-                                project={project} 
-                                onView={viewProject}
-                                onPublish={handlePublishProject}
-                                onEdit={handleEditProject}
+                            <ProjectCard 
+                            key={project._id} 
+                            project={project} 
+                            onView={viewProject}
+                            onPublish={handlePublishProject}
+                            onEdit={handleEditProject}
+                            onStart={handleStartProject}
                               />
                             ))}
                             <div className="group relative">
@@ -750,13 +774,14 @@ export default function ProfilePage() {
                         ) : (
                           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {getSavedProjects().map((project) => (
-                              <ProjectCard 
-                                key={project._id} 
-                                project={project} 
-                                onView={viewProject}
-                                onPublish={handlePublishProject}
-                                onEdit={handleEditProject}
-                              />
+  <ProjectCard 
+    key={project._id} 
+    project={project} 
+    onView={viewProject}
+    onPublish={handlePublishProject}
+    onEdit={handleEditProject}
+    onStart={handleStartProject} 
+  />
                             ))}
                           </div>
                         )}
@@ -792,6 +817,7 @@ export default function ProfilePage() {
                                 onView={viewProject}
                                 onPublish={handlePublishProject}
                                 onEdit={handleEditProject}
+                                onStart={handleStartProject}
                               />
                             ))}
                           </div>

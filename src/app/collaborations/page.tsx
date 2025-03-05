@@ -55,18 +55,29 @@ const CollaborationsPage = () => {
   } = useGetMyCollaborationsQuery();
 
   const handleJoinDiscord = async (projectId: string) => {
-    setIsJoiningDiscord(projectId);
+    if (!projectId) return;
+    
+    setIsJoiningDiscord(projectId); // If using this state
     try {
       const result = await createDiscordChannel(projectId).unwrap();
       if (result.inviteLink) {
+        // Open Discord link in new tab
         window.open(result.inviteLink, '_blank');
-        toast.success('Discord channel opened in new tab');
+        
+        // Show informative toast about the Discord channel privacy
+        toast.success(
+          <div>
+            <p className="font-medium mb-1">Discord channel opened</p>
+            <p className="text-sm">This invite gives you access to a private project channel. Only team members can see this channel.</p>
+          </div>,
+          { duration: 5000 }
+        );
       }
     } catch (error) {
       console.error('Error joining Discord channel:', error);
-      toast.error('Failed to join Discord channel');
+      toast.error('Failed to join Discord channel. Please try again later.');
     } finally {
-      setIsJoiningDiscord(null);
+      setIsJoiningDiscord(null); // If using this state
     }
   };
 
@@ -158,14 +169,26 @@ const CollaborationsPage = () => {
         <div className="container px-4 mx-auto py-8">
           <div className="space-y-8">
             <motion.div
+              className="text-center mb-16"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h1 className="text-4xl font-bold mt-20 mb-4 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
-                My Collaborations
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 mt-20 font-orbitron relative inline-block">
+                <span className="bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+                  My
+                </span>{" "}
+                <span className="text-black dark:text-white">
+                  Collaborations
+                </span>
+                <motion.div
+                  className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-blue-600/50 to-blue-400/50"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ delay: 0.5, duration: 0.8 }}
+                />
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Track and manage all your project collaborations in one place
               </p>
             </motion.div>

@@ -89,11 +89,21 @@ const ProjectDetailsPage = () => {
     try {
       const result = await createDiscordChannel(projectData._id).unwrap();
       if (result.inviteLink) {
+        // Open Discord link in new tab
         window.open(result.inviteLink, '_blank');
+        
+        // Show informative toast about the Discord channel privacy
+        toast.success(
+          <div>
+            <p className="font-medium mb-1">Discord channel opened</p>
+            <p className="text-sm">This invite gives you access to a private project channel. Only team members can see this channel.</p>
+          </div>,
+          { duration: 5000 }
+        );
       }
     } catch (error) {
       console.error('Error joining Discord channel:', error);
-      toast.error('Failed to join Discord channel');
+      toast.error('Failed to join Discord channel. Please try again later.');
     }
   };
   
@@ -267,77 +277,93 @@ const ProjectDetailsPage = () => {
                 </Card>
               </motion.div>
               
-              {/* Project Team */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-              >
-                <h2 className="text-2xl font-bold mb-4">Project Team</h2>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Filled Roles */}
-                  {getFilledRoles().map((role, index) => {
-                    // Find team member with this role
-                    const teamMember = projectData.teamMembers?.find(m => m.role === role.title);
-                    return (
-                      <Card 
-                        key={`filled-${index}`} 
-                        className="bg-white dark:bg-black border border-black/20 dark:border-white/20"
-                      >
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between">
-                            <CardTitle className="text-lg">{role.title}</CardTitle>
-                            <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
-                              <CheckCircle2 className="mr-1 h-3 w-3" />
-                              Filled
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          {teamMember && (
-                            <div className="flex items-center gap-3 mb-3">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage 
-                                  src={`https://avatar.vercel.sh/user-${index}`} 
-                                  alt="Team Member"
-                                />
-                                <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="text-sm font-medium">
-                                  {teamMember.userId?.name || "Team Member"}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  Joined {new Date(teamMember.joinedAt).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="space-y-3">
-                            <div>
-                              <div className="text-sm font-medium mb-1">Skills:</div>
-                              <div className="flex flex-wrap gap-1">
-                                {role.skills?.map((skill, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">{skill}</Badge>
-                                ))}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-sm font-medium mb-1">Responsibilities:</div>
-                              <ul className="list-disc list-inside text-sm text-muted-foreground">
-                                {role.responsibilities?.map((resp, idx) => (
-                                  <li key={idx}>{resp}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+          {/* Project Team - Updated Code */}
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5, delay: 0.1 }}
+>
+  <h2 className="text-2xl font-bold mb-4">Project Team</h2>
+  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {/* Filled Roles */}
+    {getFilledRoles().map((role, index) => {
+      // Find team member with this role
+      const teamMember = projectData.teamMembers?.find(m => m.role === role.title);
+      
+      // Access userId properly considering it might be a populated object or an ID
+      const memberUserId = teamMember?.userId || {};
+      const memberName = typeof memberUserId === 'object' && memberUserId.name 
+        ? memberUserId.name 
+        : "Team Member";
+      const memberUsername = typeof memberUserId === 'object' && memberUserId.username 
+        ? memberUserId.username 
+        : `user-${index}`;
+      const memberAvatar = typeof memberUserId === 'object' && memberUserId.avatar 
+        ? memberUserId.avatar 
+        : `https://avatar.vercel.sh/${memberUsername}`;
+        
+      return (
+        <Card 
+          key={`filled-${index}`} 
+          className="bg-white dark:bg-black border border-black/20 dark:border-white/20"
+        >
+          <CardHeader className="pb-2">
+            <div className="flex justify-between">
+              <CardTitle className="text-lg">{role.title}</CardTitle>
+              <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Filled
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {teamMember && (
+              <div className="flex items-center gap-3 mb-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage 
+                    src={memberAvatar} 
+                    alt={memberName}
+                    onError={(e) => {
+                      e.currentTarget.src = `https://avatar.vercel.sh/${memberUsername}`;
+                    }}
+                  />
+                  <AvatarFallback>{memberName.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="text-sm font-medium">
+                    {memberName}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Joined {new Date(teamMember.joinedAt).toLocaleDateString()}
+                  </div>
                 </div>
-              </motion.div>
+              </div>
+            )}
+            
+            <div className="space-y-3">
+              <div>
+                <div className="text-sm font-medium mb-1">Skills:</div>
+                <div className="flex flex-wrap gap-1">
+                  {role.skills?.map((skill, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-xs">{skill}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium mb-1">Responsibilities:</div>
+                <ul className="list-disc list-inside text-sm text-muted-foreground">
+                  {role.responsibilities?.map((resp, idx) => (
+                    <li key={idx}>{resp}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    })}
+  </div>
+</motion.div>
               
               {/* Available Roles and Application */}
               {getAvailableRoles().length > 0 && (
