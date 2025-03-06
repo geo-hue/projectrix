@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -8,7 +8,6 @@ import {
   Sparkles,
   Code2,
   Globe,
-  MessageCircle,
   Twitter,
   Linkedin,
   Loader2,
@@ -17,27 +16,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TechBackground from '@/components/TechBackground';
 import PageTransition from '@/components/PageTransition';
-import { toast } from 'sonner';
-
-// Custom dialog for messaging
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog';
-
 // Import API hooks
 import { useGetPublicProfileQuery } from '@/app/api/userProfileApiSlice';
-import { useSendMessageMutation } from '@/app/api/messageApiSlice';
 import { useAuth } from '@/app/context/AuthContext';
 import ProjectCard from '@/components/ProjectCard';
 import Image from 'next/image';
@@ -75,50 +60,15 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
   const router = useRouter();
   const { isAuthenticated, login, user } = useAuth();
   
-  // State for messaging dialog
-  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
-  const [messageContent, setMessageContent] = useState('');
   
   // API hooks
   const { data, isLoading, error } = useGetPublicProfileQuery(username || '', {
     // Skip the query if no username is provided
     skip: !username || !isAuthenticated
   });
-  const [sendMessage, { isLoading: isSendingMessage }] = useSendMessageMutation();
   
   const profileData = data?.publicProfile;
   
-  // Handle sending a message
-  const handleSendMessage = async () => {
-    if (!isAuthenticated) {
-      try {
-        await login();
-        toast.info('Please log in to send messages');
-      } catch (error) {
-        console.error('Login error:', error);
-      }
-      return;
-    }
-    
-    if (!messageContent.trim()) {
-      toast.error('Please enter a message');
-      return;
-    }
-    
-    try {
-      await sendMessage({
-        receiverId: profileData?.user?._id,
-        content: messageContent
-      }).unwrap();
-      
-      toast.success('Message sent successfully!');
-      setMessageContent('');
-      setIsMessageDialogOpen(false);
-    } catch (error: any) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message. Please try again.');
-    }
-  };
   
   // Check if own profile
   const isOwnProfile = user?.username === username;
@@ -279,16 +229,7 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
                                 )}
                               </div>
                               
-                              {!isOwnProfile && (
-                                <Button 
-                                  size="sm"
-                                  className="w-full mt-2 gap-1 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_2px_0_0_rgba(0,0,0,1)] dark:shadow-[0_2px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                                  onClick={() => setIsMessageDialogOpen(true)}
-                                >
-                                  <MessageCircle className="h-3 w-3" />
-                                  Message
-                                </Button>
-                              )}
+                          
                             </div>
                             
                             {/* Right column with bio and stats */}
@@ -475,68 +416,7 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
         </div>
 
         
-        {/* Message Dialog */}
-        {profileData && (
-          <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Send Message to {profileData.user?.name}</DialogTitle>
-                <DialogDescription>
-                  Your message will be sent directly to {profileData.user?.name}. They will be able to respond via the messaging system.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="mt-4 space-y-4">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage 
-                      src={profileData.user?.avatar || `https://avatar.vercel.sh/${profileData.user?.username || "user"}`}
-                      alt={profileData.user?.name || "User"} 
-                    />
-                    <AvatarFallback>{profileData.user?.name?.charAt(0) || "U"}</AvatarFallback>
-                  </Avatar>
-                  
-                  <textarea
-                    className="flex-1 h-32 p-3 text-sm rounded-md border border-input bg-transparent resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                    placeholder="Write your message here..."
-                    value={messageContent}
-                    onChange={(e) => setMessageContent(e.target.value)}
-                  />
-                </div>
-                
-                <p className="text-xs text-muted-foreground">
-                  Messages are limited to 1000 characters. Keep communications professional and project-related.
-                </p>
-              </div>
-              
-              <DialogFooter className="mt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsMessageDialogOpen(false)}
-                  disabled={isSendingMessage}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleSendMessage}
-                  disabled={isSendingMessage || !messageContent.trim()}
-                >
-                  {isSendingMessage ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      Send Message
-                    </>
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
+     
         
         {!isLoading && <Footer />}
       </main>

@@ -1,4 +1,3 @@
-// components/ProjectCard.tsx
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -167,7 +166,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
                 </div>
               </CardContent>
             ) : (
-              <CardContent className="pt-2">
+              <CardContent className="pt-2 relative z-10">
                 <RoleApplication 
                   projectId={project._id}
                   roles={project.teamStructure?.roles || []}

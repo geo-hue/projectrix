@@ -14,8 +14,24 @@ interface AuthWrapperProps {
 
 export default function AuthWrapper({ children }: AuthWrapperProps) {
   const { isAuthenticated, loading } = useAuth();
+  const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Store auth context in window for the API interceptor
+      (window as any).__authContext = {
+        refreshToken: auth.refreshToken,
+        logout: auth.logout
+      };
+      
+      // Clean up on unmount
+      return () => {
+        delete (window as any).__authContext;
+      };
+    }
+  }, [auth.refreshToken, auth.logout]);
   
   // Check if current path is a public route
   const isPublicRoute = publicRoutes.includes(pathname) || 
@@ -47,6 +63,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
     return null;
   }
 
+  
   // For public routes or authenticated users, render children
   return <>{children}</>;
 }

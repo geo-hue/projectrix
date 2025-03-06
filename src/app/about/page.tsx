@@ -223,7 +223,7 @@ const AboutPage = () => {
                     {/* Social Links */}
                     <div className="flex items-center justify-center md:justify-start gap-4">
                       <a
-                        href="https://github.com/yourusername"
+                        href="https://github.com/georgedevs"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
@@ -231,7 +231,7 @@ const AboutPage = () => {
                         <Github className="h-5 w-5" />
                       </a>
                       <a
-                        href="https://linkedin.com/in/yourusername"
+                        href="https://www.linkedin.com/in/ukoh-godwin-george/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"

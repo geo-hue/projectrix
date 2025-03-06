@@ -1,3 +1,4 @@
+// src/app/context/SocketContext.tsx
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -26,78 +27,118 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
-  const { user, isAuthenticated } = useAuth();
-
-  useEffect(() => {
+  const { user, isAuthenticated, refreshToken } = useAuth();
+  
+  const connectSocket = async () => {
     // Clean up any existing connection
     if (socket) {
       socket.disconnect();
     }
-
+    
     // Only create socket if user is authenticated
     if (!isAuthenticated || !user) {
       setSocket(null);
       setConnected(false);
       return;
     }
-
-    // Initialize Socket.io connection
-    const token = localStorage.getItem('token');
-    const socketIo = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000', {
-      auth: { token },
-      transports: ['websocket'],
-      autoConnect: true,
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5
-    });
-
-    // Socket event handlers
-    socketIo.on('connect', () => {
-      console.log('Socket connected!');
-      setConnected(true);
-    });
-
-    socketIo.on('disconnect', () => {
-      console.log('Socket disconnected!');
-      setConnected(false);
-    });
-
-    socketIo.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setConnected(false);
-    });
-
-    // Handle new activity notifications
-    socketIo.on('new_activity', (data) => {
-      const newActivity = data.activity;
+    
+    try {
+      // Get a fresh token when connecting
+      const token = await refreshToken();
       
-      // Add the new activity to our state
-      setActivities(prev => [newActivity, ...prev]);
+      if (!token) {
+        console.error('Failed to get token for socket connection');
+        return;
+      }
       
-      // Show a toast notification
-      toast(
-        <div className="flex flex-col">
-          <span className="font-semibold text-sm mb-1">New Notification</span>
-          <span className="text-xs">{newActivity.message}</span>
-        </div>,
-        {
-          icon: '🔔',
-          position: 'top-right',
-          duration: 5000
+      // Initialize Socket.io connection
+      const socketIo = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000', {
+        auth: { token },
+        transports: ['websocket'],
+        autoConnect: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5
+      });
+
+      // Socket event handlers
+      socketIo.on('connect', () => {
+        console.log('Socket connected!');
+        setConnected(true);
+      });
+
+      socketIo.on('disconnect', () => {
+        console.log('Socket disconnected!');
+        setConnected(false);
+      });
+
+      socketIo.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+        setConnected(false);
+        
+        // Handle auth errors
+        if (error.message.includes('Authentication')) {
+          // Try to refresh token and reconnect
+          setTimeout(connectSocket, 5000);
         }
-      );
-    });
+      });
 
-    setSocket(socketIo);
+      // Handle new activity notifications
+      socketIo.on('new_activity', (data) => {
+        const newActivity = data.activity;
+        
+        // Add the new activity to our state
+        setActivities(prev => [newActivity, ...prev]);
+        
+        // Show a toast notification
+        toast(
+          <div className="flex flex-col">
+            <span className="font-semibold text-sm mb-1">New Notification</span>
+            <span className="text-xs">{newActivity.message}</span>
+          </div>,
+          {
+            icon: '🔔',
+            position: 'top-right',
+            duration: 5000
+          }
+        );
+      });
 
-    // Cleanup on unmount
+      setSocket(socketIo);
+    } catch (error) {
+      console.error('Error setting up socket connection:', error);
+    }
+  };
+
+  // Connect/disconnect socket when authentication changes
+  useEffect(() => {
+    connectSocket();
+    
+    // Cleanup on unmount or auth change
     return () => {
-      if (socketIo) {
-        socketIo.disconnect();
+      if (socket) {
+        socket.disconnect();
       }
     };
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user?._id]);
+  
+  // Set up a heartbeat to keep connection alive
+  useEffect(() => {
+    if (!socket) return;
+    
+    const heartbeatInterval = setInterval(() => {
+      if (socket.connected) {
+        socket.emit('heartbeat');
+      } else if (isAuthenticated) {
+        // Try to reconnect if authenticated but disconnected
+        connectSocket();
+      }
+    }, 30000); // Every 30 seconds
+    
+    return () => {
+      clearInterval(heartbeatInterval);
+    };
+  }, [socket, isAuthenticated]);
 
   // Function to clear new activities
   const clearNewActivities = () => {
