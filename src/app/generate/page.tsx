@@ -51,6 +51,7 @@ import {
   useStartProjectMutation
 } from '../api/projectApiSlice';
 import { Project } from '../types/projectTypes';
+import { Input } from '@/components/ui/input';
 
 export default function GeneratePage() {
   // State and hooks
@@ -72,6 +73,7 @@ export default function GeneratePage() {
   const [duration, setDuration] = useState('');
   const [teamSize, setTeamSize] = useState('');
   const [category, setCategory] = useState('');
+  const [projectTheme, setProjectTheme] = useState('');
 
   // Handle form submission
   const handleGenerate = async () => {
@@ -88,10 +90,6 @@ export default function GeneratePage() {
     }
 
     // Validate form
-    if (selectedTechs.length === 0) {
-      toast.error('Please select at least one technology');
-      return;
-    }
     if (!duration) {
       toast.error('Please select project duration');
       return;
@@ -122,6 +120,7 @@ export default function GeneratePage() {
       duration,
       teamSize,
       category,
+      projectTheme: projectTheme.trim()
     };
 
     try {
@@ -651,6 +650,18 @@ export default function GeneratePage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {/* Project Theme (new field) */}
+<div className="space-y-2">
+  <label className="text-sm font-medium">Project Theme (Optional)</label>
+  <Input 
+    placeholder="E.g., Social media, Health, Productivity, Education..."
+    value={projectTheme}
+    onChange={(e) => setProjectTheme(e.target.value)}
+  />
+  <p className="text-xs text-muted-foreground">
+    A theme to guide the project idea generation (optional)
+  </p>
+</div>
                   </CardContent>
                   <CardFooter>
                     <Button 

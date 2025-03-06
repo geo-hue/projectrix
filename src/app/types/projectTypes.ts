@@ -59,6 +59,7 @@ export interface Complexity {
     duration: string;
     teamSize: string;
     category: string;
+    projectTheme?: string;
   }
   
   export interface ProjectResponse {
