@@ -1,316 +1,298 @@
 // src/app/admin/layout.tsx
-"use client";
+'use client';
 
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import {
-  BarChart4,
-  Users,
-  Code2,
-  Settings,
-  MessageSquare,
-  ChevronLeft,
+import { motion } from "framer-motion";
+import { 
+  LayoutDashboard, 
+  Users, 
+  Code2, 
+  Database, 
+  MessageSquare, 
+  Settings, 
+  BarChart, 
+  CreditCard, 
   LogOut,
+  ChevronDown,
+  Bell,
   Menu,
-  X,
-  Shield,
-  Home
+  X
 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from '../context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/app/context/AuthContext';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from '@/components/ui/badge';
+import { useGetUnreadCountQuery } from '@/app/api/activityApiSlice';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+const AdminLayout = ({ children }: AdminLayoutProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, loading, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Define sidebar navigation items
-  const navItems = [
-    {
-      title: 'Dashboard',
-      description: 'Analytics overview and key metrics',
-      icon: BarChart4,
-      href: '/admin',
-      color: 'blue'
-    },
-    {
-      title: 'User Management',
-      description: 'Manage user accounts, roles and permissions',
-      icon: Users,
-      href: '/admin/users',
-      color: 'green'
-    },
-    {
-      title: 'Project Management',
-      description: 'Review and moderate published projects',
-      icon: Code2,
-      href: '/admin/projects',
-      color: 'purple'
-    },
-    {
-      title: 'Feedback Management',
-      description: 'Manage user feedback and feature requests',
-      icon: MessageSquare,
-      href: '/admin/feedback',
-      color: 'amber'
-    },
-    {
-      title: 'System Settings',
-      description: 'Configure platform settings and parameters',
-      icon: Settings,
-      href: '/admin/settings',
-      color: 'slate'
+  
+  // Get notifications count
+  const { data: unreadCountData } = useGetUnreadCountQuery();
+  const unreadCount = unreadCountData?.unreadCount || 0;
+  
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin';
+  
+  // Redirect non-admin users
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/');
+      toast.error('Please log in to access this page');
+    } else if (!loading && isAuthenticated && !isAdmin) {
+      router.push('/profile');
+      toast.error('You do not have permission to access the admin area');
     }
-  ];
-
-  // Redirect if not admin
-  if (!loading && isAuthenticated && user?.role !== 'admin') {
-    toast.error('Access denied. Admin privileges required.');
-    router.push('/');
-    return null;
-  }
-
-  // Show loading state
-  if (loading) {
+  }, [loading, isAuthenticated, isAdmin, router]);
+  
+  // If still checking authentication, show loading
+  if (loading || !isAuthenticated || !isAdmin) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      <div className="min-h-screen flex items-center justify-center bg-black/5 dark:bg-white/5">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-current border-t-transparent text-primary"></div>
       </div>
     );
   }
-
-  // If not authenticated, redirect to login
-  if (!isAuthenticated && !loading) {
-    toast.error('Please login to access admin panel');
-    router.push('/');
-    return null;
-  }
-
-  // Handle navigation
-  const navigateTo = (href: string) => {
-    router.push(href);
-    setIsMobileMenuOpen(false); // Close mobile menu when navigating
+  
+  // Admin navigation items
+  const navigation = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Projects', href: '/admin/projects', icon: Code2 },
+    { name: 'Collaborations', href: '/admin/collaborations', icon: Database },
+    { name: 'Feedback', href: '/admin/feedback', icon: MessageSquare },
+    { name: 'Analytics', href: '/admin/analytics', icon: BarChart },
+    { name: 'Revenue', href: '/admin/revenue', icon: CreditCard },
+    { name: 'Settings', href: '/admin/settings', icon: Settings },
+  ];
+  
+  // Check if a link is active
+  const isActive = (path: string) => {
+    if (path === '/admin') {
+      return pathname === '/admin';
+    }
+    return pathname.startsWith(path);
   };
-
+  
   // Handle logout
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success('Logged out successfully');
       router.push('/');
     } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('Logout failed');
+      console.error('Error logging out:', error);
     }
   };
-
+  
   return (
-    <div className="flex h-screen flex-col md:flex-row bg-muted/30">
-      {/* Mobile Navbar */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b bg-background shadow-sm">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50 dark:bg-gray-900/50">
+      {/* Mobile Menu Toggle */}
+      <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-white dark:bg-black p-4 border-b">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-            <Menu className="h-5 w-5" />
+          <Button variant="outline" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            <span className="font-bold text-lg">Admin Panel</span>
-          </div>
+          <span className="font-bold text-xl tracking-tight font-orbitron bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+            Projectrix Admin
+          </span>
         </div>
-        <Avatar className="h-9 w-9">
-          <AvatarImage src={user?.avatar} alt={user?.name} />
-          <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" className="relative" size="icon">
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Button>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={user?.avatar} alt={user?.name} />
+            <AvatarFallback>{user?.name?.[0] || 'A'}</AvatarFallback>
+          </Avatar>
+        </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-background md:hidden">
-          <div className="flex h-full flex-col overflow-y-auto bg-background pb-12">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                <span className="font-bold text-lg">Admin Panel</span>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <ScrollArea className="flex-1 px-4 py-6">
-              <div className="flex flex-col gap-6">
-                {navItems.map((item, index) => (
-                  <button
-                    key={item.href}
-                    onClick={() => navigateTo(item.href)}
-                    className={`flex items-start gap-4 px-4 py-3 rounded-lg transition-colors ${
-                      pathname === item.href 
-                        ? 'bg-primary/10 text-primary'
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    <div className={`rounded-lg p-2 shrink-0 bg-${item.color}-100 dark:bg-${item.color}-900/20`}>
-                      <item.icon className={`h-5 w-5 text-${item.color}-600 dark:text-${item.color}-400`} />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium">{item.title}</div>
-                      <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
-            <div className="border-t px-4 py-4">
-              <div className="flex items-center gap-4 mb-4">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
-                  <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => router.push('/')}
-                >
-                  <Home className="mr-2 h-4 w-4" />
-                  Back to App
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </div>
+      
+      {/* Mobile Sidebar */}
+      <div 
+        className={cn(
+          "lg:hidden fixed inset-0 z-20 bg-black/50 backdrop-blur-sm dark:bg-black/50",
+          isMobileMenuOpen ? "block" : "hidden"
+        )}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+      
+      <div 
+        className={cn(
+          "lg:hidden fixed top-0 left-0 z-30 w-64 h-full bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-200 ease-in-out",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex flex-col h-full">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+            <div className="font-bold text-xl tracking-tight font-orbitron bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+              Projectrix Admin
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Desktop Sidebar */}
-      <div className={`hidden md:flex flex-col border-r bg-background ${
-        sidebarOpen ? 'w-80' : 'w-20'
-      } transition-all duration-200`}>
-        <div className={`flex h-14 items-center px-4 py-4 border-b ${
-          sidebarOpen ? 'justify-between' : 'justify-center'
-        }`}>
-          {sidebarOpen ? (
-            <>
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                <span className="font-bold">Admin Panel</span>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-            </>
-          ) : (
-            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
-        </div>
-        <ScrollArea className="flex-1 py-4">
-          <div className="flex flex-col gap-1 px-2">
-            {navItems.map((item) => (
-              <button
-                key={item.href}
-                onClick={() => navigateTo(item.href)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                  pathname === item.href 
-                    ? 'bg-primary/10 text-primary'
-                    : 'hover:bg-muted'
-                } ${!sidebarOpen ? 'justify-center p-2' : ''}`}
-                title={!sidebarOpen ? item.title : undefined}
-              >
-                <div className={`rounded-lg p-1 ${sidebarOpen ? 'shrink-0' : ''} ${
-                  pathname === item.href 
-                    ? `bg-${item.color}-100 dark:bg-${item.color}-900/20`
-                    : ''
-                }`}>
-                  <item.icon className={`h-5 w-5 ${
-                    pathname === item.href 
-                      ? `text-${item.color}-600 dark:text-${item.color}-400`
-                      : 'text-muted-foreground'
-                  }`} />
-                </div>
-                {sidebarOpen && (
-                  <span className={pathname === item.href ? 'font-medium' : ''}>{item.title}</span>
+          
+          <nav className="flex-1 px-2 py-4 overflow-y-auto">
+            {navigation.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm font-medium rounded-md my-1",
+                  isActive(item.href)
+                    ? "bg-primary/10 text-primary"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50"
                 )}
-              </button>
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push(item.href);
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                {item.name}
+              </a>
             ))}
-          </div>
-        </ScrollArea>
-        <div className={`border-t p-4 ${sidebarOpen ? '' : 'flex justify-center'}`}>
-          {sidebarOpen ? (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
-                  <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => router.push('/')}
-                >
-                  <Home className="mr-2 h-4 w-4" />
-                  Back to App
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
-              </div>
-            </div>
-          ) : (
+          </nav>
+          
+          <div className="p-4 border-t border-gray-200 dark:border-gray-800">
             <Button 
-              variant="outline" 
-              size="icon"
+              variant="destructive" 
+              className="w-full" 
               onClick={handleLogout}
-              title="Logout"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
             </Button>
-          )}
+          </div>
         </div>
       </div>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="container py-6 md:py-8">
-          {children}
+      
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:dark:border-gray-800 lg:bg-white lg:dark:bg-black">
+        <div className="flex flex-col h-full">
+          <div className="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-800">
+            <div className="font-bold text-xl tracking-tight font-orbitron bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+              Projectrix Admin
+            </div>
+          </div>
+          
+          <nav className="flex-1 px-2 py-4 overflow-y-auto">
+            {navigation.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm font-medium rounded-md my-1",
+                  isActive(item.href)
+                    ? "bg-primary/10 text-primary dark:bg-primary/20"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50"
+                )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push(item.href);
+                }}
+              >
+                <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                {item.name}
+              </a>
+            ))}
+          </nav>
+          
+          <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+            <div className="flex items-center mb-4">
+              <Avatar className="h-8 w-8 mr-3">
+                <AvatarImage src={user?.avatar} alt={user?.name} />
+                <AvatarFallback>{user?.name?.[0] || 'A'}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium">{user?.name}</p>
+                <p className="text-xs text-muted-foreground">Admin</p>
+              </div>
+            </div>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="w-full" 
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
+            </Button>
+          </div>
         </div>
-      </main>
+      </div>
+      
+      {/* Main content */}
+      <div className="lg:pl-64 flex flex-col flex-1">
+        {/* Desktop header */}
+        <header className="hidden lg:flex sticky top-0 z-10 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 h-16 items-center justify-end px-4">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Button variant="ghost" size="icon">
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+            </div>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback>{user?.name?.[0] || 'A'}</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden md:inline-block">{user?.name}</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  View Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/')}>
+                  Back to App
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-500 dark:text-red-400">
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+        
+        {/* Page content */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };
