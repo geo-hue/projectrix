@@ -34,15 +34,15 @@ import {
   Plus, 
   X, 
   Code2, 
-  MoveRight,
   ChevronDown, 
   ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { useEditProjectMutation } from '@/app/api/projectApiSlice';
-import { TechSelect } from '@/components/TechSelect';
 import { SimpleTechSelector } from './SimpleTechSelector';
+import { useAuth } from '@/app/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 // Collapsible section component for better organization
 const CollapsibleSection = ({ title, children, isOpen, toggle }) => {
@@ -70,6 +70,8 @@ const CollapsibleSection = ({ title, children, isOpen, toggle }) => {
 
 const ProjectEditDialog = ({ project, isOpen, onClose }) => {
   const [editProject, { isLoading }] = useEditProjectMutation();
+  const { user } = useAuth();
+  const router = useRouter();
   
   // States for collapsible sections
   const [sectionsOpen, setSectionsOpen] = useState({
@@ -234,6 +236,7 @@ const ProjectEditDialog = ({ project, isOpen, onClose }) => {
   // Form submission
   const onSubmit = async (data) => {
     try {
+      
       // Add all the required fields to the form data
       const projectData = {
         ...data,
@@ -255,7 +258,7 @@ const ProjectEditDialog = ({ project, isOpen, onClose }) => {
       toast.success('Project updated successfully');
       onClose();
     } catch (error) {
-      toast.error('Failed to update project');
+      toast.error( error.data?.message||'Failed to update project');
       console.error('Edit error:', error);
     }
   };

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -15,13 +14,12 @@ import {
   CheckCircle2, 
   X, 
   Loader2, 
-  AlertCircle,
+  ChevronRight,
   Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
 import { useGetMyCollaborationRequestsQuery, useSubmitCollaborationRequestMutation } from '@/app/api/collaborationApiSlice';
-import { useRouter } from 'next/navigation';
 
 interface Role {
   title: string;
@@ -30,23 +28,28 @@ interface Role {
   filled: boolean;
 }
 
-interface RoleApplicationProps {
+interface CompactRoleApplicationProps {
   projectId: string;
   roles: Role[];
   publisherId: string;
   onSuccess?: () => void;
+  onViewDetails?: () => void;
 }
 
-const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleApplicationProps) => {
+const CompactRoleApplication = ({ projectId, roles, publisherId, onSuccess, onViewDetails }: CompactRoleApplicationProps) => {
   const { user, isAuthenticated, login } = useAuth();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [applicationMessage, setApplicationMessage] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submitRequest, { isLoading: isSubmitting }] = useSubmitCollaborationRequestMutation();
   const { data: myRequestsData } = useGetMyCollaborationRequestsQuery();
-  const router = useRouter();
 
   const [appliedRoles, setAppliedRoles] = useState<string[]>([]);
+
+  // Get roles user hasn't applied for yet
+  const availableRoles = roles.filter(
+    role => !role.filled && !appliedRoles.includes(role.title)
+  );
 
   useEffect(() => {
     if (myRequestsData?.requests && projectId) {
@@ -84,8 +87,7 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
     if (!selectedRole) return;
     
     try {
-      // Check if user has already applied for this role
-      const result = await submitRequest({
+      await submitRequest({
         projectId,
         role: selectedRole,
         message: applicationMessage.trim()
@@ -95,103 +97,78 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
       setIsDialogOpen(false);
       setApplicationMessage('');
       
-      // Update local state if needed
+      // Update local state
+      setAppliedRoles(prev => [...prev, selectedRole]);
+      
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error('Error submitting application:', error);
-      
-      // Display specific error message from API if available
       toast.error(error.data?.message || 'Failed to submit application');
     }
   };
 
-
   return (
     <>
-      <Card className="bg-white dark:bg-black border border-black/20 dark:border-white/20 mb-6">
-        <CardContent className="p-5">
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2 flex items-center">
-              <Users className="mr-2 h-5 w-5 text-primary" />
-              Available Roles
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Select a role to apply for this project collaboration
-            </p>
-          </div>
+      <div className="space-y-4 relative z-30">
+        {/* Header with slight shadow to separate from card content */}
+        <div className="border-b pb-2">
+          <h3 className="text-base font-medium flex items-center">
+            <Users className="mr-2 h-4 w-4 text-primary" />
+            Select a Role
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Choose a role that matches your skills
+          </p>
+        </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-          {roles.map((role) => (
-  <div 
-    key={role.title}
-    className={`border rounded-lg p-4 transition-colors 
-      ${role.filled 
-        ? 'bg-muted/20 border-muted/30' 
-        : appliedRoles.includes(role.title)
-          ? 'bg-blue-500/10 border-blue-500/20'
-          : 'border-black/20 dark:border-white/20 hover:bg-primary/5'
-      }
-    `}
-  >
-    <div className="flex justify-between items-start mb-2">
-      <h4 className="font-medium">{role.title}</h4>
-      {role.filled ? (
-        <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
-          <CheckCircle2 className="mr-1 h-3 w-3" />
-          Filled
-        </Badge>
-      ) : appliedRoles.includes(role.title) ? (
-        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
-          Applied
-        </Badge>
-      ) : (
-        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
-          Available
-        </Badge>
-      )}
-    </div>     
-                <div className="text-sm text-muted-foreground mb-3">
-                  <strong>Responsibilities:</strong>
-                  <ul className="ml-5 mt-1 list-disc space-y-1">
-                    {role.responsibilities.slice(0, 2).map((resp, idx) => (
-                      <li key={idx}>{resp}</li>
-                    ))}
-                  </ul>
+        {/* Compact role list with hover states */}
+        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+          {availableRoles.length > 0 ? (
+            availableRoles.map((role) => (
+              <div 
+                key={role.title}
+                className="border rounded-md p-2 transition-all hover:border-primary/50 hover:bg-primary/5 cursor-pointer relative z-30"
+                onClick={() => handleRoleSelect(role.title)}
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-medium text-sm">{role.title}</span>
+                  <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    Apply
+                  </Badge>
                 </div>
-                
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {role.skills.map((skill, idx) => (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {role.skills.slice(0, 3).map((skill, idx) => (
                     <Badge key={idx} variant="secondary" className="text-xs">{skill}</Badge>
                   ))}
+                  {role.skills.length > 3 && (
+                    <Badge variant="secondary" className="text-xs">+{role.skills.length - 3}</Badge>
+                  )}
                 </div>
-                
-                <Button
-      className="w-full text-center text-sm mt-2"
-      variant={role.filled || appliedRoles.includes(role.title) ? "outline" : "default"}
-      disabled={role.filled || isPublisher || appliedRoles.includes(role.title)}
-      onClick={() => handleRoleSelect(role.title)}
-    >
-      {role.filled 
-        ? 'Role Filled' 
-        : isPublisher 
-          ? 'Your Project'
-          : appliedRoles.includes(role.title)
-            ? 'Application Submitted'
-            : 'Apply for Role'
-      }
-    </Button>
-  </div>
-))}
-          </div>
-
-          {roles.length === 0 && (
-            <div className="p-6 text-center border border-dashed rounded-lg">
-              <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">No roles defined for this project</p>
+              </div>
+            ))
+          ) : (
+            <div className="text-center p-4 border border-dashed rounded-md">
+              <p className="text-muted-foreground text-sm">
+                {roles.every(role => role.filled) 
+                  ? "All roles are currently filled" 
+                  : "You've applied to all available roles"}
+              </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+        
+        {/* View details button */}
+        <div className="pt-2 border-t">
+          <Button 
+            variant="outline" 
+            className="w-full text-sm"
+            onClick={onViewDetails}
+          >
+            View Full Project Details
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      </div>
 
       {/* Application Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -249,4 +226,4 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
   );
 };
 
-export default RoleApplication;
+export default CompactRoleApplication;

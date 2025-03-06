@@ -48,11 +48,10 @@ const RoleSelectionDialog = ({
     setIsSubmitting(true);
     try {
       await onConfirm(selectedRole);
-      toast.success('Project published with your selected role!');
       onClose();
     } catch (error) {
       console.error('Error publishing project with role:', error);
-      toast.error('Failed to publish project. Please try again.');
+      toast.error( error.data?.message||'Failed to publish project. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

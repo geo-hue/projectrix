@@ -53,6 +53,7 @@ import ProfileEditForm from '@/components/ProfileEditForm';
 import { useGetUserProfileQuery } from '../api/userProfileApiSlice';
 import MyFeedback from '@/components/MyFeedback';
 import EnhancedActivityFeed from '@/components/EnhancedActivityFeed';
+import SubscriptionBanner from '@/components/SubscriptionBanner';
 
 const ProfileSkeleton = () => (
   <div className="space-y-8">
@@ -552,18 +553,35 @@ const handleStartProject = async (projectId) => {
                               <p className="text-xs text-muted-foreground">Published Projects</p>
                               <p className="text-2xl font-bold">{getPublishedProjects().length}</p>
                             </div>
-                            <div className="bg-primary/10 rounded-lg p-3 relative overflow-hidden">
-                              <div className="relative z-10">
-                                <p className="text-xs text-muted-foreground">Project Ideas Left</p>
-                                <p className="text-2xl font-bold">{user?.projectIdeasLeft || 0}</p>
-                              </div>
-                              {user?.plan !== "pro" && (
-                                <div className="absolute bottom-1 right-2">
-                                  <Sparkles className="h-8 w-8 text-primary/20" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                            <div className={`p-3 relative overflow-hidden ${
+    user?.plan !== "pro" && user?.projectIdeasLeft <= 1 
+      ? "bg-yellow-500/10" 
+      : "bg-primary/10"
+  } rounded-lg`}>
+    <div className="relative z-10">
+      <p className="text-xs text-muted-foreground">Project Ideas Left</p>
+      <div className="flex items-center justify-between">
+        <p className="text-2xl font-bold">{user?.projectIdeasLeft || 0}</p>
+        {user?.plan !== "pro" && user?.projectIdeasLeft <= 1 && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 gap-1 text-xs"
+            onClick={() => router.push('/pricing')}
+          >
+            <Sparkles className="h-3 w-3" />
+            Upgrade
+          </Button>
+        )}
+      </div>
+    </div>
+    {user?.plan !== "pro" && (
+      <div className="absolute bottom-1 right-2">
+        <Sparkles className="h-8 w-8 text-primary/20" />
+      </div>
+    )}
+  </div>
+</div>
                         </div>
                       </div>
                     </CardContent>
@@ -585,6 +603,44 @@ const handleStartProject = async (projectId) => {
                   profile={userProfileData?.profile}
                   onStartEdit={() => setIsEditing(true)}
                 />
+
+{!isEditing && user?.plan !== "pro" && (
+  <motion.div
+    className="mb-8"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: 0.3 }}
+  >
+    <div className="space-y-2 mt-4">
+      {/* Show project ideas limit banner if less than 2 remaining */}
+      {user.projectIdeasLeft <= 2 && (
+        <SubscriptionBanner 
+          type="projects" 
+          limit={3} 
+          used={3 - (user.projectIdeasLeft || 0)} 
+        />
+      )}
+      
+      {/* Show publishing limit banner if they've published projects */}
+      {user.publishedProjectsCount >= 1 && (
+        <SubscriptionBanner 
+          type="publishing" 
+          limit={1} 
+          used={user.publishedProjectsCount || 0} 
+        />
+      )}
+      
+      {/* Show collaboration limit banner if they're low */}
+      {user.collaborationRequestsLeft <= 1 && (
+        <SubscriptionBanner 
+          type="collaborations" 
+          limit={3} 
+          used={3 - (user.collaborationRequestsLeft || 0)} 
+        />
+      )}
+    </div>
+  </motion.div>
+)}
               </motion.div>
             )}
 

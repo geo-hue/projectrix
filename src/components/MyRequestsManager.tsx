@@ -116,16 +116,16 @@ const MyRequestsManager = () => {
                       className="h-6 w-6" 
                     >
                       <AvatarImage 
-                        src={request.publisherId.avatar} 
-                        alt={request.publisherId.name}
+                        src={request.publisherId?.avatar} 
+                        alt={request.publisherId?.name}
                         onError={(e) => {
-                          e.currentTarget.src = `https://avatar.vercel.sh/${request.publisherId.username}`;
+                          e.currentTarget.src = `https://avatar.vercel.sh/${request.publisherId?.username}`;
                         }}
                       />
-                      <AvatarFallback>{request.publisherId.name?.charAt(0) || 'U'}</AvatarFallback>
+                      <AvatarFallback>{request.publisherId?.name?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm">
-                      Owned by <span className="font-medium">{request.publisherId.name}</span>
+                      Owned by <span className="font-medium">{request.publisherId?.name}</span>
                     </span>
                   </CardDescription>
                 </div>

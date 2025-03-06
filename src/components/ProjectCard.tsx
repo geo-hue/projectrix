@@ -15,7 +15,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import ProjectDetailsModal from './ProjectDetailsModal';
-import RoleApplication from './RoleApplication';
+import CompactRoleApplication from './CompactRoleApplication';
 
 interface ProjectCardProps {
   project: any;
@@ -53,9 +53,15 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
   };
 
   const handleApplicationSuccess = () => {
-    // Handle successful application
+    // Wait a moment for visual feedback, then close the application panel
+    setTimeout(() => {
+      setIsApplying(false);
+    }, 1000);
+  };
+
+  const handleViewDetails = () => {
     setIsApplying(false);
-    // You might want to refresh project data here or show a success message
+    setShowDetails(true);
   };
 
   return (
@@ -70,7 +76,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
         {/* Main card content */}
         <Card 
           className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 flex flex-col overflow-hidden"
-          style={{ height: isApplying ? 'auto' : `${height}px` }}
+          style={{ height: `${height}px` }}
         >
           {/* Blue gradient effects inside card */}
           <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
@@ -117,7 +123,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
             </div>
           </CardHeader>
           
-          <div className={`flex-1 ${isApplying ? '' : 'overflow-auto'}`}>
+          <div className="flex-1 overflow-auto">
             {!isApplying ? (
               <CardContent className="space-y-4">
                 {/* Project Stats */}
@@ -166,18 +172,19 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
                 </div>
               </CardContent>
             ) : (
-              <CardContent className="pt-2 relative z-10">
-                <RoleApplication 
+              <CardContent className="pt-2 pb-0 h-full">
+                <CompactRoleApplication 
                   projectId={project._id}
                   roles={project.teamStructure?.roles || []}
                   publisherId={project.publisher?._id}
                   onSuccess={handleApplicationSuccess}
+                  onViewDetails={handleViewDetails}
                 />
               </CardContent>
             )}
           </div>
 
-          <CardFooter className={`${isApplying ? 'mt-2' : 'mt-auto'} pt-6 border-t`}>
+          <CardFooter className="mt-auto pt-4 border-t">
             <div className="w-full flex flex-col gap-2">
               {!isApplying ? (
                 <>

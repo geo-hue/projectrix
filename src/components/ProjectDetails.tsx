@@ -62,7 +62,8 @@ const ProjectDetails = ({ project, isOpen, onClose }: ProjectDetailsProps) => {
       toast.success('Project published successfully!');
       onClose();
     } catch (error) {
-      toast.error('Failed to publish project');
+      // Display the error message from the backend
+      toast.error(error.data?.message || 'Failed to publish project');
     }
   };
   
