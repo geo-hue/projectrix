@@ -40,6 +40,13 @@ export const apiSlice = createApi({
     'AdminFeedback',
     'Activities',
     'UnreadCount',
+    'CollaborationMetrics',
+    'RevenueMetrics',
+    'SystemMetrics',
+    'ProjectMetrics',
+    'AdminDashboard',
+    'UserMetrics',
+    
     
   ],
   endpoints: () => ({}),
