@@ -55,7 +55,7 @@ export default function RootLayout({
             >
             <Toaster 
   richColors 
-  position="top-right"
+  position="top-center"
   closeButton
   theme="system"
 />

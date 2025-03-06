@@ -1,11 +1,11 @@
-// src/app/admin/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { 
   Users,
   Code2,
@@ -16,14 +16,10 @@ import {
   DollarSign,
   RefreshCw,
   PieChart,
-  LineChart as LineChartIcon,
-  HardDrive,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
   Activity,
   Zap,
-  Loader2
+  Loader2,
+  LucideIcon
 } from 'lucide-react';
 import { 
   useGetDashboardSummaryQuery, 
@@ -51,7 +47,18 @@ import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
 // Stat Card Component
-const StatCard = ({ 
+interface StatCardProps {
+  title: string;
+  value?: number | string;
+  change?: number;
+  icon: LucideIcon;
+  positive?: boolean;
+  prefix?: string;
+  suffix?: string;
+  loading?: boolean;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ 
   title, 
   value, 
   change, 
@@ -62,7 +69,7 @@ const StatCard = ({
   loading = false
 }) => {
   return (
-    <Card className="bg-white dark:bg-black border-black/10 dark:border-white/10">
+    <Card className="bg-white dark:bg-gray-800 shadow-md">
       <CardContent className="p-6">
         <div className="flex justify-between items-start">
           <div>
@@ -85,7 +92,7 @@ const StatCard = ({
         {change !== undefined && !loading && (
           <div className={`flex items-center mt-4 text-xs font-medium ${positive ? 'text-green-500' : 'text-red-500'}`}>
             {positive ? <TrendingUp className="mr-1 h-3 w-3" /> : <TrendingDown className="mr-1 h-3 w-3" />}
-            <span>{positive ? '+' : ''}{change}% from previous period</span>
+            <span>{positive ? '+' : ''}{change.toFixed(1)}% from previous period</span>
           </div>
         )}
       </CardContent>
@@ -172,23 +179,26 @@ const AdminDashboardPage = () => {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-1">Admin Dashboard</h1>
           <p className="text-muted-foreground">
             Overview of platform metrics and analytics
           </p>
         </div>
-        <Button 
-          onClick={handleRefresh} 
-          className="gap-2"
-          disabled={refreshing || isLoading}
-        >
-          {refreshing ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          Refresh Data
-        </Button>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Button 
+            onClick={handleRefresh} 
+            className="gap-2"
+            disabled={refreshing || isLoading}
+          >
+            {refreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            Refresh Data
+          </Button>
+        </div>
       </div>
       
       {/* Time Range Selector */}
@@ -273,7 +283,7 @@ const AdminDashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card className="bg-white dark:bg-black border-black/10 dark:border-white/10">
+          <Card className="bg-white dark:bg-gray-800 shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
@@ -334,7 +344,7 @@ const AdminDashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Card className="bg-white dark:bg-black border-black/10 dark:border-white/10">
+          <Card className="bg-white dark:bg-gray-800 shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Code2 className="h-5 w-5 text-primary" />
@@ -372,7 +382,7 @@ const AdminDashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <Card className="bg-white dark:bg-black border-black/10 dark:border-white/10">
+          <Card className="bg-white dark:bg-gray-800 shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-primary" />
@@ -421,7 +431,7 @@ const AdminDashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card className="bg-white dark:bg-black border-black/10 dark:border-white/10">
+          <Card className="bg-white dark:bg-gray-800 shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <PieChart className="h-5 w-5 text-primary" />
@@ -524,7 +534,7 @@ const AdminDashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <Card className="bg-white dark:bg-black border-black/10 dark:border-white/10">
+          <Card className="bg-white dark:bg-gray-800 shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
@@ -571,7 +581,7 @@ const AdminDashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.7 }}
         >
-          <Card className="bg-white dark:bg-black border-black/10 dark:border-white/10">
+          <Card className="bg-white dark:bg-gray-800 shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Activity className="h-5 w-5 text-primary" />
@@ -627,7 +637,7 @@ const AdminDashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
         >
-          <Card className="bg-white dark:bg-black border-black/10 dark:border-white/10">
+          <Card className="bg-white dark:bg-gray-800 shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Zap className="h-5 w-5 text-primary" />
