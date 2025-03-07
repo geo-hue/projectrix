@@ -1,25 +1,26 @@
 "use client"
 
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Check, Sparkles, Plus, Minus, CheckCircle } from "lucide-react"
+import { Check, Sparkles, Plus, Minus, CheckCircle, Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import { useState } from "react"
 import TechBackground from "@/components/TechBackground"
 import PageTransition from "@/components/PageTransition"
 import { useAuth } from "../context/AuthContext"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { usePayment } from "../hooks/usePayment";
+import PaymentModal from "@/components/PaymentModal";
 
 const PricingPage = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number>(0)
-  const { user, login } = useAuth() // Using new Auth Context
-  console.log("Pricing Page - Full User Object:", user)
-  console.log("Pricing Page - User Plan:", user?.plan)
-  console.log("Pricing Page - Project Ideas Left:", user?.projectIdeasLeft)
+  const { user, login } = useAuth()
   const router = useRouter()
+  const { formattedPrice, isLoading: pricingLoading } = usePayment();
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   const plans = [
     {
@@ -40,7 +41,7 @@ const PricingPage = () => {
     {
       name: "Pro",
       description: "For developers who want to maximize their collaboration potential",
-      price: "5",
+      price: formattedPrice,
       features: [
         "Unlimited project ideas",
         "Project idea customization",
@@ -59,6 +60,14 @@ const PricingPage = () => {
     },
   ]
 
+  // Update the current plan state when user data changes
+  useEffect(() => {
+    if (user) {
+      plans[0].isCurrentPlan = user.plan === "free" || !user.plan;
+      plans[1].isCurrentPlan = user.plan === "pro";
+    }
+  }, [user]);
+
   // Handle plan selection or upgrade
   const handlePlanAction = async (planName: string) => {
     if (!user) {
@@ -76,9 +85,8 @@ const PricingPage = () => {
       // For free plan, redirect to generate page
       router.push("/generate")
     } else if (planName === "Pro") {
-      // For pro plan, will add payment integration later
-      // For now, just show a toast
-      toast.success("Payment integration coming soon!")
+      // Open payment modal for pro plan
+      setPaymentModalOpen(true);
     }
   }
 
@@ -104,6 +112,16 @@ const PricingPage = () => {
       answer:
         "No, both our Free and Pro plans are month-to-month with no long-term commitment required. You can cancel at any time.",
     },
+    {
+      question: "How do I pay for the Pro subscription?",
+      answer:
+        `We support multiple payment methods. For Nigerian users, payment is processed through Flutterwave (₦5,000/month). For international users, payment is processed through Stripe ($5/month).`
+    },
+    {
+      question: "Will my subscription automatically renew?",
+      answer:
+        "Yes, your subscription will automatically renew each month. You can cancel at any time through your profile settings."
+    }
   ]
 
   const handleFaqToggle = (index: number): void => {
@@ -202,8 +220,21 @@ const PricingPage = () => {
                     <CardContent className="space-y-6 flex-grow">
                       {/* Price */}
                       <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-bold">${plan.price}</span>
-                        <span className="text-muted-foreground">/month</span>
+                        {plan.name === "Pro" && pricingLoading ? (
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                            <span className="text-xl text-muted-foreground">Loading price...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="text-4xl font-bold">
+                              {plan.name === "Free" ? "Free" : plan.price}
+                            </span>
+                            {plan.name !== "Free" && (
+                              <span className="text-muted-foreground">/month</span>
+                            )}
+                          </>
+                        )}
                       </div>
 
                       {/* Features */}
@@ -347,10 +378,15 @@ const PricingPage = () => {
         </section>
         
         <Footer />
+        
+        {/* Payment Modal */}
+        <PaymentModal 
+          isOpen={paymentModalOpen} 
+          onClose={() => setPaymentModalOpen(false)} 
+        />
       </main>
     </PageTransition>
   )
 }
 
 export default PricingPage
-

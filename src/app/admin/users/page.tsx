@@ -72,12 +72,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useDeleteUserMutation, useGetUsersQuery, useUpdateUserPlanMutation, useUpdateUserRoleMutation } from '@/app/api/adminUsersApiSlice';
 
-// Import your API hooks
-import { useGetUsersQuery, useUpdateUserRoleMutation, useUpdateUserPlanMutation, useDeleteUserMutation } from '@/app/api/adminUsersApiSlice';
 
 const AdminUsersPage = () => {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPlan, setFilterPlan] = useState('all');
   const [filterRole, setFilterRole] = useState('all');
