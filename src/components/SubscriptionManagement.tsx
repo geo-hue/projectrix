@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   Sparkles, 
-  Calendar, 
   AlertCircle, 
   Loader2, 
   CheckCircle2, 
@@ -24,7 +23,6 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useGetSubscriptionStatusQuery, useCancelSubscriptionMutation } from '@/app/api/paymentApiSlice';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { usePayment } from '@/app/hooks/usePayment';
 import PaymentModal from './PaymentModal';
@@ -34,7 +32,6 @@ interface SubscriptionManagementProps {
 }
 
 export default function SubscriptionManagement({ className }: SubscriptionManagementProps) {
-  const router = useRouter();
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   
@@ -197,7 +194,7 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
               {/* Free Plan Details */}
               <div className="space-y-4">
                 <div className="py-4 text-center">
-                  <h3 className="text-lg font-semibold mb-2">You're on the Free Plan</h3>
+                  <h3 className="text-lg font-semibold mb-2">You&apos;re on the Free Plan</h3>
                   <p className="text-sm text-muted-foreground mb-6">
                     Upgrade to Pro to unlock unlimited access to all features
                   </p>
@@ -270,4 +267,46 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
           
           <div className="py-4">
             <Alert className="bg-yellow-500/10 border-yellow-500/20 text-yellow-700 dark:text-yellow-400">
-              <AlertCircle className="h-4 w-4
+            <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                You will lose access to Pro features at the end of your current billing period on {formatDate(subscriptionData?.endDate)}.
+              </AlertDescription>
+            </Alert>
+          </div>
+          
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmCancelOpen(false)}
+              disabled={isCancelling}
+              className="gap-2 bg-white dark:bg-black text-black dark:text-white border-2 border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5"
+            >
+              Keep Subscription
+            </Button>
+            <Button
+              onClick={handleCancelSubscription}
+              disabled={isCancelling}
+              variant="destructive"
+              className="gap-2"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                'Confirm Cancellation'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Payment Modal for Upgrade/Resubscribe */}
+      <PaymentModal 
+        isOpen={upgradeModalOpen} 
+        onClose={() => setUpgradeModalOpen(false)} 
+      />
+    </div>
+  );
+}
