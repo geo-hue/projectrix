@@ -251,6 +251,8 @@ const PricingPage = () => {
                       </div>
                     </CardContent>
 
+                    
+
                     <CardFooter className="mt-auto">
                       <Button
                         className={`w-full gap-2 transform transition-all active:translate-y-1 active:shadow-none ${

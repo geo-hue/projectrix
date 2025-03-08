@@ -54,6 +54,7 @@ import { useGetUserProfileQuery } from '../api/userProfileApiSlice';
 import MyFeedback from '@/components/MyFeedback';
 import EnhancedActivityFeed from '@/components/EnhancedActivityFeed';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
+import SubscriptionManagement from '@/components/SubscriptionManagement';
 
 const ProfileSkeleton = () => (
   <div className="space-y-8">
@@ -673,6 +674,10 @@ const handleStartProject = async (projectId) => {
                     <MessageSquare className="h-4 w-4 mr-2" />
                     My Feedback
                   </TabsTrigger>
+                  <TabsTrigger value="subscription" className="py-2.5">
+    <Settings className="h-4 w-4 mr-2" />
+    Subscription
+  </TabsTrigger>
                 </TabsList>
 
                 {/* Projects Tab */}
@@ -993,6 +998,13 @@ const handleStartProject = async (projectId) => {
                 <TabsContent value="feedback">
                   <MyFeedback />
                 </TabsContent>
+
+
+               
+<TabsContent value="subscription">
+  <SubscriptionManagement />
+</TabsContent>
+                
               </Tabs>
             </motion.div>
           </div>

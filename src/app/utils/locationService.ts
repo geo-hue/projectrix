@@ -2,33 +2,35 @@
 let cachedCountryCode: string | null = null;
 
 /**
- * Detect the user's country code using the ipapi.co service
+ * Detect the user's country code using the ipinfo service
  */
 export async function detectUserCountry(): Promise<string> {
-  // Return cached country code if available
-  if (cachedCountryCode) {
-    return cachedCountryCode;
-  }
-  
-  try {
-    // Use ipapi.co to get user's location
-    const response = await fetch('https://ipapi.co/json/');
-    const data = await response.json();
-    
-    if (data && data.country_code) {
-      // Cache the country code
-      cachedCountryCode = data.country_code;
-      return data.country_code;
+    // Return cached country code if available
+    if (cachedCountryCode) {
+      return cachedCountryCode;
     }
     
-    // Default to US if detection fails
-    return 'US';
-  } catch (error) {
-    console.error('Error detecting country:', error);
-    // Default to US if detection fails
-    return 'US';
+    try {
+      // Use IPinfo with your token
+      const response = await fetch('https://ipinfo.io/json?token=4ae8703d935657');
+      const data = await response.json();
+      
+      if (data && data.country) {
+        console.log('Detected country:', data.country);
+        // Cache the country code
+        cachedCountryCode = data.country;
+        return data.country;
+      }
+      
+      console.log('Country detection failed, defaulting to US');
+      // Default to US if detection fails
+      return 'US';
+    } catch (error) {
+      console.error('Error detecting country:', error);
+      // Default to US if detection fails
+      return 'US';
+    }
   }
-}
 
 /**
  * Format currency based on locale and currency code
