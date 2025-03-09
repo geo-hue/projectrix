@@ -1,3 +1,4 @@
+// src/app/hooks/usePayment.ts
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,16 +12,13 @@ import {
   useGetSubscriptionStatusQuery
 } from '../api/paymentApiSlice';
 import { getCountryCode, formatCurrency } from '../utils/locationService';
-import { loadStripe } from '@stripe/stripe-js';
 
-// Get Stripe public key from environment
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
-export function usePayment() {
+export function usePayment(forceCountry?: string) {
   const router = useRouter();
   const { user, refreshUserData } = useAuth();
-  const [countryCode, setCountryCode] = useState<string>('US');
-  const [loadingCountry, setLoadingCountry] = useState(true);
+  const [countryCode, setCountryCode] = useState<string>(forceCountry || 'US');
+  const [loadingCountry, setLoadingCountry] = useState(!forceCountry);
   
   // Get the pricing based on location
   const { data: pricingData, isLoading: pricingLoading } = useGetPricingQuery(countryCode, {
@@ -36,13 +34,20 @@ export function usePayment() {
   const [createPaymentSession, { isLoading: creatingPayment }] = useCreatePaymentSessionMutation();
   const [verifyPayment, { isLoading: verifyingPayment }] = useVerifyPaymentMutation();
   
-  // Initialize country detection
+  // Initialize country detection - only if not forced
   useEffect(() => {
     const detectCountry = async () => {
+      if (forceCountry) {
+        console.log('Using forced country:', forceCountry);
+        setCountryCode(forceCountry);
+        setLoadingCountry(false);
+        return;
+      }
+      
       try {
         setLoadingCountry(true);
         const detected = await getCountryCode();
-         console.log('Detected country code:', detected);
+        console.log('Detected country code:', detected);
         setCountryCode(detected);
       } catch (error) {
         console.error('Error detecting country:', error);
@@ -53,7 +58,7 @@ export function usePayment() {
     };
     
     detectCountry();
-  }, []);
+  }, [forceCountry]);
   
   // Current pricing information
   const pricing = pricingData?.pricing;
@@ -77,28 +82,24 @@ export function usePayment() {
     }
     
     try {
+      // Show loading indicator
+      toast.loading('Preparing checkout...');
+      
       // Create payment session
       const result = await createPaymentSession({
         paymentMethod: 'stripe'
       }).unwrap();
       
-      if (!result.session) {
-        throw new Error('Failed to create payment session');
+      if (!result.session || !result.session.url) {
+        throw new Error('Failed to create checkout session');
       }
       
-      // Load Stripe
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe failed to load');
-      }
-      
-      // Redirect to checkout
-      await stripe.redirectToCheckout({
-        clientSecret: result.session.clientSecret
-      });
+      // Redirect to Stripe Checkout directly using the URL
+      window.location.href = result.session.url;
       
     } catch (error) {
       console.error('Payment error:', error);
+      toast.dismiss(); // Dismiss the loading toast
       toast.error('Payment initialization failed. Please try again.');
     }
   };
