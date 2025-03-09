@@ -1002,7 +1002,43 @@ const handleStartProject = async (projectId) => {
 
                
 <TabsContent value="subscription">
-  <SubscriptionManagement />
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <SubscriptionManagement />
+    
+    {/* Pro plan features reminder */}
+    {user?.plan !== "pro" && (
+      <Card className="mt-6 bg-gradient-to-br from-primary/5 to-primary/10">
+        <CardHeader>
+          <CardTitle className="text-lg">Pro Plan Benefits</CardTitle>
+          <CardDescription>Upgrade to unlock all these features</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            <li className="flex items-start gap-2 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
+              <span>Unlimited project ideas generation</span>
+            </li>
+            <li className="flex items-start gap-2 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
+              <span>Unlimited published projects</span>
+            </li>
+            <li className="flex items-start gap-2 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
+              <span>Unlimited collaboration requests</span>
+            </li>
+            <li className="flex items-start gap-2 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
+              <span>Advanced AI project enhancements</span>
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
+    )}
+  </motion.div>
 </TabsContent>
                 
               </Tabs>

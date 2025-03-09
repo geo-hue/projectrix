@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import { usePayment } from "../hooks/usePayment";
 import PaymentModal from "@/components/PaymentModal";
 
+
 const PricingPage = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number>(0)
   const { user, login } = useAuth()

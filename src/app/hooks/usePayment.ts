@@ -42,7 +42,7 @@ export function usePayment() {
       try {
         setLoadingCountry(true);
         const detected = await getCountryCode();
-        console.log('Detected country code:', detected);
+         console.log('Detected country code:', detected);
         setCountryCode(detected);
       } catch (error) {
         console.error('Error detecting country:', error);
