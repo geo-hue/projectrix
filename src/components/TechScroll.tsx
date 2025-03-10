@@ -82,7 +82,7 @@ const TechCard = ({ tech }: { tech: { name: string; icon: string } }) => {
 
 const TechScroll = () => {
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden p-2">
       {/* Gradient overlays */}
       <div className="absolute left-0 top-0 w-32 h-full bg-gradient-to-r from-background to-transparent z-10" />
       <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-background to-transparent z-10" />

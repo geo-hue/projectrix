@@ -285,7 +285,7 @@ import { useAuth } from './context/AuthContext';
         transition={{ duration: 0.5 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent pb-2">
           Supported Technologies
         </h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -307,7 +307,7 @@ import { useAuth } from './context/AuthContext';
         transition={{ duration: 0.5 }}
         viewport={{ once: true }}
       >
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">Frequently Asked Questions</h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent pb-2">Frequently Asked Questions</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Everything you need to know about Projectrix
         </p>
@@ -328,7 +328,7 @@ import { useAuth } from './context/AuthContext';
     transition={{ duration: 0.5 }}
     viewport={{ once: true }}
   >
-    <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+    <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent pb-2">
       {user ? 'Ready to Create Something Amazing?' : 'Ready to Start Your Next Project?'}
     </h2>
     <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
