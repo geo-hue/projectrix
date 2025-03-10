@@ -43,8 +43,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Import the new API hooks
 import { 
   useGenerateProjectMutation,
   useGenerateAnotherMutation,
