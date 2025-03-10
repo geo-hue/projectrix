@@ -46,7 +46,7 @@ import { useAuth } from './context/AuthContext';
 
   export default function Home() {
     const [isLoading, setIsLoading] = useState(true);
-    const { user, loading, login } = useAuth(); 
+    const { user, login } = useAuth(); 
     const router = useRouter(); 
 
     useEffect(() => {
