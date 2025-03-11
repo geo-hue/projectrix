@@ -1,8 +1,6 @@
-// src/app/hooks/usePayment.ts
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -15,8 +13,7 @@ import { getCountryCode, formatCurrency } from '../utils/locationService';
 
 
 export function usePayment(forceCountry?: string) {
-  const router = useRouter();
-  const { user, refreshUserData } = useAuth();
+  const { user } = useAuth();
   const [countryCode, setCountryCode] = useState<string>(forceCountry || 'US');
   const [loadingCountry, setLoadingCountry] = useState(!forceCountry);
   
@@ -145,25 +142,40 @@ export function usePayment(forceCountry?: string) {
   // Verify a Flutterwave payment
   const verifyFlutterwavePayment = async (transactionId: string) => {
     try {
-      await verifyPayment(transactionId).unwrap();
+      // Add a local storage check to prevent duplicate verifications
+      const verificationKey = `fw_verify_${transactionId}`;
+      const hasVerified = localStorage.getItem(verificationKey);
       
-      // Clear transaction reference
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('fw_transaction_ref');
+      if (hasVerified === 'done') {
+        console.log('Transaction already verified locally');
+        return { success: true, message: 'Payment already verified' };
       }
       
-      // Refresh user data to update subscription status
-      await refreshUserData();
+      // Mark as verifying
+      localStorage.setItem(verificationKey, 'verifying');
       
-      // Show success message
-      toast.success('Payment successful! Your account has been upgraded to Pro.');
+      const result = await verifyPayment(transactionId).unwrap();
       
-      // Redirect to profile
-      router.push('/profile');
+      // Mark as done on success
+      if (result.success) {
+        localStorage.setItem(verificationKey, 'done');
+      } else {
+        // Clear on error to allow retry
+        localStorage.removeItem(verificationKey);
+      }
       
+      return result;
     } catch (error) {
       console.error('Verification error:', error);
-      toast.error('Payment verification failed. Please contact support.');
+      
+      // Clear verification flag on error
+      localStorage.removeItem(`fw_verify_${transactionId}`);
+      
+      // Toast should be shown by the component, not here
+      return { 
+        success: false, 
+        message: error.data?.message || 'Payment verification failed. Please contact support.' 
+      };
     }
   };
   

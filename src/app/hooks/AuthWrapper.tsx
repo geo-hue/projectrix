@@ -38,6 +38,8 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
                        pathname.startsWith('/ideas/') ||
                        pathname.startsWith('/about/') ||
                        pathname.startsWith('/generate') ||
+                       pathname.startsWith('/terms') ||
+                       pathname.startsWith('/policy')||
                        (pathname.startsWith('/profile/') && pathname !== '/profile')||
                        (pathname.startsWith('/projects/') && pathname !== '/projects');
 

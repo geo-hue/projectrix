@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -17,25 +17,49 @@ export default function PaymentCallbackPage() {
   
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Processing your payment...');
+  const [verificationAttempted, setVerificationAttempted] = useState(false);
   
   useEffect(() => {
+    // Only run verification once
+    if (verificationAttempted) {
+      return;
+    }
+    
     const processCallback = async () => {
+      setVerificationAttempted(true);
       try {
         // Get query parameters
         const transactionId = searchParams.get('transaction_id');
         const status = searchParams.get('status');
         
+        if (!transactionId) {
+          setStatus('error');
+          setMessage('No transaction ID found. Please contact support if funds were deducted.');
+          return;
+        }
+        
         // Handle Flutterwave callback
         if (transactionId && status === 'successful') {
           // Verify the payment with the backend
-          await verifyFlutterwavePayment(transactionId);
+          const result = await verifyFlutterwavePayment(transactionId);
           
-          // Refresh user data to update subscription status
-          await refreshUserData();
-          
-          // Show success state
-          setStatus('success');
-          setMessage('Payment successful! Your account has been upgraded to Pro.');
+          if (result.success) {
+            // Refresh user data to update subscription status
+            await refreshUserData();
+            
+            // Show success state
+            setStatus('success');
+            setMessage('Payment successful! Your account has been upgraded to Pro.');
+            
+            // Redirect after a delay
+            setTimeout(() => {
+              router.push('/profile');
+            }, 3000);
+          } else {
+            // Handle verification failure
+            setStatus('error');
+            setMessage(result.message || 'Payment verification failed. Please contact support.');
+          }
         } else if (status === 'cancelled') {
           // Handle cancelled payment
           setStatus('error');
@@ -53,18 +77,7 @@ export default function PaymentCallbackPage() {
     };
     
     processCallback();
-  }, [searchParams, verifyFlutterwavePayment, refreshUserData]);
-  
-  // Redirect to home after a delay on success
-  useEffect(() => {
-    if (status === 'success') {
-      const timer = setTimeout(() => {
-        router.push('/profile');
-      }, 5000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [status, router]);
+  }, [searchParams, verifyFlutterwavePayment, refreshUserData, router, verificationAttempted]);
   
   return (
     <PageTransition>
@@ -133,3 +146,4 @@ export default function PaymentCallbackPage() {
     </PageTransition>
   );
 }
+
