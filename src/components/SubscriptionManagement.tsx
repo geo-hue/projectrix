@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,11 +21,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useGetSubscriptionStatusQuery, useCancelSubscriptionMutation } from '@/app/api/paymentApiSlice';
 import { toast } from 'sonner';
 import { usePayment } from '@/app/hooks/usePayment';
 import PaymentModal from './PaymentModal';
+import { useAuth } from '@/app/context/AuthContext';
 
 interface SubscriptionManagementProps {
   className?: string;
@@ -35,12 +36,26 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   
+  // Get user data directly from auth context as a source of truth
+  const { user, refreshUserData } = useAuth();
+  
   // Get subscription data
-  const { data: subscriptionData, isLoading } = useGetSubscriptionStatusQuery();
+  const { 
+    data: subscriptionData, 
+    isLoading, 
+    refetch: refetchSubscription 
+  } = useGetSubscriptionStatusQuery();
+  
   const [cancelSubscription, { isLoading: isCancelling }] = useCancelSubscriptionMutation();
   
   // Get payment information
   const { formattedPrice, paymentProvider } = usePayment();
+  
+  // Force refetch on mount
+  useEffect(() => {
+    refreshUserData();
+    refetchSubscription();
+  }, [refreshUserData, refetchSubscription]);
   
   // Calculate days remaining in subscription
   const daysRemaining = subscriptionData?.endDate 
@@ -63,6 +78,10 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
       await cancelSubscription().unwrap();
       setConfirmCancelOpen(false);
       toast.success('Your subscription has been cancelled. You will still have access until the end of your billing period.');
+      
+      // Refresh data
+      refreshUserData();
+      refetchSubscription();
     } catch (error) {
       console.error('Error cancelling subscription:', error);
       toast.error('Failed to cancel subscription. Please try again or contact support.');
@@ -71,7 +90,8 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
   
   // Determine subscription status display
   const getStatusDisplay = () => {
-    const isPro = subscriptionData?.plan === 'pro';
+    // Use user.plan as the primary source of truth
+    const isPro = user?.plan === 'pro';
     
     if (!isPro) {
       return {
@@ -80,7 +100,10 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
       };
     }
     
-    switch (subscriptionData?.status) {
+    // If user is pro, use the subscription status
+    const subStatus = subscriptionData?.status || 'active';
+    
+    switch (subStatus) {
       case 'active':
         return {
           badge: <Badge variant="outline" className="bg-green-500/10 text-green-500 dark:text-green-400 border-green-500/20">Active</Badge>,
@@ -98,13 +121,26 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
         };
       default:
         return {
-          badge: <Badge variant="outline">Unknown</Badge>,
-          icon: null
+          badge: <Badge variant="outline" className="bg-green-500/10 text-green-500 dark:text-green-400 border-green-500/20">Pro</Badge>,
+          icon: <CheckCircle2 className="h-4 w-4 text-green-500" />
         };
     }
   };
   
   const { badge, icon } = getStatusDisplay();
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className={className}>
+        <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20">
+          <CardContent className="flex justify-center items-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
@@ -126,11 +162,7 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : subscriptionData?.plan === 'pro' ? (
+          {user?.plan === 'pro' ? (
             <>
               {/* Pro Plan Details */}
               <div className="space-y-4">
@@ -153,7 +185,7 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
                 </div>
                 
                 {/* Next Billing Date */}
-                {subscriptionData?.status === 'active' && (
+                {subscriptionData?.status === 'active' && subscriptionData?.renewalDate && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Next Billing Date:</span>
                     <span className="font-semibold">{formatDate(subscriptionData.renewalDate)}</span>
@@ -161,13 +193,15 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
                 )}
                 
                 {/* Current Period End */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Current Period Ends:</span>
-                  <span className="font-semibold">{formatDate(subscriptionData.endDate)}</span>
-                </div>
+                {subscriptionData?.endDate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Current Period Ends:</span>
+                    <span className="font-semibold">{formatDate(subscriptionData.endDate)}</span>
+                  </div>
+                )}
                 
                 {/* Days Remaining */}
-                {subscriptionData?.status === 'active' && (
+                {subscriptionData?.status === 'active' && subscriptionData?.endDate && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Days Remaining:</span>
@@ -227,7 +261,7 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
         </CardContent>
         
         <CardFooter>
-          {subscriptionData?.plan === 'pro' && subscriptionData?.status === 'active' ? (
+          {user?.plan === 'pro' && subscriptionData?.status === 'active' ? (
             <Button 
               variant="outline" 
               className="w-full"
@@ -235,7 +269,7 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
             >
               Cancel Subscription
             </Button>
-          ) : subscriptionData?.plan === 'pro' && subscriptionData?.status === 'cancelled' ? (
+          ) : user?.plan === 'pro' && subscriptionData?.status === 'cancelled' ? (
             <Button 
               className="w-full gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
               onClick={() => setUpgradeModalOpen(true)}
