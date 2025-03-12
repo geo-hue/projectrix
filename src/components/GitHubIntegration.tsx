@@ -34,8 +34,11 @@ const GitHubIntegration: React.FC<GitHubIntegrationProps> = ({ projectId, isOwne
   // API hooks
   const { isAuthorized, isAuthenticating, authorizeGitHub } = useGitHubAuth();
   const [createGitHubRepository, { isLoading: isCreatingRepo }] = useCreateGitHubRepositoryMutation();
-  const { data: repoStatus, isLoading: isLoadingStatus, refetch: refetchStatus } = 
-    useGetGitHubRepositoryStatusQuery(projectId, { skip: !projectId });
+  const { 
+    data: repoStatus, 
+    isLoading: isLoadingStatus, 
+    refetch: refetchStatus 
+  } = useGetGitHubRepositoryStatusQuery(projectId, { skip: !projectId });
   
   // Refresh repo status when component mounts or authorization changes
   useEffect(() => {
@@ -76,18 +79,58 @@ const GitHubIntegration: React.FC<GitHubIntegrationProps> = ({ projectId, isOwne
   };
   
   const handleOpenRepo = () => {
-    if (repoStatus?.repository?.url) {
-      window.open(repoStatus.repository.url, '_blank');
+    // Make sure we have a URL to open
+    const repoUrl = repoStatus?.repository?.url || repoStatus?.repository?.html_url;
+    console.log("Trying to open repository URL:", repoUrl);
+    
+    if (!repoUrl) {
+      console.error("No repository URL found in:", repoStatus);
+      toast.error("Repository URL not found");
+      return;
+    }
+    
+    // Try to open in a new window with required attributes for security
+    const newWindow = window.open(repoUrl, '_blank');
+    
+    // If window.open failed or was blocked, try a different approach
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+      console.log("window.open failed, trying location.href");
+      // Create a temporary anchor element as a fallback
+      const link = document.createElement('a');
+      link.href = repoUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
   
-  // If the repository already exists, just show the "View on GitHub" button
-  if (repoStatus?.hasRepository) {
+  // If repository exists but data is still loading, show loading state
+  if (isLoadingStatus) {
     return (
       <Button 
         variant="outline" 
         className="gap-2"
-        onClick={handleOpenRepo}
+        disabled
+      >
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Loading...
+      </Button>
+    );
+  }
+  
+  // If the repository already exists, show the "View on GitHub" button
+  if (repoStatus?.hasRepository && (repoStatus?.repository?.url || repoStatus?.repository?.html_url)) {
+    return (
+      <Button 
+        variant="outline" 
+        className="gap-2"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleOpenRepo();
+        }}
       >
         <Github className="h-4 w-4" />
         View on GitHub
