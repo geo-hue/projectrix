@@ -113,7 +113,7 @@ const PublishConfirmationDialog = ({
                         <li>Unlimited published projects</li>
                         <li>Unlimited active collaborations</li>
                         <li>Project editing capabilities</li>
-                        <li>Unlimited project ideas</li>
+                        <li>10 project ideas</li>
                       </ul>
                     </div>
                   </div>

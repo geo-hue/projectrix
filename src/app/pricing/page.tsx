@@ -44,7 +44,7 @@ const PricingPage = () => {
       description: "For developers who want to maximize their collaboration potential",
       price: formattedPrice,
       features: [
-        "Unlimited project ideas",
+        "10 monthly project ideas",
         "Project idea customization",
         "Unlimited active collaborations",
         "Unlimited collaboration requests",
@@ -106,7 +106,7 @@ const PricingPage = () => {
     {
       question: "What happens when I reach my project idea generation limit?",
       answer:
-        "On the free plan, once you've used your 3 project generations, you'll need to upgrade to Pro for unlimited generations.",
+        "On the free plan, once you've used your 3 project generations, you'll need to upgrade to Pro for 10 project generations.",
     },
     {
       question: "Is there a minimum commitment period?",

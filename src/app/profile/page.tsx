@@ -1020,7 +1020,7 @@ const handleStartProject = async (projectId) => {
           <ul className="space-y-2">
             <li className="flex items-start gap-2 text-sm">
               <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
-              <span>Unlimited project ideas generation</span>
+              <span>10 project ideas generation</span>
             </li>
             <li className="flex items-start gap-2 text-sm">
               <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />

@@ -601,6 +601,27 @@ export default function GeneratePage() {
     </Card>
   </motion.div>
 )}
+{isAuthenticated && user?.plan === "pro" && user?.projectIdeasLeft <= 1 && (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: 0.3 }}
+    className="container px-4 mx-auto mb-8"
+  >
+    <Card className="bg-yellow-500/10 border-yellow-500/20 border-dashed">
+      <CardContent className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-yellow-500" />
+          <span className="text-sm">
+            {user.projectIdeasLeft === 0 
+              ? "You've reached your monthly project idea limit. Please wait until next month for a refresh." 
+              : `Only ${user.projectIdeasLeft} project ${user.projectIdeasLeft === 1 ? 'idea' : 'ideas'} remaining this month`}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  </motion.div>
+)}
         {/* Main Content */}
         <section className="container px-4 mx-auto">
           <div className="grid lg:grid-cols-5 gap-8">

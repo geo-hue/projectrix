@@ -85,7 +85,7 @@ const TermsOfServicePage = () => {
               <CardContent className="pt-6">
                 <h4 className="text-lg font-medium mb-2">Pro Plan</h4>
                 <ul className="list-disc pl-6 space-y-1 text-muted-foreground text-sm">
-                  <li>Unlimited project ideas</li>
+                  <li>10 project ideas</li>
                   <li>Unlimited published projects</li>
                   <li>Unlimited active collaborations</li>
                   <li>Advanced AI project enhancements</li>
