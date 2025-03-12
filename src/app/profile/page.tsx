@@ -55,6 +55,7 @@ import MyFeedback from '@/components/MyFeedback';
 import EnhancedActivityFeed from '@/components/EnhancedActivityFeed';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import SubscriptionManagement from '@/components/SubscriptionManagement';
+import GitHubSettingsCard from '@/components/GitHubSettingsCard';
 
 const ProfileSkeleton = () => (
   <div className="space-y-8">
@@ -1008,6 +1009,11 @@ const handleStartProject = async (projectId) => {
     transition={{ duration: 0.5 }}
   >
     <SubscriptionManagement />
+
+        {/* GitHub Integration Settings */}
+        <div className="mt-6">
+      <GitHubSettingsCard />
+    </div>
     
     {/* Pro plan features reminder */}
     {user?.plan !== "pro" && (

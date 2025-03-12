@@ -38,6 +38,7 @@ import IncomingRequestsManager from '@/components/IncomingRequestsManager';
 import MyRequestsManager from '@/components/MyRequestsManager';
 import { useGetMyCollaborationsQuery } from '@/app/api/collaborationApiSlice';
 import DiscordIntegration from '@/components/DiscordIntegration';
+import GitHubIntegration from '@/components/GitHubIntegration';
 
 const CollaborationsPage = () => {
   const router = useRouter();
@@ -296,15 +297,18 @@ const CollaborationsPage = () => {
                             </div>
                           </CardContent>
                           <CardFooter className="flex justify-end gap-2">
-                          <DiscordIntegration projectId={project._id} />
-<Button 
-  className="gap-2"
-  onClick={() => router.push(`/projects/${project._id}`)}
->
-  View Project <ArrowRight className="h-4 w-4" />
-</Button>
-
-                          </CardFooter>
+  <DiscordIntegration projectId={project._id} />
+  <GitHubIntegration 
+    projectId={project._id} 
+    isOwner={project.role === 'Project Owner'} 
+  />
+  <Button 
+    className="gap-2"
+    onClick={() => router.push(`/projects/${project._id}`)}
+  >
+    View Project <ArrowRight className="h-4 w-4" />
+  </Button>
+</CardFooter>
                         </Card>
                       </motion.div>
                     ))}

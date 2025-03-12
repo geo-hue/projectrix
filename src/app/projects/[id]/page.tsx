@@ -35,6 +35,7 @@ import { useGetProjectQuery } from '@/app/api/projectApiSlice';
 import { toast } from 'sonner';
 import RoleApplication from '@/components/RoleApplication';
 import DiscordIntegration from '@/components/DiscordIntegration';
+import GitHubIntegration from '@/components/GitHubIntegration';
 
 const ProjectDetailsPage = () => {
   const { id } = useParams();
@@ -221,6 +222,10 @@ const ProjectDetailsPage = () => {
                     
                     {/* Quick Actions */}
                     <DiscordIntegration projectId={projectData._id} />
+<GitHubIntegration 
+  projectId={projectData._id} 
+  isOwner={isOwner} 
+/>
                   </CardContent>
                 </Card>
               </motion.div>

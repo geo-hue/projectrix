@@ -97,7 +97,7 @@ const FeedbackList: React.FC = () => {
   const [sort, setSort] = useState<string>("upvotes");
 
   // Fetch feedback data
-  const { data, isLoading, error, refetch } = useGetPublicFeedbackQuery({
+  const { data, isLoading, error } = useGetPublicFeedbackQuery({
     category: category === 'all' ? '' : category,
     status: status === 'all' ? '' : status,
     sort,
@@ -288,18 +288,18 @@ const FeedbackList: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
                             <AvatarImage
-                              src={feedback.userId.avatar}
-                              alt={feedback.userId.name}
+                              src={feedback.userId?.avatar}
+                              alt={feedback.userId?.name}
                               onError={(e) => {
                                 e.currentTarget.src = `https://avatar.vercel.sh/${feedback.userId.username}`;
                               }}
                             />
                             <AvatarFallback>
-                              {feedback.userId.name.charAt(0)}
+                              {feedback.userId?.name.charAt(0)}
                             </AvatarFallback>
                           </Avatar>
                           <span className="text-sm">
-                            {feedback.userId.name}
+                            {feedback.userId?.name}
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
