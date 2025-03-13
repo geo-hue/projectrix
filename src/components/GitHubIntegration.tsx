@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
   useCreateGitHubRepositoryMutation, 
-  useGetGitHubRepositoryStatusQuery
+  useGetGitHubRepositoryStatusQuery,
+  useGetGitHubInvitationStatusQuery
 } from '@/app/api/githubApiSlice';
 import { Github, Loader2, Code } from 'lucide-react';
 import { toast } from 'sonner';
@@ -40,12 +41,24 @@ const GitHubIntegration: React.FC<GitHubIntegrationProps> = ({ projectId, isOwne
     refetch: refetchStatus 
   } = useGetGitHubRepositoryStatusQuery(projectId, { skip: !projectId });
   
+  // Add invitation status query
+  const {
+    data: invitationData,
+    isLoading: isLoadingInvitation,
+    refetch: refetchInvitation
+  } = useGetGitHubInvitationStatusQuery(projectId, {
+    skip: !projectId || !repoStatus?.hasRepository || isOwner || !isAuthorized
+  });
+  
   // Refresh repo status when component mounts or authorization changes
   useEffect(() => {
     if (isAuthorized && projectId) {
       refetchStatus();
+      if (!isOwner && repoStatus?.hasRepository) {
+        refetchInvitation();
+      }
     }
-  }, [isAuthorized, projectId, refetchStatus]);
+  }, [isAuthorized, projectId, isOwner, repoStatus?.hasRepository, refetchStatus, refetchInvitation]);
   
   const handleCreateRepository = async () => {
     setIsCreating(true);
@@ -106,8 +119,13 @@ const GitHubIntegration: React.FC<GitHubIntegrationProps> = ({ projectId, isOwne
     }
   };
   
-  // If repository exists but data is still loading, show loading state
-  if (isLoadingStatus) {
+  const handleOpenInvitations = () => {
+    // Open GitHub invitations page
+    window.open('https://github.com/settings/organizations', '_blank', 'noopener,noreferrer');
+  };
+  
+  // Show loading state while any essential data is being fetched
+  if (isLoadingStatus || (repoStatus?.hasRepository && !isOwner && isLoadingInvitation)) {
     return (
       <Button 
         variant="outline" 
@@ -120,8 +138,8 @@ const GitHubIntegration: React.FC<GitHubIntegrationProps> = ({ projectId, isOwne
     );
   }
   
-  // If the repository already exists, show the "View on GitHub" button
-  if (repoStatus?.hasRepository && (repoStatus?.repository?.url || repoStatus?.repository?.html_url)) {
+  // If the repository exists and current user is the owner
+  if (repoStatus?.hasRepository && isOwner) {
     return (
       <Button 
         variant="outline" 
@@ -136,6 +154,56 @@ const GitHubIntegration: React.FC<GitHubIntegrationProps> = ({ projectId, isOwne
         View on GitHub
       </Button>
     );
+  }
+  
+  // If the repository exists and current user is a collaborator, show status based on invitation
+  if (repoStatus?.hasRepository && !isOwner) {
+    const invitationStatus = invitationData?.status || 'none';
+    
+    // Render appropriate button based on invitation status
+    switch (invitationStatus) {
+      case 'pending':
+        return (
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleOpenInvitations();
+            }}
+          >
+            <Github className="h-4 w-4" />
+            Accept GitHub Invitation
+          </Button>
+        );
+      case 'accepted':
+        return (
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleOpenRepo();
+            }}
+          >
+            <Github className="h-4 w-4" />
+            View on GitHub
+          </Button>
+        );
+      default:
+        return (
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            disabled
+          >
+            <Github className="h-4 w-4" />
+            Awaiting GitHub Access
+          </Button>
+        );
+    }
   }
   
   // Only project owners can create repositories

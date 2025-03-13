@@ -46,7 +46,8 @@ export const apiSlice = createApi({
     'ProjectMetrics',
     'AdminDashboard',
     'UserMetrics',
-    'AdminUsers'
+    'AdminUsers',
+    'GitHubInvitation'
     
   ],
   endpoints: () => ({}),

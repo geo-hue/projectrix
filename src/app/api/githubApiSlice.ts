@@ -25,6 +25,11 @@ export interface GitHubRevokeResponse {
   message: string;
 }
 
+export interface GitHubInvitationStatusResponse {
+  success: boolean;
+  status: 'none' | 'pending' | 'accepted';
+}
+
 export const githubApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Initiate GitHub OAuth flow
@@ -62,7 +67,11 @@ export const githubApiSlice = apiSlice.injectEndpoints({
         body: preferences,
       }),
       invalidatesTags: (result) => 
-        result?.success ? ['Projects', { type: 'Projects', id: result.repository?.name }] : [],
+        result?.success ? [
+          'Projects', 
+          { type: 'Projects', id: result.repository?.name },
+          { type: 'GitHubInvitation', id: 'LIST' }
+        ] : [],
     }),
     
     // Get GitHub repository status
@@ -74,6 +83,18 @@ export const githubApiSlice = apiSlice.injectEndpoints({
       providesTags: (result, error, projectId) => 
         [{ type: 'Projects', id: projectId }],
     }),
+    
+    // Get GitHub invitation status
+    getGitHubInvitationStatus: builder.query<GitHubInvitationStatusResponse, string>({
+      query: (projectId) => ({
+        url: `/github/invitation-status/${projectId}`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, projectId) => [
+        { type: 'GitHubInvitation', id: projectId },
+        { type: 'GitHubInvitation', id: 'LIST' }
+      ],
+    }),
   }),
 });
 
@@ -83,4 +104,5 @@ export const {
   useRevokeGitHubAuthMutation,
   useCreateGitHubRepositoryMutation,
   useGetGitHubRepositoryStatusQuery,
+  useGetGitHubInvitationStatusQuery,
 } = githubApiSlice;
