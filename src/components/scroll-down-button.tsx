@@ -32,7 +32,7 @@ export default function ScrollDownButton() {
 
   return (
     <motion.div
-      className="hidden md:flex flex-col items-center absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
+      className="flex flex-col items-center absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
       initial={{ opacity: 0, y: 10 }}
       animate={{ 
         opacity: isVisible ? 1 : 0,
@@ -61,7 +61,7 @@ export default function ScrollDownButton() {
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 blur-sm opacity-70 group-hover:opacity-100 transition-opacity duration-300"></div>
         
         {/* Button background */}
-        <div className="relative h-12 w-12 rounded-full bg-white dark:bg-black border border-blue-500/30 dark:border-blue-400/30 flex items-center justify-center shadow-lg overflow-hidden">
+        <div className="relative h-10 w-10 md:h-12 md:w-12 rounded-full bg-white dark:bg-black border border-blue-500/30 dark:border-blue-400/30 flex items-center justify-center shadow-lg overflow-hidden">
           {/* Animated background effect */}
           <motion.div 
             className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20"
@@ -86,7 +86,7 @@ export default function ScrollDownButton() {
               ease: "easeInOut" 
             }}
           >
-            <ChevronDown className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <ChevronDown className="h-5 w-5 md:h-6 md:w-6 text-blue-600 dark:text-blue-400" />
           </motion.div>
         </div>
       </motion.button>
