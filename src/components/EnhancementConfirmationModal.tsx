@@ -90,7 +90,7 @@ const EnhancementConfirmationModal = ({
           </Button>
           <Button
             onClick={() => handleConfirm(true)}
-            disabled={isSubmitting || enhancementsLeft === 1}
+            disabled={isSubmitting || enhancementsLeft === 0}
             className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
           >
             {isSubmitting ? (
