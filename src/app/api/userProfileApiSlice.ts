@@ -14,6 +14,7 @@ export interface UserProfile {
   preferredTechnologies: string[];
   preferredRoles: string[];
   publicEmail: boolean;
+  enhancementsLeft?: number; 
 }
 
 export interface PublicProfile {
@@ -24,6 +25,7 @@ export interface PublicProfile {
     avatar: string;
     email?: string;
     createdAt: string;
+    enhancementsLeft?: number; 
   };
   profile: Partial<UserProfile>;
   stats: {

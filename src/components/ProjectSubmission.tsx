@@ -12,97 +12,27 @@ import { ComplexitySlider } from './ComplexitySlider';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
 import { useSubmitUserProjectMutation } from '@/app/api/projectApiSlice';
-
-// Added CollapsibleSection component
-const CollapsibleSection = ({ title, children, isOpen, toggle }) => {
-  return (
-    <div className="border rounded-md overflow-hidden">
-      <button 
-        onClick={toggle} 
-        className="w-full p-3 text-left flex justify-between items-center bg-muted/30 hover:bg-muted/50 transition-colors"
-      >
-        <span className="font-medium">{title}</span>
-        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-      </button>
-      {isOpen && (
-        <div className="p-3">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-};
-
-interface ProjectData {
-  title: string;
-  subtitle: string;
-  description: string;
-  technologies: string[];
-  status: string;
-  teamSize: string;
-  duration: string;
-  complexity: number;
-  features: {
-    core: string[];
-    additional: string[];
-  };
-  teamStructure: {
-    roles: Array<{
-      title: string;
-      skills: string[];
-      responsibilities: string[];
-    }>;
-  };
-  learningOutcomes: string[];
-}
-
-// Helper function to format the text with basic markdown
-const formatDescription = (text: string) => {
-  if (!text) return '';
-  
-  // Split into paragraphs
-  const paragraphs = text.split('\n').filter(p => p.trim());
-  
-  return paragraphs.map((paragraph: string, index: number) => {
-    // Check if the paragraph starts with "- " or "* " for bullet points
-    if (paragraph.trim().match(/^[-*]\s/)) {
-      return (
-        <li key={index} className="ml-6 text-muted-foreground">
-          {paragraph.trim().substring(2)}
-        </li>
-      );
-    }
-    // Regular paragraph
-    return (
-      <p key={index} className="text-muted-foreground mb-4">
-        {paragraph}
-      </p>
-    );
-  });
-};
-
-// Helper function to format duration and team size
-const formatMetric = (value: string, type: 'duration' | 'teamSize') => {
-  const metrics = {
-    duration: {
-      '1-2': '1-2 months',
-      '3-6': '3-6 months',
-      '6+': '6+ months'
-    },
-    teamSize: {
-      '2-3': '2-3 members',
-      '4-6': '4-6 members',
-      '6+': '6+ members'
-    }
-  };
-  
-  return metrics[type]?.[value] || value;
-};
+import { useGetUserProfileQuery } from '@/app/api/userProfileApiSlice';
+import { useGetSubscriptionStatusQuery } from '@/app/api/paymentApiSlice';
+import EnhancementConfirmationModal from '@/components/EnhancementConfirmationModal';
 
 const ProjectSubmission = () => {
   const { isAuthenticated, login } = useAuth();
   const [submitUserProject, { isLoading: isSubmitting }] = useSubmitUserProjectMutation();
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
+  const [enhancementModalOpen, setEnhancementModalOpen] = useState(false);
+  
+  // Get user profile and subscription data for enhancement limits
+  const { data: userProfile } = useGetUserProfileQuery(undefined, {
+    skip: !isAuthenticated
+  });
+  const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
+    skip: !isAuthenticated
+  });
+  
+  // Calculate enhancement limits
+  const isPro = subscriptionData?.plan === 'pro';
+  const enhancementsLeft = userProfile?.user?.enhancementsLeft || 0;
   
   // Added state for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -133,7 +63,7 @@ const ProjectSubmission = () => {
     });
   };
   
-  const [projectData, setProjectData] = useState<ProjectData>({
+  const [projectData, setProjectData] = useState({
     title: "",
     subtitle: "",
     description: "",
@@ -158,29 +88,29 @@ const ProjectSubmission = () => {
     learningOutcomes: [""]
   });
   
-  const handleInputChange = (field: keyof ProjectData, value: any) => {
+  const handleInputChange = (field, value) => {
     if (!hasStartedTyping) setHasStartedTyping(true);
     setProjectData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleTechSelect = (techs: string[]) => {
+  const handleTechSelect = (techs) => {
     handleInputChange('technologies', techs);
   };
   
   // Handle feature arrays
-  const handleFeatureChange = (index: number, value: string, type: 'core' | 'additional') => {
+  const handleFeatureChange = (index, value, type) => {
     const updatedFeatures = { ...projectData.features };
     updatedFeatures[type][index] = value;
     handleInputChange('features', updatedFeatures);
   };
   
-  const addFeature = (type: 'core' | 'additional') => {
+  const addFeature = (type) => {
     const updatedFeatures = { ...projectData.features };
     updatedFeatures[type] = [...updatedFeatures[type], ""];
     handleInputChange('features', updatedFeatures);
   };
   
-  const removeFeature = (index: number, type: 'core' | 'additional') => {
+  const removeFeature = (index, type) => {
     const updatedFeatures = { ...projectData.features };
     updatedFeatures[type] = updatedFeatures[type].filter((_, i) => i !== index);
     if (updatedFeatures[type].length === 0) {
@@ -190,7 +120,7 @@ const ProjectSubmission = () => {
   };
   
   // Handle roles in team structure
-  const handleRoleChange = (index: number, field: string, value: any) => {
+  const handleRoleChange = (index, field, value) => {
     const updatedRoles = [...projectData.teamStructure.roles];
     updatedRoles[index] = { ...updatedRoles[index], [field]: value };
     handleInputChange('teamStructure', { roles: updatedRoles });
@@ -204,14 +134,14 @@ const ProjectSubmission = () => {
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
-  const removeRole = (index: number) => {
+  const removeRole = (index) => {
     if (projectData.teamStructure.roles.length <= 1) return;
     const updatedRoles = projectData.teamStructure.roles.filter((_, i) => i !== index);
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
   // Handle responsibilities within a role
-  const handleResponsibilityChange = (roleIndex: number, respIndex: number, value: string) => {
+  const handleResponsibilityChange = (roleIndex, respIndex, value) => {
     const updatedRoles = [...projectData.teamStructure.roles];
     const roleResponsibilities = [...updatedRoles[roleIndex].responsibilities];
     roleResponsibilities[respIndex] = value;
@@ -219,7 +149,7 @@ const ProjectSubmission = () => {
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
-  const addResponsibility = (roleIndex: number) => {
+  const addResponsibility = (roleIndex) => {
     const updatedRoles = [...projectData.teamStructure.roles];
     updatedRoles[roleIndex].responsibilities = [
       ...updatedRoles[roleIndex].responsibilities, 
@@ -228,7 +158,7 @@ const ProjectSubmission = () => {
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
-  const removeResponsibility = (roleIndex: number, respIndex: number) => {
+  const removeResponsibility = (roleIndex, respIndex) => {
     const updatedRoles = [...projectData.teamStructure.roles];
     if (updatedRoles[roleIndex].responsibilities.length <= 1) return;
     updatedRoles[roleIndex].responsibilities = updatedRoles[roleIndex].responsibilities.filter((_, i) => i !== respIndex);
@@ -236,7 +166,7 @@ const ProjectSubmission = () => {
   };
   
   // Handle learning outcomes
-  const handleOutcomeChange = (index: number, value: string) => {
+  const handleOutcomeChange = (index, value) => {
     const updatedOutcomes = [...projectData.learningOutcomes];
     updatedOutcomes[index] = value;
     handleInputChange('learningOutcomes', updatedOutcomes);
@@ -246,13 +176,13 @@ const ProjectSubmission = () => {
     handleInputChange('learningOutcomes', [...projectData.learningOutcomes, ""]);
   };
   
-  const removeOutcome = (index: number) => {
+  const removeOutcome = (index) => {
     if (projectData.learningOutcomes.length <= 1) return;
     const updatedOutcomes = projectData.learningOutcomes.filter((_, i) => i !== index);
     handleInputChange('learningOutcomes', updatedOutcomes);
   };
 
-  // Handle form submission
+  // Handle form validation and open the enhancement modal
   const handleSubmit = async () => {
     // Check authentication
     if (!isAuthenticated) {
@@ -293,13 +223,18 @@ const ProjectSubmission = () => {
     }
 
     const hasEmptyRoleTitle = projectData.teamStructure.roles.some(role => !role.title.trim());
-  if (hasEmptyRoleTitle) {
-    toast.error('Team roles in Team Structure is required');
-    return;
-  }
+    if (hasEmptyRoleTitle) {
+      toast.error('Team roles in Team Structure is required');
+      return;
+    }
 
+    // Open the enhancement confirmation modal
+    setEnhancementModalOpen(true);
+  };
+
+  // Handle the actual submission with or without enhancement
+  const handleProjectSubmission = async (useEnhancement) => {
     // Format data for API request
-    // Note: We're sending primitive values, not nested objects
     const formattedData = {
       title: projectData.title,
       subtitle: projectData.subtitle,
@@ -307,8 +242,8 @@ const ProjectSubmission = () => {
       technologies: projectData.technologies,
       status: projectData.status,
       teamSize: projectData.teamSize,
-      duration: projectData.duration, 
-      complexity: projectData.complexity, // Send as number
+      duration: projectData.duration,
+      complexity: projectData.complexity,
       features: {
         core: projectData.features.core.filter(f => f.trim()),
         additional: projectData.features.additional.filter(f => f.trim())
@@ -321,14 +256,21 @@ const ProjectSubmission = () => {
         }))
       },
       learningOutcomes: projectData.learningOutcomes.filter(o => o.trim()),
-      category: 'web' // Default category
+      category: 'web', // Default category
+      useEnhancement: useEnhancement // This flag tells the backend whether to use AI enhancement
     };
 
     console.log('Submitting project data:', formattedData);
 
     try {
       const result = await submitUserProject(formattedData).unwrap();
-      toast.success('Project submitted successfully');
+      
+      // Customize the success message based on whether enhancement was used
+      if (result.wasEnhanced) {
+        toast.success('Project submitted and enhanced with AI successfully!');
+      } else {
+        toast.success('Project submitted successfully!');
+      }
       
       // Reset form
       setProjectData({
@@ -356,10 +298,53 @@ const ProjectSubmission = () => {
         learningOutcomes: [""]
       });
       setHasStartedTyping(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Submit project error:', error);
       toast.error(error.data?.message || 'Failed to submit project');
     }
+  };
+
+  // Helper function to format the text with basic markdown
+  const formatDescription = (text) => {
+    if (!text) return '';
+    
+    // Split into paragraphs
+    const paragraphs = text.split('\n').filter(p => p.trim());
+    
+    return paragraphs.map((paragraph, index) => {
+      // Check if the paragraph starts with "- " or "* " for bullet points
+      if (paragraph.trim().match(/^[-*]\s/)) {
+        return (
+          <li key={index} className="ml-6 text-muted-foreground">
+            {paragraph.trim().substring(2)}
+          </li>
+        );
+      }
+      // Regular paragraph
+      return (
+        <p key={index} className="text-muted-foreground mb-4">
+          {paragraph}
+        </p>
+      );
+    });
+  };
+
+  // Helper function to format duration and team size
+  const formatMetric = (value, type) => {
+    const metrics = {
+      duration: {
+        'small': '1-2 weeks',
+        'medium': '1-2 months',
+        'large': '3+ months'
+      },
+      teamSize: {
+        'solo': 'Solo developer',
+        'small': '2-3 members',
+        'medium': '4-6 members'
+      }
+    };
+    
+    return metrics[type]?.[value] || value;
   };
 
   return (
@@ -454,7 +439,6 @@ const ProjectSubmission = () => {
                 </div> 
 
                 {/* Collapsible Sections */}
-
                 <CollapsibleSection 
                   title="Project Details" 
                   isOpen={expandedSections.projectDetails}
@@ -762,17 +746,13 @@ const ProjectSubmission = () => {
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {projectData.duration === 'small' ? '1-2 weeks' : 
-                         projectData.duration === 'medium' ? '1-2 months' : 
-                         projectData.duration === 'large' ? '3+ months' : 'Duration'}
+                        {projectData.duration ? formatMetric(projectData.duration, 'duration') : 'Duration'}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {projectData.teamSize === 'solo' ? 'Solo' : 
-                         projectData.teamSize === 'small' ? '2-3 members' : 
-                         projectData.teamSize === 'medium' ? '4-6 members' : 'Team Size'}
+                        {projectData.teamSize ? formatMetric(projectData.teamSize, 'teamSize') : 'Team Size'}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -917,7 +897,36 @@ const ProjectSubmission = () => {
           </motion.div>
         )}
       </div>
+      
+      {/* AI Enhancement Modal */}
+      <EnhancementConfirmationModal
+        isOpen={enhancementModalOpen}
+        onClose={() => setEnhancementModalOpen(false)}
+        onConfirm={handleProjectSubmission}
+        enhancementsLeft={enhancementsLeft}
+        isPro={isPro}
+      />
     </section>
+  );
+};
+
+// CollapsibleSection component
+const CollapsibleSection = ({ title, children, isOpen, toggle }) => {
+  return (
+    <div className="border rounded-md overflow-hidden">
+      <button 
+        onClick={toggle} 
+        className="w-full p-3 text-left flex justify-between items-center bg-muted/30 hover:bg-muted/50 transition-colors"
+      >
+        <span className="font-medium">{title}</span>
+        {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </button>
+      {isOpen && (
+        <div className="p-3">
+          {children}
+        </div>
+      )}
+    </div>
   );
 };
 
