@@ -17,7 +17,7 @@ import { useGetSubscriptionStatusQuery } from '@/app/api/paymentApiSlice';
 import EnhancementConfirmationModal from '@/components/EnhancementConfirmationModal';
 
 const ProjectSubmission = () => {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login , user: userData} = useAuth();
   const [submitUserProject, { isLoading: isSubmitting }] = useSubmitUserProjectMutation();
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
   const [enhancementModalOpen, setEnhancementModalOpen] = useState(false);
@@ -29,10 +29,12 @@ const ProjectSubmission = () => {
   const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
     skip: !isAuthenticated
   });
+
   
   // Calculate enhancement limits
   const isPro = subscriptionData?.plan === 'pro';
-  const enhancementsLeft = userProfile?.user?.enhancementsLeft || 0;
+  const enhancementsLeft = userData?.enhancementsLeft || 0;
+
   
   // Added state for collapsible sections
   const [expandedSections, setExpandedSections] = useState({

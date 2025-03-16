@@ -15,15 +15,11 @@ import {
   Users,
   Layers,
   Share2,
-  Code2,
-  ExternalLink,
   CopyCheck,
   CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Project } from '@/app/types/projectTypes';
-import { usePublishProjectMutation, useStartProjectMutation } from '@/app/api/projectApiSlice';
-import { useRouter } from 'next/navigation';
 
 interface ProjectDetailsProps {
   project: Project | null;
@@ -32,9 +28,7 @@ interface ProjectDetailsProps {
 }
 
 const ProjectDetails = ({ project, isOpen, onClose }: ProjectDetailsProps) => {
-  const router = useRouter();
-  const [publishProject, { isLoading: isPublishing }] = usePublishProjectMutation();
-  const [startProject, { isLoading: isStarting }] = useStartProjectMutation();
+
   
   if (!project) return null;
   
@@ -53,17 +47,6 @@ const ProjectDetails = ({ project, isOpen, onClose }: ProjectDetailsProps) => {
       navigator.clipboard.writeText(`${window.location.origin}/projects/${project._id}`)
         .then(() => toast.success('Project link copied to clipboard!'))
         .catch((error) => console.error('Error copying to clipboard:', error));
-    }
-  };
-  
-  const handlePublish = async () => {
-    try {
-      await publishProject(project._id).unwrap();
-      toast.success('Project published successfully!');
-      onClose();
-    } catch (error) {
-      // Display the error message from the backend
-      toast.error(error.data?.message || 'Failed to publish project');
     }
   };
   
@@ -193,18 +176,6 @@ const ProjectDetails = ({ project, isOpen, onClose }: ProjectDetailsProps) => {
             <Share2 className="h-4 w-4" />
             Share
           </Button>
-          
-          {!project.isPublished && (
-            <Button 
-              className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-              onClick={handlePublish}
-              disabled={isPublishing}
-            >
-              <ExternalLink className="h-4 w-4" />
-              {isPublishing ? 'Publishing...' : 'Publish Project'}
-            </Button>
-          )}
-          
         
         </DialogFooter>
       </DialogContent>

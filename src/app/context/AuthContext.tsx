@@ -21,6 +21,7 @@ export type UserData = {
   createdAt?: string;
   role?: string;
   plan?:string;
+  enhancementsLeft: number;
 };
 
 // Define context type
