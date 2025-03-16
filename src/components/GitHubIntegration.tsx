@@ -1,295 +1,184 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Github, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useGitHubAuth } from '@/app/hooks/useGitHubAuth';
 import { 
-  useCreateGitHubRepositoryMutation, 
+  useCreateGitHubRepositoryMutation,
   useGetGitHubRepositoryStatusQuery,
   useGetGitHubInvitationStatusQuery
 } from '@/app/api/githubApiSlice';
-import { Github, Loader2, Code } from 'lucide-react';
-import { toast } from 'sonner';
-import { useGitHubAuth } from '@/app/hooks/useGitHubAuth';
-
-// Import dialog components
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 
 interface GitHubIntegrationProps {
   projectId: string;
-  isOwner?: boolean;
+  isOwner: boolean;
 }
 
-const GitHubIntegration: React.FC<GitHubIntegrationProps> = ({ projectId, isOwner = false }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isPrivate, setIsPrivate] = useState(true);
-  const [useOrganization, setUseOrganization] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
+  const [repoCreationStep, setRepoCreationStep] = useState<'initial' | 'confirm' | 'creating'>('initial');
+  const { isAuthorized, authorizeGitHub, isAuthenticating } = useGitHubAuth();
   
-  // API hooks
-  const { isAuthorized, isAuthenticating, authorizeGitHub } = useGitHubAuth();
-  const [createGitHubRepository, { isLoading: isCreatingRepo }] = useCreateGitHubRepositoryMutation();
+  // API Hooks
+  const [createRepository, { isLoading: isCreating }] = useCreateGitHubRepositoryMutation();
   const { 
     data: repoStatus, 
-    isLoading: isLoadingStatus, 
-    refetch: refetchStatus 
-  } = useGetGitHubRepositoryStatusQuery(projectId, { skip: !projectId });
+    isLoading: isCheckingRepo, 
+    refetch: refetchRepoStatus 
+  } = useGetGitHubRepositoryStatusQuery(projectId, { refetchOnMountOrArgChange: true });
   
-  // Add invitation status query
-  const {
-    data: invitationData,
-    isLoading: isLoadingInvitation,
-    refetch: refetchInvitation
-  } = useGetGitHubInvitationStatusQuery(projectId, {
-    skip: !projectId || !repoStatus?.hasRepository || isOwner || !isAuthorized
+  const { 
+    data: invitationStatus, 
+    isLoading: isCheckingInvitation 
+  } = useGetGitHubInvitationStatusQuery(projectId, { 
+    skip: !repoStatus?.hasRepository || isOwner 
   });
   
   // Refresh repo status when component mounts or authorization changes
   useEffect(() => {
     if (isAuthorized && projectId) {
-      refetchStatus();
-      if (!isOwner && repoStatus?.hasRepository) {
-        refetchInvitation();
-      }
+      refetchRepoStatus();
     }
-  }, [isAuthorized, projectId, isOwner, repoStatus?.hasRepository, refetchStatus, refetchInvitation]);
+  }, [isAuthorized, projectId, refetchRepoStatus]);
   
-  const handleCreateRepository = async () => {
-    setIsCreating(true);
+  // Button states for better UX
+  const isLoading = isAuthenticating || isCreating || isCheckingRepo || isCheckingInvitation;
+  const hasRepository = repoStatus?.hasRepository;
+  
+  // Handle GitHub authentication
+  const handleGitHubAuth = async () => {
     try {
-      const preferences = {
-        useOrganization,
-        isPrivate
-      };
+      await authorizeGitHub(projectId);
+    } catch (error) {
+      console.error('GitHub auth error:', error);
+      toast.error('Failed to authorize with GitHub');
+    }
+  };
+  
+  // Handle repository creation
+  const handleCreateRepository = async () => {
+    try {
+      setRepoCreationStep('creating');
       
-      const result = await createGitHubRepository({ projectId, preferences }).unwrap();
+      // Always create public repositories
+      const result = await createRepository({ 
+        projectId,
+        preferences: {
+          useOrganization: false, // Always use personal account
+          isPrivate: false // Always create public repos
+        }
+      }).unwrap();
       
       if (result.requiresAuth) {
         // Need GitHub authorization first
-        authorizeGitHub(projectId);
+        handleGitHubAuth();
+        setRepoCreationStep('initial');
         return;
       }
       
       if (result.success) {
-        toast.success(result.message || 'Repository created successfully');
-        setIsDialogOpen(false);
-        refetchStatus();
+        toast.success('GitHub repository created successfully!');
+        refetchRepoStatus();
       } else {
         toast.error(result.message || 'Failed to create repository');
       }
+      
+      setRepoCreationStep('initial');
     } catch (error) {
-      console.error('Error creating GitHub repository:', error);
+      console.error('Repo creation error:', error);
       toast.error('Failed to create GitHub repository');
-    } finally {
-      setIsCreating(false);
+      setRepoCreationStep('initial');
     }
   };
   
-  const handleOpenRepo = () => {
-    // Make sure we have a URL to open
-    const repoUrl = repoStatus?.repository?.url || repoStatus?.repository?.html_url;
-    console.log("Trying to open repository URL:", repoUrl);
-    
+  // Handle repository link click
+  const handleRepoClick = () => {
+    const repoUrl = repoStatus?.repository?.html_url;
     if (!repoUrl) {
-      console.error("No repository URL found in:", repoStatus);
       toast.error("Repository URL not found");
       return;
     }
     
-    // Try to open in a new window with required attributes for security
-    const newWindow = window.open(repoUrl, '_blank');
-    
-    // If window.open failed or was blocked, try a different approach
-    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-      console.log("window.open failed, trying location.href");
-      // Create a temporary anchor element as a fallback
-      const link = document.createElement('a');
-      link.href = repoUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    window.open(repoUrl, '_blank', 'noopener,noreferrer');
   };
   
+  // Handle invitation page open
   const handleOpenInvitations = () => {
-    // Open GitHub invitations page
     window.open('https://github.com/settings/organizations', '_blank', 'noopener,noreferrer');
   };
   
-  // Show loading state while any essential data is being fetched
-  if (isLoadingStatus || (repoStatus?.hasRepository && !isOwner && isLoadingInvitation)) {
-    return (
-      <Button 
-        variant="outline" 
-        className="gap-2"
-        disabled
-      >
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Loading...
-      </Button>
-    );
-  }
-  
-  // If the repository exists and current user is the owner
-  if (repoStatus?.hasRepository && isOwner) {
-    return (
-      <Button 
-        variant="outline" 
-        className="gap-2"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handleOpenRepo();
-        }}
-      >
-        <Github className="h-4 w-4" />
-        View on GitHub
-      </Button>
-    );
-  }
-  
-  // If the repository exists and current user is a collaborator, show status based on invitation
-  if (repoStatus?.hasRepository && !isOwner) {
-    const invitationStatus = invitationData?.status || 'none';
-    
-    // Render appropriate button based on invitation status
-    switch (invitationStatus) {
-      case 'pending':
-        return (
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleOpenInvitations();
-            }}
-          >
-            <Github className="h-4 w-4" />
-            Accept GitHub Invitation
-          </Button>
-        );
-      case 'accepted':
-        return (
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleOpenRepo();
-            }}
-          >
-            <Github className="h-4 w-4" />
-            View on GitHub
-          </Button>
-        );
-      default:
-        return (
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            disabled
-          >
-            <Github className="h-4 w-4" />
-            Awaiting GitHub Access
-          </Button>
-        );
+  // Determine button state and text
+  const getButtonState = () => {
+    // Not owner - show invitation status
+    if (!isOwner) {
+      if (!repoStatus?.hasRepository) {
+        return { text: 'No GitHub Repository', disabled: true };
+      }
+      
+      if (isCheckingInvitation) {
+        return { text: 'Checking GitHub Access...', disabled: true };
+      }
+      
+      if (invitationStatus?.status === 'pending') {
+        return { text: 'Accept GitHub Invitation', disabled: false, action: 'invitation' };
+      }
+      
+      if (invitationStatus?.status === 'accepted') {
+        return { text: 'View GitHub Repository', disabled: false, action: 'view' };
+      }
+      
+      return { text: 'Awaiting GitHub Access', disabled: true };
     }
-  }
+    
+    // Owner - show setup/creation options
+    if (!isAuthorized) {
+      return { text: 'Connect GitHub', disabled: false, action: 'auth' };
+    }
+    
+    if (hasRepository) {
+      return { text: 'View GitHub Repository', disabled: false, action: 'view' };
+    }
+    
+    if (repoCreationStep === 'confirm') {
+      return { text: 'Confirm Repository Creation', disabled: false, action: 'confirm' };
+    }
+    
+    return { text: 'Set Up GitHub Repository', disabled: false, action: 'setup' };
+  };
   
-  // Only project owners can create repositories
-  if (!isOwner) {
-    return null;
-  }
+  const buttonState = getButtonState();
+  
+  // Handle button click based on state
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (buttonState.action === 'auth') {
+      handleGitHubAuth();
+    } else if (buttonState.action === 'setup') {
+      setRepoCreationStep('confirm');
+    } else if (buttonState.action === 'confirm') {
+      handleCreateRepository();
+    } else if (buttonState.action === 'view') {
+      handleRepoClick();
+    } else if (buttonState.action === 'invitation') {
+      handleOpenInvitations();
+    }
+  };
   
   return (
-    <>
-      <Button 
-        variant="outline" 
-        className="gap-2"
-        onClick={() => setIsDialogOpen(true)}
-        disabled={isLoadingStatus || isAuthenticating}
-      >
-        {isLoadingStatus || isAuthenticating ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Github className="h-4 w-4" />
-        )}
-        Set Up GitHub
-      </Button>
-      
-      {/* GitHub repository creation dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create GitHub Repository</DialogTitle>
-            <DialogDescription>
-              Set up a GitHub repository for your project with initial structure and documentation.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="private-repo" 
-                checked={isPrivate} 
-                onCheckedChange={(checked) => setIsPrivate(checked as boolean)} 
-              />
-              <Label htmlFor="private-repo">Private repository (recommended)</Label>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="use-org" 
-                checked={useOrganization} 
-                onCheckedChange={(checked) => setUseOrganization(checked as boolean)} 
-              />
-              <Label htmlFor="use-org">Create under Projectrix organization</Label>
-            </div>
-            
-            <div className="bg-muted/40 p-4 rounded-md text-sm">
-              <p className="font-medium mb-2">This will create:</p>
-              <ul className="space-y-1 list-disc pl-4">
-                <li>Repository with project README</li>
-                <li>Detailed role documentation</li>
-                <li>Project board with issues</li>
-                <li>Basic branch protection</li>
-              </ul>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setIsDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCreateRepository}
-              disabled={isCreating || isCreatingRepo}
-              className="gap-2"
-            >
-              {isCreating || isCreatingRepo ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Code className="h-4 w-4" />
-              )}
-              Create Repository
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    <Button
+      variant="outline"
+      className="gap-2"
+      disabled={buttonState.disabled || isLoading}
+      onClick={handleButtonClick}
+    >
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Github className="h-4 w-4" />
+      )}
+      {buttonState.text}
+    </Button>
   );
 };
 
