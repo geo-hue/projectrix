@@ -161,16 +161,16 @@ const IncomingRequestsManager = () => {
                             onClick={() => handleViewProfile(request.applicantId.username)}
                           >
                             <AvatarImage 
-                              src={request.applicantId.avatar} 
-                              alt={request.applicantId.name}
+                              src={request.applicantId?.avatar} 
+                              alt={request.applicantId?.name}
                               onError={(e) => {
-                                e.currentTarget.src = `https://avatar.vercel.sh/${request.applicantId.username}`;
+                                e.currentTarget.src = `https://avatar.vercel.sh/${request.applicantId?.username}`;
                               }}
                             />
-                            <AvatarFallback>{request.applicantId.name?.charAt(0) || 'U'}</AvatarFallback>
+                            <AvatarFallback>{request.applicantId?.name?.charAt(0) || 'U'}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <h4 className="font-medium">{request.applicantId.name}</h4>
+                            <h4 className="font-medium">{request.applicantId?.name}</h4>
                             <p className="text-sm text-muted-foreground flex items-center">
                               <Clock className="h-3 w-3 mr-1" />
                               Applied on {formatDate(request.appliedAt)}
@@ -254,17 +254,17 @@ const IncomingRequestsManager = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage 
-                          src={request.applicantId.avatar} 
-                          alt={request.applicantId.name}
+                          src={request.applicantId?.avatar} 
+                          alt={request.applicantId?.name}
                           onError={(e) => {
                             e.currentTarget.src = `https://avatar.vercel.sh/${request.applicantId.username}`;
                           }}
                         />
-                        <AvatarFallback>{request.applicantId.name?.charAt(0) || 'U'}</AvatarFallback>
+                        <AvatarFallback>{request.applicantId?.name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{request.applicantId.name}</h4>
+                          <h4 className="font-medium">{request.applicantId?.name}</h4>
                           <Badge 
                             variant="outline" 
                             className={request.status === 'accepted' 
