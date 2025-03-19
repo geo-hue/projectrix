@@ -48,6 +48,7 @@ const CollaborationsPage = () => {
     error: myCollaborationsError
   } = useGetMyCollaborationsQuery();
 
+  const projectOwnerName = project?.userId?.username || project?.publisher?.username || '';
   //  custom CSS for the blue background patterns and effects
   React.useEffect(() => {
     const styleSheet = document.createElement("style");

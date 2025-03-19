@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Github, Loader2, UserPlus, ExternalLink } from 'lucide-react';
+import { Github, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useGitHubAuth } from '@/app/hooks/useGitHubAuth';
 import { 
   useCreateGitHubRepositoryMutation,
-  useGetGitHubRepositoryStatusQuery,
-  useGetGitHubInvitationStatusQuery
+  useGetGitHubRepositoryStatusQuery
 } from '@/app/api/githubApiSlice';
 import {
   Dialog,
@@ -16,18 +15,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import GitHubCollaborationAlert from './GitHubCollaborationAlert';
 
 interface GitHubIntegrationProps {
   projectId: string;
   isOwner: boolean;
+  projectOwnerName?: string; // Add project owner name
 }
 
-const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
+const GitHubIntegration = ({ projectId, isOwner, projectOwnerName = '' }: GitHubIntegrationProps) => {
   const [repoCreationStep, setRepoCreationStep] = useState<'initial' | 'confirm' | 'creating'>('initial');
-  const [joinRepoDialog, setJoinRepoDialog] = useState(false);
-  const [githubUsername, setGithubUsername] = useState('');
   const { isAuthorized, authorizeGitHub, isAuthenticating } = useGitHubAuth();
   
   // API Hooks
@@ -38,13 +35,6 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
     refetch: refetchRepoStatus 
   } = useGetGitHubRepositoryStatusQuery(projectId, { refetchOnMountOrArgChange: true });
   
-  const { 
-    data: invitationStatus, 
-    isLoading: isCheckingInvitation 
-  } = useGetGitHubInvitationStatusQuery(projectId, { 
-    skip: !repoStatus?.hasRepository || isOwner 
-  });
-  
   // Refresh repo status when component mounts or authorization changes
   useEffect(() => {
     if (isAuthorized && projectId) {
@@ -53,7 +43,7 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
   }, [isAuthorized, projectId, refetchRepoStatus]);
   
   // Button states for better UX
-  const isLoading = isAuthenticating || isCreating || isCheckingRepo || isCheckingInvitation;
+  const isLoading = isAuthenticating || isCreating || isCheckingRepo;
   const hasRepository = repoStatus?.hasRepository;
   
   // Handle GitHub authentication
@@ -75,7 +65,7 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
       const result = await createRepository({ 
         projectId,
         preferences: {
-          useOrganization: true, // default to true to attempt organization creation
+          useOrganization: false, // Set to false to use personal account
           isPrivate: false // Always create public repos
         }
       }).unwrap();
@@ -88,11 +78,7 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
       }
       
       if (result.success) {
-        const repoOwner = result.repository.owner;
-        const orgName = result.repository.owner !== repoOwner ? 
-          repoOwner : 'personal account';
-        
-        toast.success(`GitHub repository created successfully under ${orgName}!`);
+        toast.success(`GitHub repository created successfully!`);
         refetchRepoStatus();
       } else {
         toast.error(result.message || 'Failed to create repository');
@@ -116,54 +102,16 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
     
     window.open(repoUrl, '_blank', 'noopener,noreferrer');
   };
-  
-  // Handle invitation page open
-  const handleOpenInvitations = () => {
-    window.open('https://github.com/settings/organizations', '_blank', 'noopener,noreferrer');
-  };
 
-  // Handle manual join of repository
-  const handleSubmitJoinRepo = () => {
-    if (!githubUsername.trim()) {
-      toast.error("Please enter your GitHub username");
-      return;
-    }
-
-    const repoUrl = repoStatus?.repository?.html_url;
-    if (!repoUrl) {
-      toast.error("Repository URL not found");
-      return;
-    }
-
-    // Open the repository's fork/contribute page
-    window.open(`${repoUrl}`, '_blank', 'noopener,noreferrer');
-
-    toast.success(`Please request to be added as a collaborator using your GitHub username: ${githubUsername}`);
-    setJoinRepoDialog(false);
-  };
-  
   // Determine button state and text
   const getButtonState = () => {
-    // Not owner - show invitation status
+    // Not owner - show view button if repo exists
     if (!isOwner) {
       if (!repoStatus?.hasRepository) {
         return { text: 'No GitHub Repository', disabled: true };
       }
       
-      if (isCheckingInvitation) {
-        return { text: 'Checking GitHub Access...', disabled: true };
-      }
-      
-      if (invitationStatus?.status === 'pending') {
-        return { text: 'Accept GitHub Invitation', disabled: false, action: 'invitation' };
-      }
-      
-      if (invitationStatus?.status === 'accepted') {
-        return { text: 'View GitHub Repository', disabled: false, action: 'view' };
-      }
-      
-      // NEW: Join Repository option as a fallback
-      return { text: 'Join GitHub Repository', disabled: false, action: 'join' };
+      return { text: 'View GitHub Repository', disabled: false, action: 'view' };
     }
     
     // Owner - show setup/creation options
@@ -197,15 +145,20 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
       handleCreateRepository();
     } else if (buttonState.action === 'view') {
       handleRepoClick();
-    } else if (buttonState.action === 'invitation') {
-      handleOpenInvitations();
-    } else if (buttonState.action === 'join') {
-      setJoinRepoDialog(true);
     }
   };
   
   return (
     <>
+      {/* Show collaboration alert for non-owners when repository exists */}
+      {!isOwner && hasRepository && (
+        <GitHubCollaborationAlert 
+          projectOwner={projectOwnerName}
+          repoUrl={repoStatus?.repository?.html_url || ''}
+          isOwner={isOwner}
+        />
+      )}
+      
       <Button
         variant="outline"
         className="gap-2"
@@ -214,44 +167,53 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
-        ) : buttonState.action === 'join' ? (
-          <UserPlus className="h-4 w-4" />
         ) : (
           <Github className="h-4 w-4" />
         )}
         {buttonState.text}
       </Button>
 
-      {/* Dialog for manual GitHub repository joining */}
-      <Dialog open={joinRepoDialog} onOpenChange={setJoinRepoDialog}>
+      {/* Dialog for GitHub repository creation confirmation */}
+      <Dialog open={repoCreationStep === 'confirm'} onOpenChange={(open) => {
+        if (!open) setRepoCreationStep('initial');
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Join GitHub Repository</DialogTitle>
+            <DialogTitle>Create GitHub Repository</DialogTitle>
             <DialogDescription>
-              Enter your GitHub username to request access to this repository.
+              A public GitHub repository will be created for this project.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="github-username">GitHub Username</Label>
-              <Input 
-                id="github-username" 
-                value={githubUsername}
-                onChange={(e) => setGithubUsername(e.target.value)}
-                placeholder="e.g. octocat"
-              />
-            </div>
             <div className="text-sm text-muted-foreground">
-              After submission, you will be redirected to the repository where you can request collaborator access.
+              <p>This will create a repository with:</p>
+              <ul className="list-disc pl-5 mt-2 space-y-1">
+                <li>README with project details</li>
+                <li>Appropriate .gitignore file</li>
+                <li>CONTRIBUTING.md guidelines</li>
+              </ul>
+            </div>
+            <div className="text-sm text-muted-foreground mt-2">
+              <p className="font-medium text-foreground">Note about collaborators:</p>
+              <p className="mt-1">You will need to manually add team members as collaborators to your GitHub repository.</p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setJoinRepoDialog(false)}>
+            <Button variant="outline" onClick={() => setRepoCreationStep('initial')}>
               Cancel
             </Button>
-            <Button onClick={handleSubmitJoinRepo}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Go to Repository
+            <Button onClick={handleCreateRepository} disabled={isCreating}>
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Github className="h-4 w-4 mr-2" />
+                  Create Repository
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
