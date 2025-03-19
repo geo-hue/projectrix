@@ -31,6 +31,7 @@ import {
   useGetAvailableTechnologiesQuery,
   useGetAvailableRolesQuery 
 } from '@/app/api/publishedProjectsApiSlice';
+import ProfileCompletionBanner from '@/components/ProfileCompletionBanner';
 
 const ProjectIdeasPage = () => {
   const router = useRouter();
@@ -87,7 +88,7 @@ const ProjectIdeasPage = () => {
   }) : [];
 
   
-  // Add custom CSS for the blue background patterns and effects
+  //  custom CSS for the blue background patterns and effects
   useEffect(() => {
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
@@ -231,6 +232,8 @@ const ProjectIdeasPage = () => {
                   </div>
                 </div>
               </motion.div>
+
+              <ProfileCompletionBanner />
 
               {/* Projects Grid */}
               <div id="projects-section">

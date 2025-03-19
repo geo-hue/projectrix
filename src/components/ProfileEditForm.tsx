@@ -49,7 +49,7 @@ const profileFormSchema = z.object({
   skills: z.array(z.string()),
   preferredTechnologies: z.array(z.string()),
   preferredRoles: z.array(z.string()),
-  publicEmail: z.boolean().default(false)
+  publicEmail: z.boolean().default(true) // Changed default to true
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -92,7 +92,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
       skills: profile?.skills || [],
       preferredTechnologies: profile?.preferredTechnologies || [],
       preferredRoles: profile?.preferredRoles || [],
-      publicEmail: profile?.publicEmail || false
+      publicEmail: profile?.publicEmail !== undefined ? profile.publicEmail : true // Set default to true if not provided
     }
   });
 
@@ -106,7 +106,6 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
       data.preferredRoles = preferredRoles;
       
       await updateProfile(data).unwrap();
-      toast.success("Profile updated successfully");
       onSuccess();
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -132,22 +131,22 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
         <CardDescription className="text-lg font-medium text-muted-foreground">Update your profile information and preferences</CardDescription>
         {/* Step indicator */}
         <StepIndicator
-  currentStep={currentStep} 
-  totalSteps={2} 
-  labels={["Basic Info", "Additional Info"]} 
-/>
+          currentStep={currentStep} 
+          totalSteps={2} 
+          labels={["Basic Info", "Additional Info"]} 
+        />
       </CardHeader>
       <Form {...form}>
-  <form onSubmit={(e) => {
-    e.preventDefault(); // Always prevent default form submission
-    
-    if (currentStep === 1) {
-      setCurrentStep(2);
-      return;
-    }
-    
-    form.handleSubmit(onSubmit)(e);
-  }}>
+        <form onSubmit={(e) => {
+          e.preventDefault(); // Always prevent default form submission
+          
+          if (currentStep === 1) {
+            setCurrentStep(2);
+            return;
+          }
+          
+          form.handleSubmit(onSubmit)(e);
+        }}>
           <CardContent className="space-y-6 pt-6">
             {currentStep === 1 ? (
               <>
@@ -168,7 +167,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                       <FormDescription>
                         This will be displayed on your public profile.
                       </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600 font-medium" />
                     </FormItem>
                   )}
                 />
@@ -189,7 +188,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                       <FormDescription>
                         Select the skills you have expertise in.
                       </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600 font-medium" />
                     </FormItem>
                   )}
                 />
@@ -210,7 +209,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                       <FormDescription>
                         Technologies you prefer to work with.
                       </FormDescription>
-                      <FormMessage />
+                      <FormMessage className="text-red-600 font-medium" />
                     </FormItem>
                   )}
                 />
@@ -270,7 +269,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                         <FormControl>
                           <Input placeholder="https://yourwebsite.com" {...field} />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
                     )}
                   />
@@ -283,7 +282,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                         <FormControl>
                           <Input placeholder="https://github.com/username" {...field} />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
                     )}
                   />
@@ -296,7 +295,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                         <FormControl>
                           <Input placeholder="https://twitter.com/username" {...field} />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
                     )}
                   />
@@ -309,7 +308,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                         <FormControl>
                           <Input placeholder="https://linkedin.com/in/username" {...field} />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
                     )}
                   />
@@ -338,7 +337,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                         <FormDescription>
                           Your current availability for new projects.
                         </FormDescription>
-                        <FormMessage />
+                        <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
                     )}
                   />
@@ -365,13 +364,13 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                         <FormDescription>
                           Hours you can dedicate to projects weekly.
                         </FormDescription>
-                        <FormMessage />
+                        <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
                     )}
                   />
                 </div>
 
-                {/* Public Email */}
+                {/* Public Email - Fixed the infinite loop issue */}
                 <FormField
                   control={form.control}
                   name="publicEmail"
@@ -381,11 +380,17 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          id="publicEmail"
                         />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="text-lg font-semibold">Show email on public profile</FormLabel>
-                        <FormDescription>
+                      <div className="space-y-1 leading-none w-full">
+                        <FormLabel 
+                          htmlFor="publicEmail" 
+                          className="text-lg font-semibold cursor-pointer block w-full"
+                        >
+                          Show email on public profile
+                        </FormLabel>
+                        <FormDescription className="cursor-pointer">
                           Allow others to see your email address on your public profile.
                         </FormDescription>
                       </div>
@@ -418,18 +423,18 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
               )}
             </div>
             {currentStep === 1 ? (
-            <Button 
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setCurrentStep(2);
-            }}
-            className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-          >
-            Next
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+              <Button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCurrentStep(2);
+                }}
+                className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+              >
+                Next
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             ) : (
               <Button 
                 type="submit" 

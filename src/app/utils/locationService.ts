@@ -11,7 +11,7 @@ export async function detectUserCountry(): Promise<string> {
     }
     
     try {
-      // Use IPinfo with your token
+      // Use IPinfo 
       const response = await fetch('https://ipinfo.io/json?token=4ae8703d935657');
       const data = await response.json();
       

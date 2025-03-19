@@ -77,6 +77,7 @@ const PricingPage = () => {
         await login()
         toast.info("Please select a plan after logging in")
       } catch (error) {
+        console.error("Login error:", error)
       }
       return
     }

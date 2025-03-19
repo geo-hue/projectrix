@@ -20,10 +20,9 @@ import GitHubCollaborationAlert from './GitHubCollaborationAlert';
 interface GitHubIntegrationProps {
   projectId: string;
   isOwner: boolean;
-  projectOwnerName?: string; // Add project owner name
 }
 
-const GitHubIntegration = ({ projectId, isOwner, projectOwnerName = '' }: GitHubIntegrationProps) => {
+const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
   const [repoCreationStep, setRepoCreationStep] = useState<'initial' | 'confirm' | 'creating'>('initial');
   const { isAuthorized, authorizeGitHub, isAuthenticating } = useGitHubAuth();
   
@@ -153,7 +152,6 @@ const GitHubIntegration = ({ projectId, isOwner, projectOwnerName = '' }: GitHub
       {/* Show collaboration alert for non-owners when repository exists */}
       {!isOwner && hasRepository && (
         <GitHubCollaborationAlert 
-          projectOwner={projectOwnerName}
           repoUrl={repoStatus?.repository?.html_url || ''}
           isOwner={isOwner}
         />
@@ -177,7 +175,7 @@ const GitHubIntegration = ({ projectId, isOwner, projectOwnerName = '' }: GitHub
       <Dialog open={repoCreationStep === 'confirm'} onOpenChange={(open) => {
         if (!open) setRepoCreationStep('initial');
       }}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-background dark:bg-black">
           <DialogHeader>
             <DialogTitle>Create GitHub Repository</DialogTitle>
             <DialogDescription>
@@ -193,9 +191,13 @@ const GitHubIntegration = ({ projectId, isOwner, projectOwnerName = '' }: GitHub
                 <li>CONTRIBUTING.md guidelines</li>
               </ul>
             </div>
-            <div className="text-sm text-muted-foreground mt-2">
-              <p className="font-medium text-foreground">Note about collaborators:</p>
-              <p className="mt-1">You will need to manually add team members as collaborators to your GitHub repository.</p>
+            <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 p-3 rounded-md">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                ⚠️ Important: Collaborator Access
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                It is advisable to create the repository after all members have been added to the project. Otherwise, you will need to manually add collaborators to the GitHub repository.
+              </p>
             </div>
           </div>
           <DialogFooter>

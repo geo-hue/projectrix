@@ -32,7 +32,7 @@ export default function ScrollDownButton() {
 
   return (
     <motion.div
-      className="flex flex-col items-center absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
+      className="flex flex-col items-center absolute bottom-8 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-10 mb-4 sm:mb-0"
       initial={{ opacity: 0, y: 10 }}
       animate={{ 
         opacity: isVisible ? 1 : 0,
@@ -44,7 +44,7 @@ export default function ScrollDownButton() {
       }}
     >
       <motion.p 
-        className="text-sm font-medium mb-3 text-muted-foreground"
+        className="text-sm font-medium mb-2 text-muted-foreground"
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 2, repeat: Infinity }}
       >
