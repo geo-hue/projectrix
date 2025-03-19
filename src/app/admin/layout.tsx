@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { motion } from "framer-motion";
 import { 
   LayoutDashboard, 
   Users, 
@@ -32,7 +31,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from '@/components/ui/badge';
 import { useGetUnreadCountQuery } from '@/app/api/activityApiSlice';
 
 interface AdminLayoutProps {

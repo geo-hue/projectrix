@@ -18,12 +18,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Clock,
   Users,
   ArrowRight,
   Sparkles,
   BookOpen,
-  ExternalLink,
   Loader2
 } from "lucide-react";
 import Header from '@/components/Header';
@@ -33,7 +31,6 @@ import TechBackground from '@/components/TechBackground';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/context/AuthContext';
 import IncomingRequestsManager from '@/components/IncomingRequestsManager';
 import MyRequestsManager from '@/components/MyRequestsManager';
 import { useGetMyCollaborationsQuery } from '@/app/api/collaborationApiSlice';
@@ -42,7 +39,6 @@ import GitHubIntegration from '@/components/GitHubIntegration';
 
 const CollaborationsPage = () => {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
   
   
   // Get actual collaboration data
@@ -73,7 +69,7 @@ const CollaborationsPage = () => {
     };
   }, []);
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: any) => {
     switch(status) {
       case 'pending':
         return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 dark:text-yellow-400 border-yellow-500/20">Pending</Badge>;
@@ -244,15 +240,6 @@ const CollaborationsPage = () => {
         const memberAvatar = userId?.avatar || `https://avatar.vercel.sh/${memberUsername}`;
         const memberRole = member.role || "Collaborator";
         
-        // Debug - log the team member data
-        console.log("Team member data:", { 
-          userId, 
-          memberName, 
-          memberUsername, 
-          memberRole,
-          raw: member 
-        });
-        
         return (
           <div key={index} className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
@@ -325,7 +312,7 @@ const CollaborationsPage = () => {
                     </div>
                     <h3 className="text-xl font-semibold mb-2">No Active Projects</h3>
                     <p className="text-muted-foreground mb-6">
-                      You don't have any active projects yet. Create a project or join an existing one to get started.
+                      You don&apos;t have any active projects yet. Create a project or join an existing one to get started.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-3">
                       <Button 

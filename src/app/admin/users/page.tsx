@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { 
   Card, 
   CardContent, 
@@ -105,8 +103,8 @@ const AdminUsersPage = () => {
     refetch 
   } = useGetUsersQuery(queryParams);
   
-  const [updateUserRole, { isLoading: isUpdatingRole }] = useUpdateUserRoleMutation();
-  const [updateUserPlan, { isLoading: isUpdatingPlan }] = useUpdateUserPlanMutation();
+  const [updateUserRole] = useUpdateUserRoleMutation();
+  const [updateUserPlan] = useUpdateUserPlanMutation();
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   
   // Handle search

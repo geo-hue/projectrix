@@ -75,7 +75,7 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
       const result = await createRepository({ 
         projectId,
         preferences: {
-          useOrganization: false, // Always use personal account
+          useOrganization: true, // default to true to attempt organization creation
           isPrivate: false // Always create public repos
         }
       }).unwrap();
@@ -88,7 +88,11 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
       }
       
       if (result.success) {
-        toast.success('GitHub repository created successfully!');
+        const repoOwner = result.repository.owner;
+        const orgName = result.repository.owner !== repoOwner ? 
+          repoOwner : 'personal account';
+        
+        toast.success(`GitHub repository created successfully under ${orgName}!`);
         refetchRepoStatus();
       } else {
         toast.error(result.message || 'Failed to create repository');
