@@ -175,15 +175,13 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
                             <div className="md:w-1/3 bg-gradient-to-br from-primary/5 to-primary/10 p-6 flex flex-col items-center justify-center">
                               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-background shadow-xl overflow-hidden mb-4">
                                 {profileData.user?.avatar ? (
-                                  <img 
-                                    src={profileData.user.avatar}
-                                    alt={`${profileData.user.name}'s profile`}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      // Fallback if image fails to load
-                                      e.currentTarget.src = "https://avatar.vercel.sh/" + (profileData.user.username || "user");
-                                    }}
-                                  />
+                              <Image 
+                              src={profileData.user.avatar || `https://avatar.vercel.sh/${profileData.user.username || "user"}`}
+                              alt={`${profileData.user.name}'s profile`}
+                              width={160}
+                              height={160}
+                              className="w-full h-full object-cover"
+                            />
                                 ) : (
                                   // Fallback if no avatar URL exists
                                   <div className="w-full h-full bg-primary/10 flex items-center justify-center">
