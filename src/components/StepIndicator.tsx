@@ -1,7 +1,16 @@
 import React from 'react';
 import { CheckIcon } from 'lucide-react';
 
-const StepIndicator = ({ currentStep, totalSteps = 2, labels = ["Basic Info", "Additional Info"] }) => {
+interface StepIndicatorProps {
+  currentStep: number;
+  totalSteps?: number;
+  labels?: string[];
+}
+const StepIndicator = ({ 
+  currentStep, 
+  totalSteps = 2, 
+  labels = ["Basic Info", "Additional Info"] 
+}: StepIndicatorProps) => {
   return (
     <div className="w-full py-6">
       <div className="relative">

@@ -572,7 +572,7 @@ export default function GeneratePage() {
           </div>
         </section>
 
-{isAuthenticated && user?.plan === "free" && user?.projectIdeasLeft <= 1 && (
+{isAuthenticated && user?.plan === "free" && (user?.projectIdeasLeft ?? 0) <= 1 && (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -601,7 +601,7 @@ export default function GeneratePage() {
     </Card>
   </motion.div>
 )}
-{isAuthenticated && user?.plan === "pro" && user?.projectIdeasLeft <= 1 && (
+{isAuthenticated && user?.plan === "pro" && (user?.projectIdeasLeft ?? 0) <= 1 && (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}

@@ -108,7 +108,7 @@ const AdminUsersPage = () => {
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   
   // Handle search
-  const handleSearch = (e) => {
+  const handleSearch = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setCurrentPage(1); // Reset to first page on new search
     // The query is already using the searchTerm state

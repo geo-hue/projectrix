@@ -90,7 +90,7 @@ export function SimpleTechSelector({ onSelect, defaultValue = [] }: SimpleTechSe
   };
   
   // Filter technologies based on search query and active category
-  const filteredTechnologies = Object.entries(technologies).reduce((acc, [category, techs]) => {
+  const filteredTechnologies = Object.entries(technologies).reduce<Record<string, typeof technologies[keyof typeof technologies]>>((acc, [category, techs]) => {
     // Skip if not "All" and not the active category
     if (activeCategory !== 'All' && activeCategory !== category) {
       return acc;
@@ -105,12 +105,12 @@ export function SimpleTechSelector({ onSelect, defaultValue = [] }: SimpleTechSe
     }
     
     return acc;
-  }, {} as typeof technologies);
+  }, {});
 
   // Get all categories plus "All" option
   const categories = ['All', ...Object.keys(technologies)];
 
-  const handleClick = (e) => {
+  const handleClick = (e:any) => {
     // Prevent events from bubbling up to parent form
     e.stopPropagation();
   };

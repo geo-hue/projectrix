@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import TechBackground from '@/components/TechBackground';
 import PageTransition from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shield, FileCheck, AlertCircle } from 'lucide-react';
+import { ArrowLeft, FileCheck, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -22,7 +22,7 @@ const TermsOfServicePage = () => {
       content: (
         <div className="space-y-4">
           <p>
-            By accessing or using the Projectrix platform ("Service"), you agree to be bound by these Terms of Service. 
+            By accessing or using the Projectrix platform (&quot;Service&quot;), you agree to be bound by these Terms of Service. 
             If you disagree with any part of the terms, you may not access the Service.
           </p>
         </div>
@@ -181,7 +181,7 @@ const TermsOfServicePage = () => {
       content: (
         <div className="space-y-4">
           <p>
-            Your use of the Service is at your sole risk. The Service is provided on an "AS IS" and "AS AVAILABLE" basis. 
+            Your use of the Service is at your sole risk. The Service is provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. 
             The Service is provided without warranties of any kind, whether express or implied.
           </p>
           <p>
@@ -250,7 +250,7 @@ const TermsOfServicePage = () => {
         <div className="space-y-4">
           <p>
             We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide 
-            at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be 
+            at least 30 days&lsquo; notice prior to any new terms taking effect. What constitutes a material change will be 
             determined at our sole discretion.
           </p>
           <p>
@@ -340,7 +340,7 @@ const TermsOfServicePage = () => {
                       <div>
                         <h2 className="text-xl font-semibold mb-2">Terms Overview</h2>
                         <p className="text-muted-foreground">
-                          Please read these Terms of Service ("Terms") carefully before using the Projectrix website and services.
+                          Please read these Terms of Service (&quot;Terms&quot;) carefully before using the Projectrix website and services.
                           By accessing or using Projectrix, you agree to be bound by these Terms and our Privacy Policy.
                         </p>
                       </div>

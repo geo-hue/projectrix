@@ -21,7 +21,6 @@ import {
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
 import { useGetMyCollaborationRequestsQuery, useSubmitCollaborationRequestMutation } from '@/app/api/collaborationApiSlice';
-import { useRouter } from 'next/navigation';
 
 interface Role {
   title: string;
@@ -44,7 +43,6 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submitRequest, { isLoading: isSubmitting }] = useSubmitCollaborationRequestMutation();
   const { data: myRequestsData } = useGetMyCollaborationRequestsQuery();
-  const router = useRouter();
 
   const [appliedRoles, setAppliedRoles] = useState<string[]>([]);
 
@@ -90,7 +88,7 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
         role: selectedRole,
         message: applicationMessage.trim()
       }).unwrap();
-      
+      console.log(result)
       toast.success('Application submitted successfully!');
       setIsDialogOpen(false);
       setApplicationMessage('');
@@ -199,7 +197,7 @@ const RoleApplication = ({ projectId, roles, publisherId, onSuccess }: RoleAppli
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Apply for {selectedRole}</DialogTitle>
             <DialogDescription>
-              Share why you're interested in this role and what skills you bring to the project.
+              Share why you&apos;re interested in this role and what skills you bring to the project.
             </DialogDescription>
           </DialogHeader>
 

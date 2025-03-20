@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {motion} from 'framer-motion';
 import { 
   Card, 
@@ -16,7 +16,6 @@ import {
   Loader2, 
   AlertCircle,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useGetMyCollaborationRequestsQuery } from '@/app/api/collaborationApiSlice';
 import DiscordIntegration from './DiscordIntegration';
@@ -86,7 +85,7 @@ const MyRequestsManager = () => {
           </div>
           <h3 className="text-xl font-semibold mb-2">No Collaboration Requests</h3>
           <p className="text-muted-foreground mb-6">
-            You haven't applied to collaborate on any projects yet. Browse available projects to find ones that match your skills.
+            You haven&apos;t applied to collaborate on any projects yet. Browse available projects to find ones that match your skills.
           </p>
           <Button 
             className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"

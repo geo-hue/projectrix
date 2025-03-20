@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import TechBackground from '@/components/TechBackground';
 import PageTransition from '@/components/PageTransition';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShieldCheck, LockKeyhole, Eye, FileText, ChevronDown, ShieldAlert, User, Bell, Settings } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, LockKeyhole, Eye, FileText, ShieldAlert, User, Bell, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -307,7 +307,7 @@ const PrivacyPolicyPage = () => {
             </Card>
           </div>
           <p className="text-sm text-muted-foreground mt-2">
-            To exercise these rights, please contact us using the information provided in the "Contact Us" section.
+            To exercise these rights, please contact us using the information provided in the &quot;Contact Us&quot; section.
           </p>
         </div>
       )
@@ -358,7 +358,7 @@ const PrivacyPolicyPage = () => {
       content: (
         <div className="space-y-8">
           <div>
-            <h3 className="text-lg font-medium mb-3">Children's Privacy</h3>
+            <h3 className="text-lg font-medium mb-3">Children&apos;s Privacy</h3>
             <p className="text-muted-foreground">
               Our Service is not directed to children under the age of 13 (or the applicable age of digital consent 
               in your jurisdiction). We do not knowingly collect personal information from children. If you are a 
@@ -390,7 +390,7 @@ const PrivacyPolicyPage = () => {
             <h3 className="text-lg font-medium mb-3">Changes to This Privacy Policy</h3>
             <p className="text-muted-foreground">
               We may update our Privacy Policy from time to time. We will notify you of any changes by posting the 
-              new Privacy Policy on this page and updating the "Last Updated" date. For significant changes, we will 
+              new Privacy Policy on this page and updating the &quot;Last Updated&quot; date. For significant changes, we will 
               provide additional notice, such as a prominent website notice or an email notification.
             </p>
           </div>
@@ -490,7 +490,7 @@ const PrivacyPolicyPage = () => {
                         <h2 className="text-xl font-semibold mb-2">Our Privacy Commitment</h2>
                         <p className="text-muted-foreground">
                           At Projectrix, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your personal information. 
-                          We're committed to transparency and ensuring you maintain control over your data.
+                          We&apos;re committed to transparency and ensuring you maintain control over your data.
                         </p>
                       </div>
                     </div>
@@ -570,7 +570,7 @@ const PrivacyPolicyPage = () => {
                   </div>
                   <h3 className="text-lg font-medium mb-1">Transparency First</h3>
                   <p className="text-sm text-muted-foreground">
-                    We're clear about what data we collect and how we use it to improve your experience.
+                    We&apos;re clear about what data we collect and how we use it to improve your experience.
                   </p>
                 </div>
                 

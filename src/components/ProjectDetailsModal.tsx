@@ -1,4 +1,3 @@
-// components/ProjectDetailsModal.tsx
 import React from 'react';
 import { 
   Dialog, 
@@ -27,7 +26,7 @@ interface ProjectDetailsModalProps {
 const ProjectDetailsModal = ({ project, isOpen, onClose }: ProjectDetailsModalProps) => {
 const router = useRouter();
 
- const handlePublisherClick = (e) => {
+ const handlePublisherClick = (e: { stopPropagation: () => void; }) => {
     e.stopPropagation(); // Prevent any parent click handlers from firing
     if (project.publisher?.username) {
       // Navigate to internal profile page 
@@ -94,7 +93,7 @@ const router = useRouter();
           <div className="bg-muted/20 dark:bg-black/20 p-4 rounded-lg">
             <h3 className="text-sm font-medium mb-2">Required Technologies</h3>
             <div className="flex flex-wrap gap-2">
-              {project.technologies?.map((tech, index) => (
+              {project.technologies?.map((tech:string, index:number) => (
                 <Badge key={index}>{tech}</Badge>
               ))}
             </div>
@@ -113,7 +112,7 @@ const router = useRouter();
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">Required Roles</h4>
                 <ul className="list-disc list-inside text-muted-foreground">
-                  {project.teamStructure?.roles?.map((role, index) => (
+                  {project.teamStructure?.roles?.map((role:any, index:number) => (
                     <li key={index} className={role.filled ? "opacity-50" : ""}>
                       {role.title} {role.filled && "(Filled)"}
                     </li>
@@ -123,7 +122,7 @@ const router = useRouter();
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">Role Responsibilities</h4>
                 <ul className="list-disc list-inside text-muted-foreground">
-                  {project.teamStructure?.roles?.slice(0, 4).map((role, index) => (
+                  {project.teamStructure?.roles?.slice(0, 4).map((role:any, index:number) => (
                     <li key={index}>
                       {role.title}: {role.responsibilities?.[0] || "Project responsibilities"}
                     </li>
@@ -140,7 +139,7 @@ const router = useRouter();
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">Core Features</h4>
                 <ul className="list-disc list-inside text-muted-foreground">
-                  {project.features?.core?.map((feature, index) => (
+                  {project.features?.core?.map((feature:string, index:number) => (
                     <li key={index}>{feature}</li>
                   ))}
                 </ul>
@@ -148,7 +147,7 @@ const router = useRouter();
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">Additional Features</h4>
                 <ul className="list-disc list-inside text-muted-foreground">
-                  {project.features?.additional?.map((feature, index) => (
+                  {project.features?.additional?.map((feature:string, index:number) => (
                     <li key={index}>{feature}</li>
                   ))}
                 </ul>
@@ -160,7 +159,7 @@ const router = useRouter();
           <div className="bg-muted/20 dark:bg-black/20 p-4 rounded-lg">
             <h3 className="text-sm font-medium mb-2">Learning Outcomes</h3>
             <ul className="list-disc list-inside text-muted-foreground">
-              {project.learningOutcomes?.map((outcome, index) => (
+              {project.learningOutcomes?.map((outcome:string, index:number) => (
                 <li key={index}>{outcome}</li>
               ))}
             </ul>

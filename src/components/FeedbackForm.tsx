@@ -1,4 +1,3 @@
-// src/components/FeedbackForm.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -29,7 +28,7 @@ import { useSubmitFeedbackMutation } from '@/app/api/feedbackApiSlice';
 import { Star, Bug, Lightbulb, ArrowUp, Loader2 } from 'lucide-react';
 
 const FeedbackForm: React.FC = () => {
-  const { user, isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login } = useAuth();
   const router = useRouter();
   
   const [submitFeedback, { isLoading }] = useSubmitFeedbackMutation();

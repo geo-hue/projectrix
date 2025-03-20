@@ -26,7 +26,7 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const { 
     formattedPrice, 
-    paymentProvider, 
+    countryCode,
     isLoading, 
     processPayment 
   } = usePayment();
@@ -39,17 +39,23 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     }
   }, [isOpen]);
   
-  // Validate phone number for Nigerian users
+  // Validate phone number for all payments (now required for both NGN and USD)
   const validatePhoneNumber = (): boolean => {
-    if (paymentProvider === 'flutterwave') {
-      if (!phoneNumber.trim()) {
-        setPhoneError('Phone number is required for payment');
-        return false;
-      }
-      
-      // Basic validation for Nigerian phone numbers
+    if (!phoneNumber.trim()) {
+      setPhoneError('Phone number is required for payment processing');
+      return false;
+    }
+    
+    // Nigerian phone validation
+    if (countryCode === 'NG') {
       if (!/^(0|\+?234)[789][01]\d{8}$/.test(phoneNumber.trim())) {
         setPhoneError('Please enter a valid Nigerian phone number');
+        return false;
+      }
+    } else {
+      // Simple international phone validation (must be at least 10 digits)
+      if (!/^\+?[0-9]{10,15}$/.test(phoneNumber.trim().replace(/\s+/g, ''))) {
+        setPhoneError('Please enter a valid phone number with country code');
         return false;
       }
     }
@@ -110,33 +116,35 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             </ul>
           </div>
           
-          {/* Provider-specific fields */}
-          {paymentProvider === 'flutterwave' && (
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                placeholder="e.g., 08012345678"
-                value={phoneNumber}
-                onChange={(e) => {
-                  setPhoneNumber(e.target.value);
-                  if (phoneError) setPhoneError(null);
-                }}
-              />
-              {phoneError && (
-                <p className="text-sm text-red-500">{phoneError}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Required for payment verification
-              </p>
-            </div>
-          )}
+          {/* Phone number field - required for all payments now */}
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number {countryCode === 'NG' ? '(Nigerian format)' : '(with country code)'}</Label>
+            <Input
+              id="phone"
+              placeholder={countryCode === 'NG' ? 'e.g., 08012345678' : 'e.g., +1 234 567 8901'}
+              value={phoneNumber}
+              onChange={(e) => {
+                setPhoneNumber(e.target.value);
+                if (phoneError) setPhoneError(null);
+              }}
+            />
+            {phoneError && (
+              <p className="text-sm text-red-500">{phoneError}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Required for payment verification
+            </p>
+          </div>
           
           {/* Payment method info */}
           <Alert className="bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="ml-2">
-              Payment will be processed via {paymentProvider === 'stripe' ? 'Stripe' : 'Flutterwave'}
+              Payment will be processed via Flutterwave. {
+                countryCode === 'NG' 
+                  ? 'Pay with bank transfer, card, or USSD.'
+                  : 'International payments supported with cards.'
+              }
             </AlertDescription>
           </Alert>
         </div>

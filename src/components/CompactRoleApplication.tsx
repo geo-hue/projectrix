@@ -176,7 +176,7 @@ const CompactRoleApplication = ({ projectId, roles, publisherId, onSuccess, onVi
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Apply for {selectedRole}</DialogTitle>
             <DialogDescription>
-              Share why you're interested in this role and what skills you bring to the project.
+              Share why you&apos;re interested in this role and what skills you bring to the project.
             </DialogDescription>
           </DialogHeader>
 

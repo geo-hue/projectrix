@@ -10,7 +10,7 @@ export interface UserProfile {
   twitterProfile: string;
   linkedinProfile: string;
   availability: string;
-  hoursPerWeek: string | number;
+  hoursPerWeek: any;
   preferredTechnologies: string[];
   preferredRoles: string[];
   publicEmail: boolean;

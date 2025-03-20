@@ -37,19 +37,54 @@ import { SimpleTechSelector } from './SimpleTechSelector';
 import { Badge } from './ui/badge';
 import StepIndicator from './StepIndicator';
 
+// Helper function to ensure URLs have https:// prefix
+const ensureHttps = (url: string): string => {
+  if (!url) return "";
+  if (url.trim() === "") return "";
+  
+  // Check if the URL already has a protocol
+  if (!/^https?:\/\//i.test(url)) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
+// Custom URL validator that adds https:// if missing
+const urlValidator = (value: string) => {
+  if (!value || value.trim() === "") return true;
+  
+  const urlWithProtocol = ensureHttps(value);
+  try {
+    // Check if it's a valid URL after ensuring https://
+    new URL(urlWithProtocol);
+    return true;
+  } catch (error) {
+    console.log(error)
+    return false;
+  }
+};
+
 // Define the form schema with zod
 const profileFormSchema = z.object({
   bio: z.string().max(500, { message: "Bio cannot be more than 500 characters" }),
-  website: z.string().url({ message: "Please enter a valid URL" }).or(z.string().length(0)),
-  githubProfile: z.string().url({ message: "Please enter a valid URL" }).or(z.string().length(0)),
-  twitterProfile: z.string().url({ message: "Please enter a valid URL" }).or(z.string().length(0)),
-  linkedinProfile: z.string().url({ message: "Please enter a valid URL" }).or(z.string().length(0)),
+  website: z.string()
+    .refine(urlValidator, { message: "Please enter a valid URL" })
+    .or(z.string().length(0)),
+  githubProfile: z.string()
+    .refine(urlValidator, { message: "Please enter a valid URL" })
+    .or(z.string().length(0)),
+  twitterProfile: z.string()
+    .refine(urlValidator, { message: "Please enter a valid URL" })
+    .or(z.string().length(0)),
+  linkedinProfile: z.string()
+    .refine(urlValidator, { message: "Please enter a valid URL" })
+    .or(z.string().length(0)),
   availability: z.enum(["available", "limited", "unavailable"]),
   hoursPerWeek: z.string(),
   skills: z.array(z.string()),
   preferredTechnologies: z.array(z.string()),
   preferredRoles: z.array(z.string()),
-  publicEmail: z.boolean().default(true) // Changed default to true
+  publicEmail: z.boolean().default(true)
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -78,7 +113,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
   const [newRole, setNewRole] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
 
-  // Initialize form with current profile data
+  // Initialize form with current profile data, ensuring URLs have https:// prefix
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -92,7 +127,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
       skills: profile?.skills || [],
       preferredTechnologies: profile?.preferredTechnologies || [],
       preferredRoles: profile?.preferredRoles || [],
-      publicEmail: profile?.publicEmail !== undefined ? profile.publicEmail : true // Set default to true if not provided
+      publicEmail: profile?.publicEmail !== undefined ? profile.publicEmail : true
     }
   });
 
@@ -105,7 +140,14 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
       // Add preferred roles to the form data
       data.preferredRoles = preferredRoles;
       
+      // Ensure all URLs have https:// prefix before submission
+      data.website = ensureHttps(data.website);
+      data.githubProfile = ensureHttps(data.githubProfile);
+      data.twitterProfile = ensureHttps(data.twitterProfile);
+      data.linkedinProfile = ensureHttps(data.linkedinProfile);
+      
       await updateProfile(data).unwrap();
+      toast.success("Profile updated successfully");
       onSuccess();
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -267,8 +309,14 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                       <FormItem>
                         <FormLabel className="text-lg font-semibold">Website</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://yourwebsite.com" {...field} />
+                          <Input 
+                            placeholder="yourwebsite.com" 
+                            {...field} 
+                          />
                         </FormControl>
+                        <FormDescription>
+                          Your personal or portfolio website.
+                        </FormDescription>
                         <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
                     )}
@@ -280,7 +328,10 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                       <FormItem>
                         <FormLabel className="text-lg font-semibold">GitHub Profile</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://github.com/username" {...field} />
+                          <Input 
+                            placeholder="github.com/username" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
@@ -293,7 +344,10 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                       <FormItem>
                         <FormLabel className="text-lg font-semibold">Twitter / X Profile</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://twitter.com/username" {...field} />
+                          <Input 
+                            placeholder="twitter.com/username" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
@@ -306,7 +360,10 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                       <FormItem>
                         <FormLabel className="text-lg font-semibold">LinkedIn Profile</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://linkedin.com/in/username" {...field} />
+                          <Input 
+                            placeholder="linkedin.com/in/username" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage className="text-red-600 font-medium" />
                       </FormItem>
@@ -370,7 +427,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
                   />
                 </div>
 
-                {/* Public Email - Fixed the infinite loop issue */}
+                {/* Public Email */}
                 <FormField
                   control={form.control}
                   name="publicEmail"

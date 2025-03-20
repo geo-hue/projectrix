@@ -10,20 +10,16 @@ import {
   Users,
   ArrowRight,
   Filter,
-  Plus,
   ExternalLink,
   Code2,
-  Loader2,
   MessageSquare,
   PlusCircle,
   EditIcon,
-  LinkIcon,
   Calendar,
   Star,
   BarChart4,
   Settings,
   CheckCircle2,
-  ChevronRight,
   BookOpen,
   Save,
   Globe,
@@ -78,7 +74,14 @@ const ProfileSkeleton = () => (
   </div>
 );
 
-const ProjectCard = ({ project, onView, onPublish, onEdit, onStart }) => {
+interface ProjectCardProps {
+  project: Project;
+  onView: (projectId: string) => void;
+  onPublish: (projectId: string) => void;
+  onEdit: (project: Project) => void;
+  onStart: (projectId: string) => void;
+}
+const ProjectCard = ({ project, onView, onPublish, onEdit, onStart }: ProjectCardProps) => {
   const statusColors = {
     draft: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
     published: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
@@ -195,8 +198,8 @@ export default function ProfilePage() {
   const { data: savedProjects, isLoading: savedProjectsLoading } = useGetSavedProjectsQuery();
   const { data: allProjects, isLoading: allProjectsLoading } = useGetProjectsQuery();
   const { data: userProfileData, isLoading: userProfileLoading, refetch: refetchUserProfile } = useGetUserProfileQuery();
-  const [publishProject, { isLoading: publishing }] = usePublishProjectMutation();
-  const [startProject, { isLoading: isStartingProject }] = useStartProjectMutation();
+  const [publishProject, { isLoading: publishing = false }] = usePublishProjectMutation();
+  const [startProject, { isLoading: isStartingProject = false }] = useStartProjectMutation();
   
   // Project details modal state
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -204,7 +207,7 @@ export default function ProfilePage() {
   const [projectToEdit, setProjectToEdit] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
-  const [projectToPublish, setProjectToPublish] = useState(null);
+  const [projectToPublish, setProjectToPublish] = useState<Project | null>(null);
   
   // Tab state
   const [activeTab, setActiveTab] = useState('projects');
@@ -217,7 +220,7 @@ export default function ProfilePage() {
   const isLoading = savedProjectsLoading || allProjectsLoading || userProfileLoading;
 
   
-const handleStartProject = async (projectId) => {
+const handleStartProject = async (projectId:string) => {
   try {
     await startProject(projectId).unwrap();
     toast.success('Project saved successfully!');
@@ -228,7 +231,7 @@ const handleStartProject = async (projectId) => {
 };
 
   // Handle publishing a project
-  const handlePublishProject = (projectId) => {
+  const handlePublishProject = (projectId: string) => {
     const project = [...getDraftProjects(), ...getSavedProjects(), ...getPublishedProjects()]
       .find(p => p._id === projectId);
     
@@ -238,16 +241,18 @@ const handleStartProject = async (projectId) => {
     }
   };
 
-  const confirmPublish = async (selectedRole) => {
+  const confirmPublish = async (selectedRole?: string) => {
     try {
-      await publishProject({
-        projectId: projectToPublish._id,
-        selectedRole
-      }).unwrap();
-      
-      toast.success('Project published successfully with your selected role!');
-      setPublishDialogOpen(false);
-      setProjectToPublish(null);
+      if (projectToPublish) {
+        await publishProject({
+          projectId: projectToPublish._id,
+          selectedRole
+        }).unwrap();
+        
+        toast.success('Project published successfully with your selected role!');
+        setPublishDialogOpen(false);
+        setProjectToPublish(null);
+      }
     } catch (error) {
       console.error('Failed to publish project:', error);
       toast.error('Failed to publish project');
@@ -300,7 +305,7 @@ const handleStartProject = async (projectId) => {
   }, []);
 
   // Function to navigate to project details
-  const viewProject = (projectId) => {
+  const viewProject = (projectId:string) => {
     const project = [...getDraftProjects(), ...getSavedProjects(), ...getPublishedProjects()]
       .find(p => p._id === projectId);
     
@@ -313,7 +318,7 @@ const handleStartProject = async (projectId) => {
   };
 
 
-  const handleEditProject = (project) => {
+  const handleEditProject = (project:any) => {
     setProjectToEdit(project);
     setIsEditDialogOpen(true);
   };
@@ -556,7 +561,7 @@ const handleStartProject = async (projectId) => {
                               <p className="text-2xl font-bold">{getPublishedProjects().length}</p>
                             </div>
                             <div className={`p-3 relative overflow-hidden ${
-    user?.plan !== "pro" && user?.projectIdeasLeft <= 1 
+    user?.plan !== "pro" && (user?.projectIdeasLeft ?? 0)  <= 1 
       ? "bg-yellow-500/10" 
       : "bg-primary/10"
   } rounded-lg`}>
@@ -564,7 +569,7 @@ const handleStartProject = async (projectId) => {
       <p className="text-xs text-muted-foreground">Project Ideas Left</p>
       <div className="flex items-center justify-between">
         <p className="text-2xl font-bold">{user?.projectIdeasLeft || 0}</p>
-        {user?.plan !== "pro" && user?.projectIdeasLeft <= 1 && (
+        {user?.plan !== "pro" && (user?.projectIdeasLeft ?? 0) <= 1 && (
           <Button
             size="sm"
             variant="ghost"
@@ -615,29 +620,29 @@ const handleStartProject = async (projectId) => {
   >
     <div className="space-y-2 mt-4">
       {/* Show project ideas limit banner if less than 2 remaining */}
-      {user.projectIdeasLeft <= 2 && (
+      {(user?.projectIdeasLeft ?? 0)  <= 2 && (
         <SubscriptionBanner 
           type="projects" 
           limit={3} 
-          used={3 - (user.projectIdeasLeft || 0)} 
+          used={3 - (user?.projectIdeasLeft || 0)} 
         />
       )}
       
       {/* Show publishing limit banner if they've published projects */}
-      {user.publishedProjectsCount >= 1 && (
+      {(user?.publishedProjectsCount ?? 0) >= 1 && (
         <SubscriptionBanner 
           type="publishing" 
           limit={1} 
-          used={user.publishedProjectsCount || 0} 
+          used={(user?.publishedProjectsCount) || 0} 
         />
       )}
       
       {/* Show collaboration limit banner if they're low */}
-      {user.collaborationRequestsLeft <= 1 && (
+      {(user?.collaborationRequestsLeft ?? 0) <= 1 && (
         <SubscriptionBanner 
           type="collaborations" 
           limit={3} 
-          used={3 - (user.collaborationRequestsLeft || 0)} 
+          used={3 - (user?.collaborationRequestsLeft || 0)} 
         />
       )}
     </div>
@@ -732,7 +737,7 @@ const handleStartProject = async (projectId) => {
                               <h3 className="text-xl font-semibold mb-2">No Draft Projects</h3>
                               <p className="text-muted-foreground mb-6 text-center max-w-md">
                                 Generate your first project idea to start building your portfolio. 
-                                Draft projects are ideas that haven't been saved or published yet.
+                                Draft projects are ideas that haven&apos;t been saved or published yet.
                               </p>
                               <Button 
                                 onClick={() => router.push('/generate')}
@@ -789,8 +794,8 @@ const handleStartProject = async (projectId) => {
                               </div>
                               <h3 className="text-xl font-semibold mb-2">No Saved Projects</h3>
                               <p className="text-muted-foreground mb-6 text-center max-w-md">
-                                You haven't saved any projects yet. Generate a project idea and save it to 
-                                keep track of projects you're interested in developing.
+                                You haven&apos;t saved any projects yet. Generate a project idea and save it to 
+                                keep track of projects you&apos;re interested in developing.
                               </p>
                               <Button 
                                 onClick={() => router.push('/generate')}
@@ -826,7 +831,7 @@ const handleStartProject = async (projectId) => {
                               </div>
                               <h3 className="text-xl font-semibold mb-2">No Published Projects</h3>
                               <p className="text-muted-foreground mb-6 text-center max-w-md">
-                                You haven't published any projects yet. Publishing makes your project
+                                You haven&apos;t published any projects yet. Publishing makes your project
                                 visible to other developers who might want to collaborate with you.
                               </p>
                               <Button 
@@ -980,7 +985,7 @@ const handleStartProject = async (projectId) => {
                           </div>
                           <h3 className="text-xl font-bold mb-2">No Active Collaborations</h3>
                           <p className="text-muted-foreground mb-6 text-center max-w-md">
-                            You're not collaborating on any projects yet. Browse available projects to find ones that match your skills and interests.
+                            You&apos;re not collaborating on any projects yet. Browse available projects to find ones that match your skills and interests.
                           </p>
                           <Button 
                             onClick={() => router.push('/ideas')}

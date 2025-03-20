@@ -263,7 +263,7 @@ const PricingPage = () => {
                         }`}
                         size="lg"
                         onClick={() => handlePlanAction(plan.name)}
-                        disabled={user && plan.isCurrentPlan} // Only disable if user is logged in and it's their current plan
+                        disabled={Boolean(user && plan.isCurrentPlan)} // Only disable if user is logged in and it's their current plan
                       >
                         {getPlanButtonText(plan)}
                         {plan.name === "Pro" && (!user || !plan.isCurrentPlan) && <Sparkles className="h-4 w-4" />}

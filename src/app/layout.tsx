@@ -5,7 +5,6 @@ import { ThemeProvider } from "next-themes";
 import PageTransition from "@/components/PageTransition";
 import { Providers } from "./providers/provider";
 import { Toaster } from "sonner";
-import { ScrollProvider } from "@/components/ScrollContent";
 import AuthWrapper from "./hooks/AuthWrapper";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -48,7 +47,6 @@ export default function RootLayout({
         className={`${plusJakartaSans.variable} ${blackOpsOne.variable} ${orbitron.variable} ${pressStart2P.variable} antialiased`}
       >
         <Providers>
-          <ScrollProvider>
             <ThemeProvider
               attribute="class"
               defaultTheme="dark"
@@ -65,7 +63,6 @@ export default function RootLayout({
               <PageTransition>{children}</PageTransition>
               </AuthWrapper>
             </ThemeProvider>
-          </ScrollProvider>
         </Providers>
       </body>
     </html>

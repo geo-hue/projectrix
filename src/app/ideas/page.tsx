@@ -113,7 +113,7 @@ const ProjectIdeasPage = () => {
   const isLoading = projectsLoading || technologiesLoading || rolesLoading;
 
   // Handle pagination
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage:any) => {
     // Make sure we don't go below page 1 or above the total pages
     const totalPages = projectsData?.totalPages || 1;
     if (newPage >= 1 && newPage <= totalPages) {

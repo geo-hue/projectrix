@@ -1,4 +1,3 @@
-// src/components/MyFeedback.tsx
 'use client';
 
 import React from 'react';
@@ -111,7 +110,7 @@ const MyFeedback: React.FC = () => {
                 <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No Feedback Submitted Yet</h3>
                 <p className="text-muted-foreground mb-6 text-center max-w-md">
-                  You haven't submitted any feedback yet. Share your thoughts to help us improve Projectrix!
+                  You haven&apos;t submitted any feedback yet. Share your thoughts to help us improve Projectrix!
                 </p>
                 <Button 
                   onClick={navigateToSubmit}

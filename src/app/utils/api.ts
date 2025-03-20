@@ -1,4 +1,3 @@
-// src/app/utils/api.ts - Enhanced with better token management
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -17,7 +16,10 @@ let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
 
 // Queue of failed requests to retry after token refresh
-const failedQueue: { resolve: Function; reject: Function }[] = [];
+const failedQueue: { 
+  resolve: (value: string | PromiseLike<string>) => void; 
+  reject: (reason?: any) => void;
+}[] = [];
 
 // Process the queue of failed requests
 const processQueue = (error: any, token: string | null = null) => {

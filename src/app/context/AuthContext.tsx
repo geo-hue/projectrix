@@ -22,6 +22,9 @@ export type UserData = {
   role?: string;
   plan?:string;
   enhancementsLeft: number;
+  publishedProjectsCount:number;
+  projectsCollaborated:number;
+  collaborationRequestsLeft:number;
 };
 
 // Define context type
@@ -35,6 +38,7 @@ type AuthContextType = {
   refreshUserData: () => Promise<void>;
   refreshToken: () => Promise<string | null>;
   isAuthenticated: boolean;
+  
 };
 
 // Create context with default values
@@ -114,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       return null;
-    } catch (err) {
+    } catch (err:any) {
       console.error('Token refresh failed:', err);
       // Handle specific errors here
       if (err.code === 'auth/network-request-failed') {
@@ -149,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const response = await api.get('/auth/refresh');
       setUser(response.data.user);
-    } catch (err) {
+    } catch (err:any) {
       console.error('Failed to refresh user data:', err);
       // If we get a 401, the token might be invalid
       if (err.response?.status === 401) {
@@ -267,7 +271,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             // Set up token refresh
             scheduleTokenRefresh();
-          } catch (tokenErr) {
+          } catch (tokenErr:any) {
             console.error('Error getting token:', tokenErr);
             // Handle token error
             if (tokenErr.code === 'auth/user-token-expired') {

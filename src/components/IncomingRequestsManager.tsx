@@ -118,7 +118,7 @@ const IncomingRequestsManager = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">No Pending Requests</h3>
               <p className="text-muted-foreground text-center max-w-md">
-                You don't have any pending collaboration requests at the moment.
+                You don&apos;t have any pending collaboration requests at the moment.
               </p>
             </CardContent>
           </Card>
@@ -158,7 +158,7 @@ const IncomingRequestsManager = () => {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                           <Avatar 
                             className="h-12 w-12 cursor-pointer" 
-                            onClick={() => handleViewProfile(request.applicantId.username)}
+                            onClick={() => handleViewProfile(request.applicantId?.username || '')}
                           >
                             <AvatarImage 
                               src={request.applicantId?.avatar} 
@@ -180,7 +180,7 @@ const IncomingRequestsManager = () => {
                           {/* Applicant Message - if exists */}
                           {request.message && (
                             <div className="sm:ml-auto max-w-sm p-3 bg-muted/30 dark:bg-muted/10 rounded-lg">
-                              <p className="text-sm italic">"{request.message}"</p>
+                              <p className="text-sm italic">&quot;{request.message}&quot;</p>
                             </div>
                           )}
                         </div>
@@ -201,7 +201,7 @@ const IncomingRequestsManager = () => {
                           <Button 
                             variant="outline" 
                             className="gap-2"
-                            onClick={() => handleViewProfile(request.applicantId.username)}
+                            onClick={() => handleViewProfile(request.applicantId?.username || '')}
                           >
                             <UserCircle className="h-4 w-4" />
                             View Profile
@@ -257,7 +257,7 @@ const IncomingRequestsManager = () => {
                           src={request.applicantId?.avatar} 
                           alt={request.applicantId?.name}
                           onError={(e) => {
-                            e.currentTarget.src = `https://avatar.vercel.sh/${request.applicantId.username}`;
+                            e.currentTarget.src = `https://avatar.vercel.sh/${request.applicantId?.username}`;
                           }}
                         />
                         <AvatarFallback>{request.applicantId?.name?.charAt(0) || 'U'}</AvatarFallback>
@@ -285,7 +285,7 @@ const IncomingRequestsManager = () => {
                       variant="outline" 
                       size="sm" 
                       className="gap-2"
-                      onClick={() => handleViewProfile(request.applicantId.username)}
+                      onClick={() => handleViewProfile(request.applicantId?.username || '')}
                     >
                       <UserCircle className="h-4 w-4" />
                       View Profile

@@ -8,7 +8,6 @@ import {
   CardFooter, 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Calendar,
@@ -38,7 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useGetUserActivitiesQuery, useMarkActivityAsReadMutation, useDeleteActivityMutation, useClearAllActivitiesMutation } from '@/app/api/activityApiSlice';
+import { useGetUserActivitiesQuery, useMarkActivityAsReadMutation, useClearAllActivitiesMutation, Activity } from '@/app/api/activityApiSlice';
 import { useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
@@ -76,7 +75,6 @@ const EnhancedActivityFeed = () => {
   
   // Mutations
   const [markAsRead] = useMarkActivityAsReadMutation();
-  const [deleteActivity, { isLoading: isDeleting }] = useDeleteActivityMutation();
   const [clearAllActivities, { isLoading: isClearing }] = useClearAllActivitiesMutation();
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   
@@ -114,13 +112,13 @@ const EnhancedActivityFeed = () => {
   
 
   // Handle filter change
-  const handleFilterChange = (value) => {
+  const handleFilterChange = (value:any) => {
     setFilter(value);
     setPage(1); // Reset to first page on filter change
   };
   
   // Handle activity click
-  const handleActivityClick = async (activity) => {
+  const handleActivityClick = async (activity: Activity) => {
     // Mark as read if not already
     if (!activity.read) {
       try {
@@ -142,22 +140,10 @@ const EnhancedActivityFeed = () => {
     }
   };
   
-  // Handle deleting an activity
-  const handleDeleteActivity = async (e, activityId) => {
-    e.stopPropagation(); // Prevent activity click handler
-    
-    try {
-      await deleteActivity(activityId).unwrap();
-      toast.success('Activity deleted');
-      refetch(); // Refresh list
-    } catch (error) {
-      console.error('Error deleting activity:', error);
-      toast.error('Failed to delete activity');
-    }
-  };
+
   
   // Get activity icon based on type
-  const getActivityIcon = (type) => {
+  const getActivityIcon = (type: string) => {
     switch (type) {
       case 'project_generated':
         return <Sparkles className="h-5 w-5 text-blue-500" />;
@@ -181,17 +167,18 @@ const EnhancedActivityFeed = () => {
   };
   
   // Function to format date
-  const formatActivityDate = (dateString) => {
+  const formatActivityDate = (dateString:any) => {
     try {
       const date = parseISO(dateString);
       return format(date, 'MMM d, yyyy h:mm a');
     } catch (error) {
+      console.log(error)
       return dateString;
     }
   };
   
   // Get activity type label
-  const getActivityTypeLabel = (type) => {
+  const getActivityTypeLabel = (type:any) => {
     const filter = activityFilters.find(f => f.value === type);
     return filter ? filter.label : 'Activity';
   };

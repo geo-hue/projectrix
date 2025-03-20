@@ -12,10 +12,41 @@ import { ComplexitySlider } from './ComplexitySlider';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/AuthContext';
 import { useSubmitUserProjectMutation } from '@/app/api/projectApiSlice';
-import { useGetUserProfileQuery } from '@/app/api/userProfileApiSlice';
 import { useGetSubscriptionStatusQuery } from '@/app/api/paymentApiSlice';
 import EnhancementConfirmationModal from '@/components/EnhancementConfirmationModal';
 
+// Define the section types
+type SectionType = 'features' | 'teamStructure' | 'learningOutcomes' | 'projectDetails';
+
+// Define the role interface
+interface Role {
+  title: string;
+  skills: string[];
+  responsibilities: string[];
+  filled?: boolean;
+}
+
+// Define project data structure
+interface ProjectData {
+  title: string;
+  subtitle: string;
+  description: string;
+  technologies: string[];
+  status: string;
+  teamSize: string;
+  duration: string;
+  complexity: number;
+  features: {
+    core: string[];
+    additional: string[];
+  };
+  teamStructure: {
+    roles: Role[];
+  };
+  learningOutcomes: string[];
+  category?: string;
+  useEnhancement?: boolean;
+}
 const ProjectSubmission = () => {
   const { isAuthenticated, login , user: userData} = useAuth();
   const [submitUserProject, { isLoading: isSubmitting }] = useSubmitUserProjectMutation();
@@ -23,14 +54,11 @@ const ProjectSubmission = () => {
   const [enhancementModalOpen, setEnhancementModalOpen] = useState(false);
   
   // Get user profile and subscription data for enhancement limits
-  const { data: userProfile } = useGetUserProfileQuery(undefined, {
-    skip: !isAuthenticated
-  });
+
   const { data: subscriptionData } = useGetSubscriptionStatusQuery(undefined, {
     skip: !isAuthenticated
   });
 
-  
   // Calculate enhancement limits
   const isPro = subscriptionData?.plan === 'pro';
   const enhancementsLeft = userData?.enhancementsLeft || 0;
@@ -46,13 +74,12 @@ const ProjectSubmission = () => {
   const [showAllSections, setShowAllSections] = useState(false);
 
   // Function to toggle a specific section
-  const toggleSection = (section) => {
+  const toggleSection = (section: SectionType): void => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
   };
-
   // Function to toggle all sections
   const toggleAllSections = () => {
     const newValue = !showAllSections;
@@ -90,31 +117,31 @@ const ProjectSubmission = () => {
     learningOutcomes: [""]
   });
   
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof ProjectData, value: any): void => {
     if (!hasStartedTyping) setHasStartedTyping(true);
     setProjectData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleTechSelect = (techs) => {
+  const handleTechSelect = (techs: string[]): void => {
     handleInputChange('technologies', techs);
   };
   
   // Handle feature arrays
-  const handleFeatureChange = (index, value, type) => {
+  const handleFeatureChange = (index: number, value: string, type: 'core' | 'additional'): void => {
     const updatedFeatures = { ...projectData.features };
     updatedFeatures[type][index] = value;
     handleInputChange('features', updatedFeatures);
   };
   
-  const addFeature = (type) => {
+  const addFeature = (type: 'core' | 'additional'): void => {
     const updatedFeatures = { ...projectData.features };
     updatedFeatures[type] = [...updatedFeatures[type], ""];
     handleInputChange('features', updatedFeatures);
   };
   
-  const removeFeature = (index, type) => {
+  const removeFeature = (index: number, type: 'core' | 'additional'): void => {
     const updatedFeatures = { ...projectData.features };
-    updatedFeatures[type] = updatedFeatures[type].filter((_, i) => i !== index);
+    updatedFeatures[type] = updatedFeatures[type].filter((_, i: number) => i !== index);
     if (updatedFeatures[type].length === 0) {
       updatedFeatures[type] = [""];
     }
@@ -122,7 +149,7 @@ const ProjectSubmission = () => {
   };
   
   // Handle roles in team structure
-  const handleRoleChange = (index, field, value) => {
+  const handleRoleChange = (index: number, field: keyof Role, value: any): void => {
     const updatedRoles = [...projectData.teamStructure.roles];
     updatedRoles[index] = { ...updatedRoles[index], [field]: value };
     handleInputChange('teamStructure', { roles: updatedRoles });
@@ -136,14 +163,14 @@ const ProjectSubmission = () => {
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
-  const removeRole = (index) => {
+  const removeRole = (index: number): void => {
     if (projectData.teamStructure.roles.length <= 1) return;
-    const updatedRoles = projectData.teamStructure.roles.filter((_, i) => i !== index);
+    const updatedRoles = projectData.teamStructure.roles.filter((_, i: number) => i !== index);
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
   // Handle responsibilities within a role
-  const handleResponsibilityChange = (roleIndex, respIndex, value) => {
+  const handleResponsibilityChange = (roleIndex: number, respIndex: number, value: string): void => {
     const updatedRoles = [...projectData.teamStructure.roles];
     const roleResponsibilities = [...updatedRoles[roleIndex].responsibilities];
     roleResponsibilities[respIndex] = value;
@@ -151,7 +178,7 @@ const ProjectSubmission = () => {
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
-  const addResponsibility = (roleIndex) => {
+  const addResponsibility = (roleIndex: number): void => {
     const updatedRoles = [...projectData.teamStructure.roles];
     updatedRoles[roleIndex].responsibilities = [
       ...updatedRoles[roleIndex].responsibilities, 
@@ -160,27 +187,26 @@ const ProjectSubmission = () => {
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
-  const removeResponsibility = (roleIndex, respIndex) => {
+  const removeResponsibility = (roleIndex: number, respIndex: number): void => {
     const updatedRoles = [...projectData.teamStructure.roles];
     if (updatedRoles[roleIndex].responsibilities.length <= 1) return;
-    updatedRoles[roleIndex].responsibilities = updatedRoles[roleIndex].responsibilities.filter((_, i) => i !== respIndex);
+    updatedRoles[roleIndex].responsibilities = updatedRoles[roleIndex].responsibilities.filter((_, i: number) => i !== respIndex);
     handleInputChange('teamStructure', { roles: updatedRoles });
   };
   
   // Handle learning outcomes
-  const handleOutcomeChange = (index, value) => {
+  const handleOutcomeChange = (index: number, value: string): void => {
     const updatedOutcomes = [...projectData.learningOutcomes];
     updatedOutcomes[index] = value;
     handleInputChange('learningOutcomes', updatedOutcomes);
   };
-  
   const addOutcome = () => {
     handleInputChange('learningOutcomes', [...projectData.learningOutcomes, ""]);
   };
   
-  const removeOutcome = (index) => {
+  const removeOutcome = (index: number): void => {
     if (projectData.learningOutcomes.length <= 1) return;
-    const updatedOutcomes = projectData.learningOutcomes.filter((_, i) => i !== index);
+    const updatedOutcomes = projectData.learningOutcomes.filter((_, i: number) => i !== index);
     handleInputChange('learningOutcomes', updatedOutcomes);
   };
 
@@ -235,7 +261,7 @@ const ProjectSubmission = () => {
   };
 
   // Handle the actual submission with or without enhancement
-  const handleProjectSubmission = async (useEnhancement) => {
+  const handleProjectSubmission = async (useEnhancement:boolean) => {
     // Format data for API request
     const formattedData = {
       title: projectData.title,
@@ -300,20 +326,20 @@ const ProjectSubmission = () => {
         learningOutcomes: [""]
       });
       setHasStartedTyping(false);
-    } catch (error) {
+    } catch (error:any) {
       console.error('Submit project error:', error);
       toast.error(error.data?.message || 'Failed to submit project');
     }
   };
 
   // Helper function to format the text with basic markdown
-  const formatDescription = (text) => {
+  const formatDescription = (text: string): React.ReactNode => {
     if (!text) return '';
     
     // Split into paragraphs
     const paragraphs = text.split('\n').filter(p => p.trim());
     
-    return paragraphs.map((paragraph, index) => {
+    return paragraphs.map((paragraph:string, index:number) => {
       // Check if the paragraph starts with "- " or "* " for bullet points
       if (paragraph.trim().match(/^[-*]\s/)) {
         return (
@@ -332,8 +358,11 @@ const ProjectSubmission = () => {
   };
 
   // Helper function to format duration and team size
-  const formatMetric = (value, type) => {
-    const metrics = {
+  const formatMetric = (value: string, type: 'duration' | 'teamSize'): string => {
+    const metrics: {
+      duration: Record<string, string>;
+      teamSize: Record<string, string>;
+    } = {
       duration: {
         'small': '1-2 weeks',
         'medium': '1-2 months',
@@ -346,7 +375,7 @@ const ProjectSubmission = () => {
       }
     };
     
-    return metrics[type]?.[value] || value;
+    return metrics[type][value] || value;
   };
 
   return (
@@ -911,9 +940,14 @@ const ProjectSubmission = () => {
     </section>
   );
 };
+interface CollapsibleSectionProps {
+  title: string;
+  children: React.ReactNode;
+  isOpen: boolean;
+  toggle: () => void;
+}
 
-// CollapsibleSection component
-const CollapsibleSection = ({ title, children, isOpen, toggle }) => {
+const CollapsibleSection = ({ title, children, isOpen, toggle }: CollapsibleSectionProps) => {
   return (
     <div className="border rounded-md overflow-hidden">
       <button 

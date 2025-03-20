@@ -28,7 +28,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
   const { isAuthenticated, login } = useAuth();
   const router = useRouter();
   
-  const availableRoles = project.teamStructure?.roles?.filter(role => !role.filled) || [];
+  const availableRoles = project.teamStructure?.roles?.filter((role: { filled: any; }) => !role.filled) || [];
 
   const handleApply = async () => {
     if (!isAuthenticated) {
@@ -44,7 +44,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
     setIsApplying(true);
   };
 
-  const handlePublisherClick = (e) => {
+  const handlePublisherClick = (e: { stopPropagation: () => void; }) => {
     e.stopPropagation(); // Prevent any parent click handlers from firing
     if (project.publisher?.username) {
       // Navigate to internal profile page 
@@ -146,7 +146,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
                 <div>
                   <h3 className="text-sm font-medium mb-1">Technologies</h3>
                   <div className="flex flex-wrap gap-1">
-                    {project.technologies?.slice(0, 5).map((tech, index) => (
+                    {project.technologies?.slice(0, 5).map((tech:string, index:number) => (
                       <Badge key={index} variant="outline" className="text-xs">{tech}</Badge>
                     ))}
                     {project.technologies?.length > 5 && 
@@ -159,7 +159,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
                 <div>
                   <h3 className="text-sm font-medium mb-1">Available Roles</h3>
                   <div className="flex flex-wrap gap-1">
-                    {project.teamStructure?.roles?.map((role, index) => (
+                    {project.teamStructure?.roles?.map((role:{title:string, filled:boolean}, index:number) => (
                       <Badge 
                         key={index}
                         variant={role.filled ? "secondary" : "default"}

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus, Sparkles, Users, Github, Code2, LucideIcon } from 'lucide-react';
 
-// Define interfaces
 interface FAQ {
   question: string;
   answer: string;

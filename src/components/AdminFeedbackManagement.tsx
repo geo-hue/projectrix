@@ -325,7 +325,7 @@ const AdminFeedbackManagement: React.FC = () => {
         </Card>
       ) : (
         <Accordion type="multiple" className="space-y-4">
-          {data.feedback.map((feedback, index) => (
+          {data.feedback.map((feedback) => (
             <AccordionItem
               key={feedback._id}
               value={feedback._id}
@@ -356,16 +356,16 @@ const AdminFeedbackManagement: React.FC = () => {
                   <div className="flex items-center gap-2 my-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage 
-                        src={feedback.userId.avatar} 
-                        alt={feedback.userId.name}
+                        src={feedback.userId?.avatar} 
+                        alt={feedback.userId?.name}
                         onError={(e) => {
                           e.currentTarget.src = `https://avatar.vercel.sh/${feedback.userId.username}`;
                         }}
                       />
-                      <AvatarFallback>{feedback.userId.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{feedback.userId?.name.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <span className="text-sm font-medium">{feedback.userId.name}</span>
-                    <span className="text-xs text-muted-foreground">@{feedback.userId.username}</span>
+                    <span className="text-sm font-medium">{feedback.userId?.name}</span>
+                    <span className="text-xs text-muted-foreground">@{feedback.userId?.username}</span>
                   </div>
                   
                   {/* Description */}

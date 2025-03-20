@@ -83,22 +83,22 @@ const CollaborationsPage = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+  // const formatDate = (dateString) => {
+  //   if (!dateString) return 'N/A';
     
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
+  //   const date = new Date(dateString);
+  //   return date.toLocaleDateString('en-US', { 
+  //     year: 'numeric', 
+  //     month: 'long', 
+  //     day: 'numeric' 
+  //   });
+  // };
 
   // Extract all unique projects from collaborations data
   const getMyProjects = () => {
     if (!myCollaborationsData?.collaborations) return [];
     
-    const projects = [];
+    // const projects = [];
     
     // Add projects where user is owner
     const ownedProjects = myCollaborationsData.collaborations
@@ -221,7 +221,7 @@ const CollaborationsPage = () => {
                             <div className="space-y-6">
                               {/* Technologies */}
                               <div className="flex flex-wrap gap-2">
-                                {project.technologies?.map((tech, index) => (
+                                {project.technologies?.map((tech:any, index:number) => (
                                   <Badge key={index} variant="outline">{tech}</Badge>
                                 ))}
                               </div>
@@ -231,7 +231,7 @@ const CollaborationsPage = () => {
   <h4 className="text-sm font-medium mb-2">Team Members</h4>
   <div className="flex flex-wrap gap-4">
     {project.teamMembers?.length > 0 ? (
-      project.teamMembers.map((member, index) => {
+      project.teamMembers.map((member:any, index:number) => {
         // Handle different data structures that might come from API
         const userId = member.userId;
         const memberName = userId?.name || "Team Member";
@@ -269,13 +269,13 @@ const CollaborationsPage = () => {
                                 <h4 className="text-sm font-medium mb-2">Open Roles</h4>
                                 <div className="flex flex-wrap gap-2">
                                   {project.teamStructure?.roles
-                                    ?.filter(role => !role.filled)
-                                    .map((role, index) => (
+                                    ?.filter((role:any) => !role.filled)
+                                    .map((role:any, index:number) => (
                                       <Badge key={index} variant="outline">{role.title}</Badge>
                                     ))
                                   }
                                   {!project.teamStructure?.roles || 
-                                   project.teamStructure.roles.filter(role => !role.filled).length === 0 && (
+                                   project.teamStructure.roles.filter((role:any) => !role.filled).length === 0 && (
                                     <span className="text-sm text-muted-foreground">All roles filled</span>
                                   )}
                                 </div>

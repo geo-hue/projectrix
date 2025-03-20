@@ -2,12 +2,22 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Github, Twitter, Linkedin, ExternalLink } from "lucide-react";
+import { Github, Twitter, Linkedin, ExternalLink, LucideIcon } from "lucide-react";
 import { ThemeToggle } from './theme-toggle';
 import Link from 'next/link';
 
+interface FooterLink {
+  label: string;
+  href: string;
+  icon?: LucideIcon;
+}
 
-const FooterSection = ({ title, links }) => {
+interface FooterSectionProps {
+  title: string;
+  links: FooterLink[];
+}
+
+const FooterSection: React.FC<FooterSectionProps> = ({ title, links }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -23,7 +33,7 @@ const FooterSection = ({ title, links }) => {
       <div className="relative">
         <h3 className="font-semibold mb-3 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">{title}</h3>
         <ul className="space-y-2">
-          {links.map((link, index) => (
+          {links.map((link: FooterLink, index: number) => (
             <motion.li
               key={index}
               initial={{ opacity: 0, x: -10 }}
@@ -38,7 +48,7 @@ const FooterSection = ({ title, links }) => {
                   rel="noopener noreferrer"
                   className="group/link flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
                 >
-                  {link.icon && <link.icon className="w-4 h-4" />}
+                  {link.icon && React.createElement(link.icon, { className: "w-4 h-4" })}
                   <span className="relative">
                     {link.label}
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 group-hover/link:w-full transition-all duration-300" />
@@ -50,7 +60,7 @@ const FooterSection = ({ title, links }) => {
                   href={link.href}
                   className="group/link flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
                 >
-                  {link.icon && <link.icon className="w-4 h-4" />}
+                  {link.icon && React.createElement(link.icon, { className: "w-4 h-4" })}
                   <span className="relative">
                     {link.label}
                     <span className="absolute left-0 bottom-0 w-0 h-px bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 group-hover/link:w-full transition-all duration-300" />
@@ -65,8 +75,13 @@ const FooterSection = ({ title, links }) => {
   );
 };
 
-const Footer = () => {
-  const sections = [
+interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+const Footer: React.FC = () => {
+  const sections: FooterSection[] = [
     {
       title: "Quick Links",
       links: [
@@ -90,7 +105,6 @@ const Footer = () => {
       links: [
         { label: "Terms of Service", href: "/terms" },
         { label: "Privacy Policy", href: "/privacy" },
-
       ]
     }
   ];
@@ -151,7 +165,7 @@ const Footer = () => {
           </motion.div>
 
           {/* Sections */}
-          {sections.map((section, index) => (
+          {sections.map((section: FooterSection, index: number) => (
             <FooterSection key={index} title={section.title} links={section.links} />
           ))}
         </div>

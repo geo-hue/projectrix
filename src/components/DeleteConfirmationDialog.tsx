@@ -1,4 +1,3 @@
-// src/components/ConfirmationDialog.tsx
 import React from 'react';
 import {
   AlertDialog,

@@ -11,11 +11,11 @@ import {
 } from '../api/paymentApiSlice';
 import { getCountryCode, formatCurrency } from '../utils/locationService';
 
-
 export function usePayment(forceCountry?: string) {
   const { user } = useAuth();
   const [countryCode, setCountryCode] = useState<string>(forceCountry || 'US');
   const [loadingCountry, setLoadingCountry] = useState(!forceCountry);
+  const [phoneNumber, setPhoneNumber] = useState('');
   
   // Get the pricing based on location
   const { data: pricingData, isLoading: pricingLoading } = useGetPricingQuery(countryCode, {
@@ -68,57 +68,30 @@ export function usePayment(forceCountry?: string) {
     ? formatCurrency(pricing.amount, pricing.currency)
     : countryCode === 'NG' ? '₦5,000' : '$5';
   
-  // Determine payment provider based on country
-  const paymentProvider = countryCode === 'NG' ? 'flutterwave' : 'stripe';
+  // Determine payment provider - now always flutterwave
+  const paymentProvider = 'flutterwave';
   
-  // Handle Stripe payment
-  const handleStripePayment = async () => {
+  // Handle Flutterwave payment - now used for both NGN and USD
+  const handleFlutterwavePayment = async (phoneNum: string) => {
     if (!user) {
       toast.error('Please log in to upgrade');
       return;
     }
     
     try {
+      // Validate phone number
+      if (!phoneNum) {
+        toast.error('Phone number is required for payment');
+        return;
+      }
+      
       // Show loading indicator
       toast.loading('Preparing checkout...');
       
       // Create payment session
       const result = await createPaymentSession({
-        paymentMethod: 'stripe'
-      }).unwrap();
-      
-      if (!result.session || !result.session.url) {
-        throw new Error('Failed to create checkout session');
-      }
-      
-      // Redirect to Stripe Checkout directly using the URL
-      window.location.href = result.session.url;
-      
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast.dismiss(); // Dismiss the loading toast
-      toast.error('Payment initialization failed. Please try again.');
-    }
-  };
-  
-  // Handle Flutterwave payment
-  const handleFlutterwavePayment = async (phoneNumber: string) => {
-    if (!user) {
-      toast.error('Please log in to upgrade');
-      return;
-    }
-    
-    try {
-      // Validate phone number for Nigerian users
-      if (!phoneNumber) {
-        toast.error('Phone number is required for payment');
-        return;
-      }
-      
-      // Create payment session
-      const result = await createPaymentSession({
         paymentMethod: 'flutterwave',
-        phoneNumber
+        phoneNumber: phoneNum
       }).unwrap();
       
       if (!result.payment?.paymentLink) {
@@ -130,11 +103,15 @@ export function usePayment(forceCountry?: string) {
         localStorage.setItem('fw_transaction_ref', result.payment.transactionRef);
       }
       
+      // Dismiss loading toast
+      toast.dismiss();
+      
       // Redirect to Flutterwave payment page
       window.location.href = result.payment.paymentLink;
       
     } catch (error) {
       console.error('Payment error:', error);
+      toast.dismiss(); // Dismiss the loading toast
       toast.error('Payment initialization failed. Please try again.');
     }
   };
@@ -165,7 +142,7 @@ export function usePayment(forceCountry?: string) {
       }
       
       return result;
-    } catch (error) {
+    } catch (error:any) {
       console.error('Verification error:', error);
       
       // Clear verification flag on error
@@ -179,13 +156,19 @@ export function usePayment(forceCountry?: string) {
     }
   };
   
-  // Process a payment based on the detected location
-  const processPayment = async (phoneNumber: string = '') => {
-    if (paymentProvider === 'stripe') {
-      await handleStripePayment();
-    } else {
-      await handleFlutterwavePayment(phoneNumber);
+  // Process a payment using Flutterwave regardless of location
+  const processPayment = async (phoneNum: string = '') => {
+    // Validate phone number
+    if (!phoneNum) {
+      toast.error('Phone number is required for payment processing');
+      return;
     }
+    
+    // Set the phone number
+    setPhoneNumber(phoneNum);
+    
+    // Use Flutterwave for all payments
+    await handleFlutterwavePayment(phoneNum);
   };
   
   return {
@@ -194,6 +177,8 @@ export function usePayment(forceCountry?: string) {
     countryCode,
     paymentProvider,
     isLoading,
+    phoneNumber,
+    setPhoneNumber,
     processPayment,
     verifyFlutterwavePayment,
     isPro: subscriptionData?.plan === 'pro',

@@ -19,6 +19,7 @@ export interface Complexity {
     title: string;
     skills: string[];
     responsibilities: string[];
+    filled: any;
   }
   
   export interface TeamStructure {
@@ -63,6 +64,7 @@ export interface Complexity {
   }
   
   export interface ProjectResponse {
+    wasEnhanced: any;
     success: boolean;
     project: Project;
   }

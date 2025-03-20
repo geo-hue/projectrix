@@ -49,7 +49,7 @@ const RoleSelectionDialog = ({
     try {
       await onConfirm(selectedRole);
       onClose();
-    } catch (error) {
+    } catch (error:any) {
       console.error('Error publishing project with role:', error);
       toast.error( error.data?.message||'Failed to publish project. Please try again.');
     } finally {
@@ -70,7 +70,7 @@ const RoleSelectionDialog = ({
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Select Your Role</DialogTitle>
           <DialogDescription>
-            Before publishing "{projectTitle}", please select the role you'll take in this project.
+            Before publishing &quot;{projectTitle}&quot;, please select the role you&apos;ll take in this project.
           </DialogDescription>
         </DialogHeader>
 

@@ -93,16 +93,16 @@ export function TechSelect({ onSelect, defaultValue = [] }: TechSelectProps) {
 
   // Filter technologies based on search query
   const filteredTechnologies = searchQuery
-    ? Object.entries(technologies).reduce((acc, [category, techs]) => {
-        const filtered = techs.filter(tech =>
-          tech.label.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        if (filtered.length > 0) {
-          acc[category] = filtered;
-        }
-        return acc;
-      }, {} as typeof technologies)
-    : technologies;
+  ? Object.entries(technologies).reduce((acc, [category, techs]) => {
+      const filtered = techs.filter(tech =>
+        tech.label.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      if (filtered.length > 0) {
+        acc[category as keyof typeof technologies] = filtered;
+      }
+      return acc;
+    }, {} as typeof technologies)
+  : technologies;
 
   return (
     <div className="space-y-2">

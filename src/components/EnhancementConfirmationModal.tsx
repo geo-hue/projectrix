@@ -1,4 +1,3 @@
-// src/components/EnhancementConfirmationModal.tsx
 import { useState } from 'react';
 import {
   Dialog,

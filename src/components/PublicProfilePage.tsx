@@ -58,7 +58,7 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
     }
 
   const router = useRouter();
-  const { isAuthenticated, login, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   
   
   // API hooks
@@ -116,18 +116,21 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
                     style={{ objectFit: 'contain' }}
                     priority
                     onError={(e) => {
-                      // Fallback to Users icon if SVG fails to load
-                      e.currentTarget.style.display = 'none';
-                      const fallbackDiv = document.createElement('div');
-                      fallbackDiv.className = 'flex justify-center';
-                      fallbackDiv.innerHTML = '<div class="h-16 w-16 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>';
-                      e.currentTarget.parentNode.appendChild(fallbackDiv);
+                      // First check if parentNode exists before trying to append to it
+                      if (e.currentTarget.parentNode) {
+                        // Fallback to Users icon if SVG fails to load
+                        e.currentTarget.style.display = 'none';
+                        const fallbackDiv = document.createElement('div');
+                        fallbackDiv.className = 'flex justify-center';
+                        fallbackDiv.innerHTML = '<div class="h-16 w-16 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>';
+                        e.currentTarget.parentNode.appendChild(fallbackDiv);
+                      }
                     }}
                   />
                 </div>
                 <h1 className="text-2xl font-bold mb-2">User Not Found</h1>
                 <p className="text-muted-foreground mb-2">
-                  We couldn't find a user with the username "{username}".
+                  We couldn&apos;t find a user with the username &quot;{username}&quot;.
                 </p>
                 {error && (
                   <p className="text-red-500 text-sm mb-6">

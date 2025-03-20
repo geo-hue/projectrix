@@ -75,7 +75,7 @@ const PublishConfirmationDialog = ({
   const handleRoleSelected = async (selectedRole: string) => {
     try {
       await onConfirm(selectedRole);
-    } catch (error) {
+    } catch (error:any) {
       toast.error( error.data?.message||'Failed to publish project. Please try again.');
     }
   };

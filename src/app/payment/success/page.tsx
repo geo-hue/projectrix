@@ -1,5 +1,3 @@
-// src/app/payment/success/page.tsx - Fixed retry logic
-
 'use client';
 
 import { useEffect, useState } from 'react';
