@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Brain, Code2, Users, Github, ArrowRight, Linkedin, Globe } from "lucide-react";
@@ -9,6 +8,7 @@ import TechBackground from "@/components/TechBackground";
 import PageTransition from "@/components/PageTransition";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
+
 
 const AboutPage = () => {
   const router = useRouter();

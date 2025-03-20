@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +23,7 @@ import TechBackground from '@/components/TechBackground';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import ProjectCard from '@/components/ProjectCard';
+
 
 // Import the API hooks
 import { 

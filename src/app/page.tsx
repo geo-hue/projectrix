@@ -1,5 +1,4 @@
 'use client';
-
 import Header from '@/components/Header';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Code2, Users, Sparkles, Github, Zap } from "lucide-react";
@@ -17,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import FeatureSlider from '@/components/FeatureSlider';
 import { useAuth } from './context/AuthContext';
 import ScrollDownButton from '@/components/scroll-down-button';
+
 
 const styles = `
 .card-container {

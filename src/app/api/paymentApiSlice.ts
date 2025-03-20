@@ -12,6 +12,7 @@ export interface PricingResponse {
 export interface PaymentSessionResponse {
   success: boolean;
   session?: {
+    url: any;
     subscriptionId: string;
     clientSecret: string;
   };
