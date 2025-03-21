@@ -163,7 +163,7 @@ const ProjectIdeasPage = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="bg-white/50 dark:bg-black/50 p-4 rounded-lg backdrop-blur-sm border border-black/10 dark:border-white/10"
               >
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+                <div className="flex flex-col gap-6">
                   <div className="flex gap-4 flex-wrap">
                     <div>
                       <label className="text-sm font-medium block mb-1">Technology</label>
@@ -209,10 +209,10 @@ const ProjectIdeasPage = () => {
                     </div>
                   </div>
                   
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3 justify-between sm:justify-end">
                     <Button 
                       variant="outline"
-                      className="gap-2"
+                      className="gap-2 flex-1 sm:flex-none"
                       onClick={() => {
                         setFilterTech('all');
                         setFilterComplexity('all');
@@ -223,7 +223,7 @@ const ProjectIdeasPage = () => {
                       Reset Filters
                     </Button>
                     <Button 
-                      className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+                      className="gap-2 flex-1 sm:flex-none bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
                       onClick={() => router.push('/generate')}
                     >
                       <Sparkles className="h-4 w-4" />
