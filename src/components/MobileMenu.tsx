@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image'; // Add Image import
 import { Button } from '@/components/ui/button';
 import { X, Github, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -74,9 +75,21 @@ const MobileMenu = ({
               {/* Header */}
               <div className="p-4 border-b border-border/40 bg-background/80 dark:bg-gray-950/80 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-orbitron text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
-                    Menu
-                  </h2>
+                  <div className="flex items-center">
+                    {/* Add the logo to the mobile menu header */}
+                    <div className="mr-2 relative h-6 w-6">
+                      <Image 
+                        src="/logo.png" 
+                        alt="Projectrix Logo" 
+                        width={24}
+                        height={24}
+                        className="object-contain"
+                      />
+                    </div>
+                    <h2 className="font-orbitron text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent">
+                      Menu
+                    </h2>
+                  </div>
                   <Button variant="ghost" size="icon" onClick={onClose}>
                     <X className="h-5 w-5" />
                   </Button>

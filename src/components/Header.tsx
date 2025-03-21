@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ThemeToggle } from './theme-toggle';
 import Link from 'next/link';
+import Image from 'next/image'; // Add Image import
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Menu, Github, LogOut, Users, User } from 'lucide-react';
@@ -105,9 +106,19 @@ const Header = () => {
     <>
       <header className={headerClasses}>
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Logo */}
+          {/* Logo and Text */}
           <div className="flex items-center">
-            <Link href="/" className="group">
+            <Link href="/" className="group flex items-center">
+              {/* Add the logo image */}
+              <div className="mr-2 relative h-8 w-8">
+                <Image 
+                  src="/logo.png" 
+                  alt="Projectrix Logo" 
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
+              </div>
               <h1 className="font-orbitron text-2xl font-bold bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 bg-clip-text text-transparent tracking-wider relative">
                 PROJECTRIX
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-900 to-blue-600 dark:from-blue-700 dark:to-blue-400 transition-all duration-300 group-hover:w-full"></span>
@@ -239,4 +250,5 @@ const Header = () => {
     </>
   );
 }
-  export default Header;
+
+export default Header;
