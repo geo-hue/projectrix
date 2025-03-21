@@ -1,3 +1,4 @@
+// src/app/hooks/usePayment.ts - With added debug logging
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -60,6 +61,18 @@ export function usePayment(forceCountry?: string) {
   // Current pricing information
   const pricing = pricingData?.pricing;
   
+  // Debug pricing info
+  useEffect(() => {
+    if (pricing) {
+      console.log('Pricing data loaded:', {
+        currency: pricing.currency,
+        amount: pricing.amount,
+        symbol: pricing.symbol,
+        formattedPrice: formatCurrency(pricing.amount, pricing.currency)
+      });
+    }
+  }, [pricing]);
+  
   // Loading state
   const isLoading = pricingLoading || loadingCountry || creatingPayment || verifyingPayment || subscriptionLoading;
   
@@ -85,14 +98,30 @@ export function usePayment(forceCountry?: string) {
         return;
       }
       
+      // Debug log before payment
+      console.log('Creating payment with:', {
+        countryCode,
+        currency: pricing?.currency || (countryCode === 'NG' ? 'NGN' : 'USD'),
+        expectedAmount: pricing?.amount || (countryCode === 'NG' ? 5000 : 5),
+        formattedPrice,
+        phoneNumber: phoneNum
+      });
+      
       // Show loading indicator
       toast.loading('Preparing checkout...');
       
-      // Create payment session
+      // Force the currency based on country code rather than relying on the pricing data
+      const forcedCurrency = countryCode === 'NG' ? 'NGN' : 'USD';
+      
+      // Create payment session with explicit currency
       const result = await createPaymentSession({
         paymentMethod: 'flutterwave',
-        phoneNumber: phoneNum
+        phoneNumber: phoneNum,
+        currency: forcedCurrency // explicitly set the currency
       }).unwrap();
+      
+      // Debug log the result
+      console.log('Payment session created:', result);
       
       if (!result.payment?.paymentLink) {
         throw new Error('Failed to create payment link');

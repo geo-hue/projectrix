@@ -48,7 +48,7 @@ export const paymentApiSlice = apiSlice.injectEndpoints({
     // Create payment session
     createPaymentSession: builder.mutation<
       PaymentSessionResponse, 
-      { paymentMethod: 'stripe' | 'flutterwave'; phoneNumber?: string }
+      { paymentMethod: 'stripe' | 'flutterwave'; phoneNumber?: string; currency?: 'USD' | 'NGN' }
     >({
       query: (data) => ({
         url: '/create-payment',
@@ -56,6 +56,7 @@ export const paymentApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    
     
     // Verify Flutterwave payment
     verifyPayment: builder.mutation<VerifyPaymentResponse, string>({

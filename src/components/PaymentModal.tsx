@@ -27,17 +27,23 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const { 
     formattedPrice, 
     countryCode,
+    pricing,
     isLoading, 
     processPayment 
   } = usePayment();
   
-  // Reset state when modal opens
+  // Log country and pricing info when modal opens
   useEffect(() => {
     if (isOpen) {
+      console.log('Payment modal opened with:', {
+        countryCode,
+        pricing,
+        formattedPrice
+      });
       setPhoneNumber('');
       setPhoneError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, countryCode, pricing, formattedPrice]);
   
   // Validate phone number for all payments (now required for both NGN and USD)
   const validatePhoneNumber = (): boolean => {
@@ -69,6 +75,10 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     if (!validatePhoneNumber()) {
       return;
     }
+    
+    console.log(`Processing payment for country: ${countryCode}`);
+    console.log(`Expected currency: ${countryCode === 'NG' ? 'NGN' : 'USD'}`);
+    console.log(`Expected amount: ${countryCode === 'NG' ? '₦5,000' : '$5'}`);
     
     await processPayment(phoneNumber);
   };
