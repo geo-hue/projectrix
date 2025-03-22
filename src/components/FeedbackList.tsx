@@ -102,6 +102,8 @@ const FeedbackList: React.FC = () => {
     sort,
     order: 'desc',
     limit: 50
+  },{
+    refetchOnMountOrArgChange: true 
   });
 
   // Upvote mutation

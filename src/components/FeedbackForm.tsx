@@ -94,8 +94,10 @@ const FeedbackForm: React.FC = () => {
         tags: []
       });
       
-      // Redirect to feedback list
-      router.push('/feedback');
+      // Redirect to feedback list with a query parameter to force refresh
+      // The timestamp ensures the URL is unique each time
+      const timestamp = Date.now();
+      router.push(`/feedback?refresh=${timestamp}`);
     } catch (error: any) {
       console.error('Submit feedback error:', error);
       toast.error(error.data?.message || 'Failed to submit feedback');
