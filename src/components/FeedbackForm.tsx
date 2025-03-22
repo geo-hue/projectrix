@@ -193,28 +193,56 @@ const FeedbackForm: React.FC = () => {
               </p>
             </div>
             
-            {/* Rating */}
-            <div className="space-y-2">
-              <Label>Rate Your Experience</Label>
-              <div className="flex items-center gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    type="button"
-                    key={star}
-                    onClick={() => handleInputChange('rating', star)}
-                    className="focus:outline-none"
-                  >
-                    <Star
-                      className={`h-8 w-8 ${
-                        formData.rating >= star
-                          ? 'text-yellow-500 fill-yellow-500'
-                          : 'text-gray-300 dark:text-gray-600'
-                      } transition-colors`}
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Rating */}
+<div className="space-y-2">
+  <Label>Rate Your Experience</Label>
+  <div className="flex items-center justify-center gap-3 py-3">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <motion.button
+        type="button"
+        key={star}
+        onClick={() => handleInputChange('rating', star)}
+        className="focus:outline-none relative group"
+        whileHover={{ scale: 1.2 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <Star
+          className={`h-10 w-10 transition-all duration-300 ${
+            formData.rating >= star
+              ? 'text-yellow-500 fill-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]'
+              : 'text-gray-300 dark:text-gray-600'
+          }`}
+        />
+        <span 
+          className={`absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs font-medium 
+            bg-black text-white dark:bg-white dark:text-black px-2 py-1 rounded-md opacity-0 
+            scale-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200
+            ${formData.rating === star ? 'opacity-100 scale-100' : ''}`}
+        >
+          {star === 1 && "Poor"}
+          {star === 2 && "Fair"}
+          {star === 3 && "Good"}
+          {star === 4 && "Great"}
+          {star === 5 && "Excellent"}
+        </span>
+        {formData.rating === star && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: [0, 1.5, 1] }}
+            className="absolute inset-0 bg-yellow-500/20 rounded-full -z-10"
+          />
+        )}
+      </motion.button>
+    ))}
+  </div>
+  <div className="text-center text-sm font-medium mt-2">
+    {formData.rating === 1 && "We're sorry to hear that! Please tell us how we can improve."}
+    {formData.rating === 2 && "Thanks for your feedback. How can we make things better?"}
+    {formData.rating === 3 && "Thanks for your rating! Any suggestions for improvement?"}
+    {formData.rating === 4 && "Great! We're glad you're enjoying the experience."}
+    {formData.rating === 5 && "Excellent! We're thrilled you're loving it!"}
+  </div>
+</div>
             
             {/* Tags */}
             <div className="space-y-2">
