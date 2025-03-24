@@ -1,4 +1,3 @@
-// src/app/projects/[id]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -126,7 +125,7 @@ const ProjectDetailsPage = () => {
               <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
               <p className="text-muted-foreground mb-6">
-                The project you're looking for doesn't exist or you don't have permission to view it.
+                The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
               </p>
               <Button onClick={() => router.push('/ideas')}>
                 Browse Projects
@@ -373,7 +372,6 @@ const ProjectDetailsPage = () => {
                                 Apply For Role
                               </Button>
                             ) : (
-                             // Continuing from CardFooter in the project details page:
                              <Button 
                              className="w-full"
                              onClick={() => toast.info('Please log in to apply for this role')}

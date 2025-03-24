@@ -32,6 +32,7 @@ export interface Complexity {
   }
   
   export interface Project {
+    publisher: any;
     _id: string;
     title: string;
     subtitle: string;
