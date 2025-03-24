@@ -83,7 +83,7 @@ export default function PromoCodesManager() {
         <CardHeader>
           <CardTitle>Access Denied</CardTitle>
           <CardDescription>
-            You don't have permission to access this page.
+            You don&apos;t have permission to access this page.
           </CardDescription>
         </CardHeader>
       </Card>

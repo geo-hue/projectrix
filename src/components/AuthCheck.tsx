@@ -1,4 +1,3 @@
-// src/components/AuthCheck.tsx
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,36 +70,36 @@ const AuthCheck: React.FC<AuthCheckProps> = ({
           stiffness: 300, 
           damping: 20 
         }}
-        className="flex justify-center items-center p-4"
+        className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-background/80 backdrop-blur-sm"
       >
         <Card className="w-full max-w-md overflow-hidden shadow-2xl border-none bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
           {/* Decorative background shapes */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-full transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-tr-full transform translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
           
-          <CardContent className="relative z-10 flex flex-col items-center justify-center p-8 space-y-6">
+          <CardContent className="relative z-10 flex flex-col items-center justify-center p-6 sm:p-8 space-y-6">
             {/* Animated Icon Container */}
             <motion.div 
-              className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4"
               transition={{ 
                 type: "spring", 
                 stiffness: 300 
               }}
             >
-              <Lock className="h-10 w-10 text-primary/80" />
+              <Lock className="h-8 w-8 sm:h-10 sm:w-10 text-primary/80" />
             </motion.div>
 
             {/* Header and Description */}
             <div className="text-center space-y-3">
               <motion.h2 
-                className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight"
+                className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
                 Secure Access Required
               </motion.h2>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">
+              <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed max-w-xs mx-auto">
                 {fallbackMessage}
               </p>
             </div>
@@ -118,7 +117,7 @@ const AuthCheck: React.FC<AuthCheckProps> = ({
                     variant="outline"
                   >
                     <span className="absolute inset-0 bg-black/5 dark:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    <Github className="mr-2 h-5 w-5" />
+                    <Github className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                     Login with GitHub
                   </Button>
                 </motion.div>
@@ -133,7 +132,7 @@ const AuthCheck: React.FC<AuthCheckProps> = ({
                     variant="outline"
                   >
                     <span className="absolute inset-0 bg-black/5 dark:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    <ArrowRight className="mr-2 h-5 w-5" />
+                    <ArrowRight className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                     Return to Home
                   </Button>
                 </motion.div>
@@ -142,7 +141,7 @@ const AuthCheck: React.FC<AuthCheckProps> = ({
 
             {/* Additional Context */}
             <div className="flex items-center text-xs text-muted-foreground space-x-2">
-              <ShieldCheck className="h-4 w-4 text-green-500" />
+              <ShieldCheck className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
               <span>Secure authentication powered by GitHub</span>
             </div>
           </CardContent>
