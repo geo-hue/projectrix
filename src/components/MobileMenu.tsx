@@ -101,7 +101,9 @@ const MobileMenu = ({
                 <div className="p-4 border-b border-border/40 bg-background/80 dark:bg-gray-950/80">
                   <div className="flex items-center space-x-4">
                     <Avatar className="h-10 w-10 ring-2 ring-border/40">
-                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarImage src={user.avatar} alt={user.name} onError={(e) => {
+      e.currentTarget.src = `https://avatar.vercel.sh/${user.username || 'user'}`;
+    }} />
                       <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
