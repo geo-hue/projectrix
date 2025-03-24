@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useCreateDiscordChannelMutation, useInitDiscordOAuthMutation, useGetDiscordInviteQuery } from '@/app/api/discordApiSlice';
-import { ExternalLink, Loader2, Check } from 'lucide-react';
+import { useCreateDiscordChannelMutation, useInitDiscordOAuthMutation } from '@/app/api/discordApiSlice';
+import { ExternalLink, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
 
