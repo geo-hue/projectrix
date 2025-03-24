@@ -48,7 +48,7 @@ const ProjectIdeasPage = () => {
   // Create derived query parameters based on filters
   const queryParams = {
     ...(filterTech !== 'all' && { technology: filterTech }),
-    ...(filterComplexity !== 'all' && { complexity: filterComplexity }),
+    ...(filterComplexity !== 'all' && { complexity: filterComplexity.toLowerCase() }),
     ...(filterRole !== 'all' && { role: filterRole }),
     page: currentPage,
     limit: projectsPerPage
