@@ -1,84 +1,89 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Code2, Users, Sparkles } from "lucide-react";
+"use client"
+
+import { useRef, useEffect, useState } from "react"
+import { motion } from "framer-motion"
+import { Code2, Users, Sparkles } from "lucide-react"
 
 const FeatureSlider = () => {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeSlide, setActiveSlide] = useState(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const features = [
     {
       icon: <Sparkles className="h-6 w-6 text-primary" />,
       title: "AI-Powered Generation",
-      description: "Get personalized project suggestions based on your skills and interests, tailored to your experience level."
+      description:
+        "Get personalized project suggestions based on your skills and interests, tailored to your experience level.",
     },
     {
       icon: <Code2 className="h-6 w-6 text-primary" />,
       title: "Tech Stack Matching",
-      description: "Find and explore projects that perfectly match your preferred technologies and development environment setup."
+      description:
+        "Find and explore projects that perfectly match your preferred technologies and development environment setup.",
     },
     {
       icon: <Users className="h-6 w-6 text-primary" />,
       title: "Collaboration Hub",
-      description: "Connect with developers, share ideas, and build amazing projects together in a supportive community."
-    }
-  ];
+      description:
+        "Connect with developers, share ideas, and build amazing projects together in a supportive community.",
+    },
+  ]
 
   // Handle scroll snap observation
   useEffect(() => {
-    const scrollElement = scrollRef.current;
-    if (!scrollElement) return;
+    const scrollElement = scrollRef.current
+    if (!scrollElement) return
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const index = parseInt(entry.target.getAttribute('data-index') || '0');
-            setActiveSlide(index);
+            const index = Number.parseInt(entry.target.getAttribute("data-index") || "0")
+            setActiveSlide(index)
           }
-        });
+        })
       },
       {
         root: scrollElement,
-        threshold: 0.5
-      }
-    );
+        threshold: 0.5,
+      },
+    )
 
-    scrollElement.querySelectorAll('[data-index]').forEach((el) => {
-      observer.observe(el);
-    });
+    scrollElement.querySelectorAll("[data-index]").forEach((el) => {
+      observer.observe(el)
+    })
 
-    return () => observer.disconnect();
-  }, []);
+    return () => observer.disconnect()
+  }, [])
 
   return (
-    <motion.div 
+    <motion.div
       className="feature-slider max-w-5xl mx-auto mt-20"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
     >
       {/* Mobile and Tablet Slider */}
-      <div className="lg:hidden w-full">
-        <div 
+      <div className="lg:hidden w-full px-2 pb-6">
+        <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4"
-          style={{ 
-            scrollBehavior: 'smooth',
-            overflowY: 'hidden'
+          className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 py-3"
+          style={{
+            scrollBehavior: "smooth",
+            overflowY: "hidden",
           }}
         >
           {features.map((feature, index) => (
-            <div 
+            <div
               key={index}
               data-index={index}
-              className="group relative flex-none w-[85vw] sm:w-[45vw] md:w-[40vw] snap-center h-full"
+              className="group relative flex-none w-[80vw] sm:w-[45vw] md:w-[40vw] snap-center h-full"
             >
-              {/* Background shadow element */}
-              <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-2 translate-y-2 rounded-lg transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
-              
+              {/* Background shadow element - Updated to match desktop */}
+              <div className="absolute inset-0 bg-black dark:bg-white translate-x-2 translate-y-2 rounded-lg transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+
               {/* Main card content */}
-              <div className="relative flex flex-col items-center text-center p-6 sm:p-8 rounded-lg bg-white dark:bg-black border border-black dark:border-white transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 h-full">
+              <div className="relative flex flex-col items-center text-center p-6 sm:p-8 rounded-lg bg-white dark:bg-black border border-black dark:border-white transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1 h-full min-h-[200px]">
                 <div className="h-12 sm:h-14 w-12 sm:w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 transform transition-transform duration-300 group-hover:scale-110">
                   {feature.icon}
                 </div>
@@ -95,13 +100,11 @@ const FeatureSlider = () => {
             <button
               key={index}
               onClick={() => {
-                const cards = scrollRef.current?.querySelectorAll('[data-index]');
-                cards?.[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+                const cards = scrollRef.current?.querySelectorAll("[data-index]")
+                cards?.[index]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" })
               }}
               className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-                index === activeSlide 
-                  ? 'bg-black dark:bg-white' 
-                  : 'bg-black/20 dark:bg-white/20'
+                index === activeSlide ? "bg-black dark:bg-white" : "bg-black/20 dark:bg-white/20"
               }`}
             />
           ))}
@@ -114,7 +117,7 @@ const FeatureSlider = () => {
           <div key={index} className="group relative">
             {/* Background shadow element */}
             <div className="absolute inset-0 bg-black dark:bg-white translate-x-2 translate-y-2 rounded-lg transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
-            
+
             {/* Main card content */}
             <div className="relative flex flex-col items-center text-center p-8 rounded-lg bg-white dark:bg-black border border-black dark:border-white transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
               <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 transform transition-transform duration-300 group-hover:scale-110">
@@ -127,7 +130,8 @@ const FeatureSlider = () => {
         ))}
       </div>
     </motion.div>
-  );
-};
+  )
+}
 
-export default FeatureSlider;
+export default FeatureSlider
+
