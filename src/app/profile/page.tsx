@@ -52,6 +52,8 @@ import EnhancedActivityFeed from '@/components/EnhancedActivityFeed';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import SubscriptionManagement from '@/components/SubscriptionManagement';
 import GitHubSettingsCard from '@/components/GitHubSettingsCard';
+import RedeemPromoCode from '@/components/RedeemPromoCode';
+import ProPlanBenefits from '@/components/ProPlanBenefits';
 
 const ProfileSkeleton = () => (
   <div className="space-y-8">
@@ -1015,6 +1017,11 @@ const handleStartProject = async (projectId:string) => {
   >
     <SubscriptionManagement />
 
+    <div className="mt-6">
+      <RedeemPromoCode />
+    </div>
+
+
         {/* GitHub Integration Settings */}
         <div className="mt-6">
       <GitHubSettingsCard />
@@ -1022,32 +1029,9 @@ const handleStartProject = async (projectId:string) => {
     
     {/* Pro plan features reminder */}
     {user?.plan !== "pro" && (
-      <Card className="mt-6 bg-gradient-to-br from-primary/5 to-primary/10">
-        <CardHeader>
-          <CardTitle className="text-lg">Pro Plan Benefits</CardTitle>
-          <CardDescription>Upgrade to unlock all these features</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            <li className="flex items-start gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
-              <span>10 project ideas generation</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
-              <span>Unlimited published projects</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
-              <span>Unlimited collaboration requests</span>
-            </li>
-            <li className="flex items-start gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
-              <span>Advanced AI project enhancements</span>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
+    <div className='mt-6'>
+      <ProPlanBenefits/>
+    </div>
     )}
   </motion.div>
 </TabsContent>
