@@ -147,7 +147,6 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ profile, onCancel, on
       data.linkedinProfile = ensureHttps(data.linkedinProfile);
       
       await updateProfile(data).unwrap();
-      toast.success("Profile updated successfully");
       onSuccess();
     } catch (error) {
       console.error("Failed to update profile:", error);
