@@ -115,7 +115,7 @@ const ProjectCard = ({ project, height = 300 }: ProjectCardProps) => {
                     <TooltipContent>
                       <p className="font-medium">{project.publisher.name}</p>
                       <p className="text-xs text-muted-foreground">@{project.publisher.username}</p>
-                      <p className="text-xs text-primary">Click to view GitHub profile</p>
+                      <p className="text-xs text-primary">Click to view Profile</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
