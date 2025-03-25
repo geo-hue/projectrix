@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 // Public routes that don't require authentication
-const publicRoutes = ['/', '/about', '/pricing', '/ideas', '/generate',];
+const publicRoutes = ['/', '/about', '/pricing', '/ideas', '/generate', 'coming-soon'];
 
 interface AuthWrapperProps {
   children: React.ReactNode;
@@ -41,7 +41,9 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
                        pathname.startsWith('/terms') ||
                        pathname.startsWith('/policy')||
                        (pathname.startsWith('/profile/') && pathname !== '/profile')||
-                       (pathname.startsWith('/projects/') && pathname !== '/projects');
+                       (pathname.startsWith('/projects/') && pathname !== '/projects') ||
+                       pathname.startsWith('/coming-soon');
+                       ;
 
   useEffect(() => {
     // Only redirect if not a public route, authentication check is completed, and user is not authenticated
