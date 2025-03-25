@@ -226,19 +226,20 @@ const Header = () => {
             </div>
           </nav>
 
-          {/* Mobile Controls */}
-          <div className="flex md:hidden items-center space-x-2">
-          {user && <NotificationDropdown />} 
-            <ThemeToggle />
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="ml-2"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
+{/* Mobile Controls */}
+<div className="flex md:hidden items-center">
+  <div className="flex items-center space-x-2">
+    {user && <NotificationDropdown />}
+    <ThemeToggle />
+    <Button 
+      variant="ghost" 
+      size="icon"
+      onClick={() => setIsMobileMenuOpen(true)}
+    >
+      <Menu className="h-5 w-5" />
+    </Button>
+  </div>
+</div>
         </div>
       </header>
 
