@@ -16,8 +16,8 @@ export default function ComingSoonPage() {
   const [isLoading, setIsLoading] = useState(true)
   // No router needed after removing buttons
   
-  // Launch date - set to March 27, 2025
-  const launchDate = new Date("2025-03-27T00:00:00Z")
+  // Launch date - set to March 28, 2025
+  const launchDate = new Date("2025-03-28T07:00:00Z")
   
   // State for countdown
   const [timeLeft, setTimeLeft] = useState({
@@ -226,7 +226,7 @@ export default function ComingSoonPage() {
                   {[
                     { date: "February 2025", label: "Beta Testing" },
                     { date: "March 22, 2025", label: "Launch Announcement" },
-                    { date: "March 27, 2025", label: "Official Launch" },
+                    { date: "March 28, 2025", label: "Official Launch" },
                     { date: "April 2025", label: "New Features Rollout" }
                   ].map((item, index) => (
                     <motion.div 
