@@ -13,7 +13,8 @@ const ALLOWED_PATHS = [
   '/images',
   '/logo.png',
   '/favicon.ico',
-  '/.well-known',
+  '/.well-known',,
+  '/og-image.png'
 ];
 
 // Check if the current path should be allowed or redirected
