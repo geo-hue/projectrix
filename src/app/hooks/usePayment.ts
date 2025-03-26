@@ -64,12 +64,12 @@ export function usePayment(forceCountry?: string) {
   // Debug pricing info
   useEffect(() => {
     if (pricing) {
-      console.log('Pricing data loaded:', {
-        currency: pricing.currency,
-        amount: pricing.amount,
-        symbol: pricing.symbol,
-        formattedPrice: formatCurrency(pricing.amount, pricing.currency)
-      });
+      // console.log('Pricing data loaded:', {
+      //   currency: pricing.currency,
+      //   amount: pricing.amount,
+      //   symbol: pricing.symbol,
+      //   formattedPrice: formatCurrency(pricing.amount, pricing.currency)
+      // });
     }
   }, [pricing]);
   

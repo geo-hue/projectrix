@@ -27,15 +27,17 @@ const MyRequestsManager = () => {
     isLoading 
   } = useGetMyCollaborationRequestsQuery();
   
-
-  
-
   // Handle view project
   const handleViewProject = (projectId: string) => {
     router.push(`/projects/${projectId}`);
   };
 
-  
+  // Handle profile navigation
+  const handleProfileClick = (username: string) => {
+    if (username) {
+      router.push(`/profile/${username}`);
+    }
+  };
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -112,7 +114,8 @@ const MyRequestsManager = () => {
                   <CardTitle>{request.projectId.title}</CardTitle>
                   <CardDescription className="flex items-center gap-2 mt-1">
                     <Avatar 
-                      className="h-6 w-6" 
+                      className="h-6 w-6 cursor-pointer" 
+                      onClick={() => request.publisherId?.username && handleProfileClick(request.publisherId.username)}
                     >
                       <AvatarImage 
                         src={request.publisherId?.avatar} 
@@ -124,7 +127,12 @@ const MyRequestsManager = () => {
                       <AvatarFallback>{request.publisherId?.name?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm">
-                      Owned by <span className="font-medium">{request.publisherId?.name}</span>
+                      Owned by <span 
+                        className="font-medium cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => request.publisherId?.username && handleProfileClick(request.publisherId.username)}
+                      >
+                        {request.publisherId?.name}
+                      </span>
                     </span>
                   </CardDescription>
                 </div>
@@ -143,8 +151,8 @@ const MyRequestsManager = () => {
                 </div>
                 <div className="flex gap-2">
                 {request.status === 'accepted' && (
-  <DiscordIntegration projectId={request.projectId._id} />
-)}
+                  <DiscordIntegration projectId={request.projectId._id} />
+                )}
                   <Button 
                     variant="ghost" 
                     className="gap-2"
@@ -158,8 +166,6 @@ const MyRequestsManager = () => {
           </Card>
         </div>
       ))}
-
-    
     </div>
   );
 };

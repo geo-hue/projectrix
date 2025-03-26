@@ -52,7 +52,7 @@ const PublicProfilePage = ({ params }: PublicProfilePageProps) => {
         username = params.username;
       }
       
-      console.log("Extracted username:", username);
+      // console.log("Extracted username:", username);
     } catch (error) {
       console.error("Error parsing params:", error);
     }

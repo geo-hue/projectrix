@@ -32,6 +32,8 @@ export interface Complexity {
   }
   
   export interface Project {
+    teamMembers: any;
+    githubInfo: any;
     publisher: any;
     _id: string;
     title: string;

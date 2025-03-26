@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  images: {
+    domains: ['avatars.githubusercontent.com', 'avatar.vercel.sh'],
+  },
 };
 
 export default nextConfig;

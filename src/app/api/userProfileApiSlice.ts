@@ -60,7 +60,7 @@ export const userProfileApiSlice = apiSlice.injectEndpoints({
     // Get public profile for any user
     getPublicProfile: builder.query<{ success: boolean; publicProfile: PublicProfile }, string>({
       query: (username) => {
-        console.log('API query called with username:', username);
+        // console.log('API query called with username:', username);
         // Don't make the request if username is undefined or empty
         if (!username) {
           throw new Error('Username is required');

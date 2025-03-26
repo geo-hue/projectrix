@@ -37,6 +37,9 @@ export interface FeedbackResponse {
 export interface FeedbackListResponse {
   success: boolean;
   count: number;
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
   feedback: FeedbackItem[];
 }
 
@@ -70,31 +73,33 @@ export const feedbackApiSlice = apiSlice.injectEndpoints({
 
     // Get public feedback with optional filtering
     getPublicFeedback: builder.query<
-      FeedbackListResponse,
-      {
-        category?: string;
-        status?: string;
-        sort?: string;
-        order?: 'asc' | 'desc';
-        limit?: number;
-      }
-    >({
-      query: (params) => {
-        // Build query string
-        const queryParams = new URLSearchParams();
-        if (params.category) queryParams.append('category', params.category);
-        if (params.status) queryParams.append('status', params.status);
-        if (params.sort) queryParams.append('sort', params.sort);
-        if (params.order) queryParams.append('order', params.order);
-        if (params.limit) queryParams.append('limit', params.limit.toString());
+  FeedbackListResponse,
+  {
+    category?: string;
+    status?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
+    page?: number;
+    pageSize?: number;
+  }
+>({
+  query: (params) => {
+    // Build query string
+    const queryParams = new URLSearchParams();
+    if (params.category) queryParams.append('category', params.category);
+    if (params.status) queryParams.append('status', params.status);
+    if (params.sort) queryParams.append('sort', params.sort);
+    if (params.order) queryParams.append('order', params.order);
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
 
-        return {
-          url: `/feedback/public?${queryParams.toString()}`,
-          method: 'GET',
-        };
-      },
-      providesTags: ['PublicFeedback'],
-    }),
+    return {
+      url: `/feedback/public?${queryParams.toString()}`,
+      method: 'GET',
+    };
+  },
+  providesTags: ['PublicFeedback'],
+}),
 
     // Upvote feedback
     upvoteFeedback: builder.mutation<UpvoteResponse, string>({

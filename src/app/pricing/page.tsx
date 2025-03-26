@@ -27,9 +27,9 @@ const PricingPage = () => {
       description: "Perfect for getting started with project collaboration",
       price: "0",
       features: [
-        "3 Project ideas per month",
-        "Limited Collaboration Requests",
-        "1 Active collaboration at a time",
+        "3 Project ideas ",
+        "3 Collaboration Requests",
+        "1 Active collaboration",
         "1 Published project",
         "Discord channel access",
         "Community feedback submission",
@@ -104,7 +104,7 @@ const PricingPage = () => {
     {
       question: "What happens when I reach my project idea generation limit?",
       answer:
-        "On the free plan, once you've used your 3 project generations, you'll need to upgrade to Pro for 10 project generations.",
+        "On the free plan, once you've used your 3 total project generations, that's it - you'll need to upgrade to Pro for more. Pro users get 10 project generations per month that refresh on their billing date.",
     },
     {
       question: "Is there a minimum commitment period?",
@@ -114,12 +114,12 @@ const PricingPage = () => {
     {
       question: "How do I pay for the Pro subscription?",
       answer:
-        `We support multiple payment methods. For Nigerian users, payment is processed through Flutterwave (₦5,000/month). For international users, payment is processed through Stripe ($5/month).`
+        `We support multiple payment methods. For Nigerian users, payment is (₦5,000/month). For international users, payment is ($5/month) with both payments processed by Flutterwave.`
     },
     {
       question: "Will my subscription automatically renew?",
       answer:
-        "Yes, your subscription will automatically renew each month. You can cancel at any time through your profile settings."
+        "Yes, your subscription will not automatically renew each month."
     }
   ]
 
@@ -206,14 +206,22 @@ const PricingPage = () => {
                     <CardHeader className={plan.badge || (user && plan.isCurrentPlan) ? "pt-8" : ""}>
                       <CardTitle className="text-2xl">{plan.name}</CardTitle>
                       <CardDescription>
-                        {plan.description}
-                        {user && plan.name === "Free" && (
-                          <div className="mt-2 text-sm">
-                            <span className="font-medium text-primary">{user.projectIdeasLeft} project ideas</span>{" "}
-                            remaining this month
-                          </div>
-                        )}
-                      </CardDescription>
+  {plan.description}
+  {user && plan.name === "Free" && user.plan === "free" && (
+    <div className="mt-2 text-sm">
+      <span className="font-medium text-primary">{user.projectIdeasLeft} project ideas</span>{" "}
+      remaining
+    </div>
+  )}
+   {user && plan.name === "Pro" && user.plan === "pro" && (
+    <div className="mt-2 text-sm">
+      <span className="font-medium text-primary">{user.projectIdeasLeft} project ideas</span>{" "}
+      remaining this month
+    </div>
+  )}
+</CardDescription>
+
+
                     </CardHeader>
 
                     <CardContent className="space-y-6 flex-grow">

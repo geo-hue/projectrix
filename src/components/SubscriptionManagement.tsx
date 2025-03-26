@@ -236,7 +236,7 @@ export default function SubscriptionManagement({ className }: SubscriptionManage
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Project Ideas</span>
-                      <span className="text-sm font-medium">3 per month</span>
+                      <span className="text-sm font-medium">3 maximum</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Published Projects</span>

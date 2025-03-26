@@ -583,9 +583,9 @@ export default function GeneratePage() {
         <div className="flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-yellow-500" />
           <span className="text-sm">
-            {user.projectIdeasLeft === 0 
-              ? "You've reached your monthly project idea limit" 
-              : `Only ${user.projectIdeasLeft} project ${user.projectIdeasLeft === 1 ? 'idea' : 'ideas'} remaining this month`}
+          {user.projectIdeasLeft === 0 
+  ? "You've reached your monthly project idea limit. Your limits will reset on your next billing date." 
+  : `Only ${user.projectIdeasLeft} project ${user.projectIdeasLeft === 1 ? 'idea' : 'ideas'} remaining this month`}
           </span>
         </div>
         <Button 
@@ -612,9 +612,9 @@ export default function GeneratePage() {
         <div className="flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-yellow-500" />
           <span className="text-sm">
-            {user.projectIdeasLeft === 0 
-              ? "You've reached your monthly project idea limit. Please wait until next month for a refresh." 
-              : `Only ${user.projectIdeasLeft} project ${user.projectIdeasLeft === 1 ? 'idea' : 'ideas'} remaining this month`}
+          {user.projectIdeasLeft === 0 
+  ? "You've reached your project idea limit" 
+  : `Only ${user.projectIdeasLeft} project ${user.projectIdeasLeft === 1 ? 'idea' : 'ideas'} remaining`}
           </span>
         </div>
       </CardContent>

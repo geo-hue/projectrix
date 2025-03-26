@@ -225,6 +225,7 @@ const ProjectDetailsPage = () => {
                     <GitHubIntegration 
                         projectId={projectData._id} 
                         isOwner={isOwner} 
+                        existingRepoUrl={projectData.githubInfo?.repoUrl}
                       />
                     </div>
                    

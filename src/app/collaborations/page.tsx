@@ -83,6 +83,12 @@ const CollaborationsPage = () => {
     }
   };
 
+  const handleMemberProfileClick = (username: string) => {
+    if (username) {
+      router.push(`/profile/${username}`);
+    }
+  };
+
   // const formatDate = (dateString) => {
   //   if (!dateString) return 'N/A';
     
@@ -182,157 +188,161 @@ const CollaborationsPage = () => {
                 <IncomingRequestsManager />
               </TabsContent>
 
-              {/* My Projects Tab */}
-              <TabsContent value="my-projects">
-                {myCollaborationsLoading ? (
-                  <div className="flex justify-center items-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : myCollaborationsError ? (
-                  <div className="text-center py-10">
-                    <p className="text-red-500 mb-4">Error loading collaborations</p>
-                    <Button onClick={() => window.location.reload()}>Retry</Button>
-                  </div>
-                ) : getMyProjects().length > 0 ? (
-                  <div className="grid gap-6">
-                    {getMyProjects().map((project) => (
-                      <motion.div 
-                        key={project._id} 
-                        className="group relative"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-1 transition-transform duration-300 group-hover:rotate-0"></div>
-                        <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                        <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
-                          <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <CardTitle>{project.title}</CardTitle>
-                                <CardDescription className="mt-1">
-                                  Your role: {project.role}
-                                </CardDescription>
-                              </div>
-                              {getStatusBadge(project.status)}
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-6">
-                              {/* Technologies */}
-                              <div className="flex flex-wrap gap-2">
-                                {project.technologies?.map((tech:any, index:number) => (
-                                  <Badge key={index} variant="outline">{tech}</Badge>
-                                ))}
-                              </div>
-                              
-                              {/* Team Members */}
-                              <div>
-  <h4 className="text-sm font-medium mb-2">Team Members</h4>
-  <div className="flex flex-wrap gap-4">
-    {project.teamMembers?.length > 0 ? (
-      project.teamMembers.map((member:any, index:number) => {
-        // Handle different data structures that might come from API
-        const userId = member.userId;
-        const memberName = userId?.name || "Team Member";
-        const memberUsername = userId?.username || "user";
-        const memberAvatar = userId?.avatar || `https://avatar.vercel.sh/${memberUsername}`;
-        const memberRole = member.role || "Collaborator";
-        
-        return (
-          <div key={index} className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage 
-                src={memberAvatar}
-                alt={memberName}
-                onError={(e) => {
-                  e.currentTarget.src = `https://avatar.vercel.sh/${memberUsername}`;
-                }}
-              />
-              <AvatarFallback>{memberName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">{memberName}</p>
-              <p className="text-xs text-muted-foreground">{memberRole}</p>
-            </div>
-          </div>
-        );
-      })
-    ) : (
-      <p className="text-sm text-muted-foreground">No team members yet</p>
-    )}
-  </div>
-</div>
-
-                              {/* Open Roles */}
-                              <div>
-                                <h4 className="text-sm font-medium mb-2">Open Roles</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {project.teamStructure?.roles
-                                    ?.filter((role:any) => !role.filled)
-                                    .map((role:any, index:number) => (
-                                      <Badge key={index} variant="outline">{role.title}</Badge>
-                                    ))
-                                  }
-                                  {!project.teamStructure?.roles || 
-                                   project.teamStructure.roles.filter((role:any) => !role.filled).length === 0 && (
-                                    <span className="text-sm text-muted-foreground">All roles filled</span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="flex justify-end gap-2">
-  <DiscordIntegration projectId={project._id} />
-  <GitHubIntegration 
-    projectId={project._id} 
-    isOwner={project.role === 'Project Owner'} 
-  />
-  <Button 
-    className="gap-2"
-    onClick={() => router.push(`/projects/${project._id}`)}
+             {/* My Projects Tab */}
+<TabsContent value="my-projects">
+  {myCollaborationsLoading ? (
+    <div className="flex justify-center items-center py-20">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  ) : myCollaborationsError ? (
+    <div className="text-center py-10">
+      <p className="text-red-500 mb-4">Error loading collaborations</p>
+      <Button onClick={() => window.location.reload()}>Retry</Button>
+    </div>
+  ) : getMyProjects().length > 0 ? (
+    <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1">
+      {getMyProjects().map((project) => (
+        <motion.div 
+          key={project._id} 
+          className="group relative"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-1 transition-transform duration-300 group-hover:rotate-0"></div>
+          <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
+          <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                <div>
+                  <CardTitle className="text-lg sm:text-xl break-words">{project.title}</CardTitle>
+                  <CardDescription className="mt-1">
+                    Your role: {project.role}
+                  </CardDescription>
+                </div>
+                {getStatusBadge(project.status)}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Technologies */}
+                <div className="flex flex-wrap gap-2">
+                  {project.technologies?.map((tech:any, index:number) => (
+                    <Badge key={index} variant="outline" className="mb-1">{tech}</Badge>
+                  ))}
+                </div>
+                
+                {/* Team Members */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Team Members</h4>
+                  <div className="flex flex-wrap gap-4">
+                    {project.teamMembers?.length > 0 ? (
+                      project.teamMembers.map((member:any, index:number) => {
+                        // Handle different data structures that might come from API
+                        const userId = member.userId;
+                        const memberName = userId?.name || "Team Member";
+                        const memberUsername = userId?.username || "user";
+                        const memberAvatar = userId?.avatar || `https://avatar.vercel.sh/${memberUsername}`;
+                        const memberRole = member.role || "Collaborator";
+                        
+                        return (
+                          <div key={index} className="flex items-center gap-2 mb-2">
+                            <Avatar 
+  className="h-8 w-8 cursor-pointer" 
+  onClick={() => handleMemberProfileClick(memberUsername)}
+>
+                              <AvatarImage 
+                                src={memberAvatar}
+                                alt={memberName}
+                                onError={(e) => {
+                                  e.currentTarget.src = `https://avatar.vercel.sh/${memberUsername}`;
+                                }}
+                              />
+                              <AvatarFallback>{memberName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                            <p 
+    className="text-sm font-medium cursor-pointer hover:text-primary transition-colors"
+    onClick={() => handleMemberProfileClick(memberUsername)}
   >
-    View Project <ArrowRight className="h-4 w-4" />
-  </Button>
-</CardFooter>
-                        </Card>
-                      </motion.div>
-                    ))}
+    {memberName}
+  </p>
+  <p className="text-xs text-muted-foreground">{memberRole}</p>
+</div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No team members yet</p>
+                    )}
                   </div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-10 rounded-lg border border-black/10 dark:border-white/10 text-center"
-                  >
-                    <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <BookOpen className="h-8 w-8 text-primary/70" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">No Active Projects</h3>
-                    <p className="text-muted-foreground mb-6">
-                      You don&apos;t have any active projects yet. Create a project or join an existing one to get started.
-                    </p>
-                    <div className="flex flex-col sm:flex-row justify-center gap-3">
-                      <Button 
-                        variant="outline"
-                        className="gap-2"
-                        onClick={() => router.push('/ideas')}
-                      >
-                        <Users className="h-4 w-4" />
-                        Browse Projects
-                      </Button>
-                      <Button 
-                        className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
-                        onClick={() => router.push('/generate')}
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        Create a Project
-                      </Button>
-                    </div>
-                  </motion.div>
-                )}
-              </TabsContent>
+                </div>
+
+                {/* Open Roles */}
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Open Roles</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {project.teamStructure?.roles
+                      ?.filter((role:any) => !role.filled)
+                      .map((role:any, index:number) => (
+                        <Badge key={index} variant="outline" className="mb-1">{role.title}</Badge>
+                      ))
+                    }
+                    {!project.teamStructure?.roles || 
+                     project.teamStructure.roles.filter((role:any) => !role.filled).length === 0 && (
+                      <span className="text-sm text-muted-foreground">All roles filled</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-wrap justify-end gap-2">
+              <DiscordIntegration projectId={project._id} />
+              <GitHubIntegration 
+                projectId={project._id} 
+                isOwner={project.role === 'Project Owner'} 
+              />
+              <Button 
+                className="gap-2 mt-2 sm:mt-0 w-full sm:w-auto"
+                onClick={() => router.push(`/projects/${project._id}`)}
+              >
+                View Project <ArrowRight className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      ))}
+    </div>
+  ): (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white/50 dark:bg-black/50 backdrop-blur-sm p-4 sm:p-10 rounded-lg border border-black/10 dark:border-white/10 text-center"
+    >
+      <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+        <BookOpen className="h-8 w-8 text-primary/70" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">No Active Projects</h3>
+      <p className="text-muted-foreground mb-6">
+        You don&apos;t have any active projects yet. Create a project or join an existing one to get started.
+      </p>
+      <div className="flex flex-col sm:flex-row justify-center gap-3">
+        <Button variant="outline" className="gap-2" onClick={() => router.push("/ideas")}>
+          <Users className="h-4 w-4" />
+          Browse Projects
+        </Button>
+        <Button
+          className="gap-2 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
+          onClick={() => router.push("/generate")}
+        >
+          <Sparkles className="h-4 w-4" />
+          Create a Project
+        </Button>
+      </div>
+    </motion.div>
+  )}
+</TabsContent>
             </Tabs>
           </div>
         </div>

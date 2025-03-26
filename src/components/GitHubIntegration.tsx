@@ -1,6 +1,8 @@
+// First, let's modify the GitHubIntegration component to better handle repository status
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Github, Loader2 } from 'lucide-react';
+import { Github, Loader2} from 'lucide-react';
 import { toast } from 'sonner';
 import { useGitHubAuth } from '@/app/hooks/useGitHubAuth';
 import { 
@@ -20,9 +22,10 @@ import GitHubCollaborationAlert from './GitHubCollaborationAlert';
 interface GitHubIntegrationProps {
   projectId: string;
   isOwner: boolean;
+  existingRepoUrl?: string; // Add this optional parameter
 }
 
-const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
+const GitHubIntegration = ({ projectId, isOwner, existingRepoUrl }: GitHubIntegrationProps) => {
   const [repoCreationStep, setRepoCreationStep] = useState<'initial' | 'confirm' | 'creating'>('initial');
   const { isAuthorized, authorizeGitHub, isAuthenticating } = useGitHubAuth();
   
@@ -32,18 +35,24 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
     data: repoStatus, 
     isLoading: isCheckingRepo, 
     refetch: refetchRepoStatus 
-  } = useGetGitHubRepositoryStatusQuery(projectId, { refetchOnMountOrArgChange: true });
+  } = useGetGitHubRepositoryStatusQuery(projectId, { 
+    refetchOnMountOrArgChange: true,
+    // Skip if we already have a repo URL provided as prop
+    skip: !!existingRepoUrl
+  });
+  
+  // Determine if there's a repository based on either prop or query data
+  const hasRepository = existingRepoUrl || repoStatus?.hasRepository;
   
   // Refresh repo status when component mounts or authorization changes
   useEffect(() => {
-    if (isAuthorized && projectId) {
+    if (isAuthorized && projectId && !existingRepoUrl) {
       refetchRepoStatus();
     }
-  }, [isAuthorized, projectId, refetchRepoStatus]);
+  }, [isAuthorized, projectId, refetchRepoStatus, existingRepoUrl]);
   
   // Button states for better UX
   const isLoading = isAuthenticating || isCreating || isCheckingRepo;
-  const hasRepository = repoStatus?.hasRepository;
   
   // Handle GitHub authentication
   const handleGitHubAuth = async () => {
@@ -93,7 +102,9 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
   
   // Handle repository link click
   const handleRepoClick = () => {
-    const repoUrl = repoStatus?.repository?.html_url;
+    // Use either the provided URL or the one from the API response
+    const repoUrl = existingRepoUrl || repoStatus?.repository?.html_url;
+    
     if (!repoUrl) {
       toast.error("Repository URL not found");
       return;
@@ -103,14 +114,13 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
   };
 
   // Determine button state and text
-  const getButtonState = () => {
-    // Not owner - show view button if repo exists
+  const getPlanButtonText = () => {
     if (!isOwner) {
-      if (!repoStatus?.hasRepository) {
+      if (!hasRepository) {
         return { text: 'No GitHub Repository', disabled: true };
       }
       
-      return { text: 'View GitHub Repository', disabled: false, action: 'view' };
+      return { text: 'View GitHub Repo', disabled: false, action: 'view' };
     }
     
     // Owner - show setup/creation options
@@ -119,7 +129,7 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
     }
     
     if (hasRepository) {
-      return { text: 'View GitHub Repository', disabled: false, action: 'view' };
+      return { text: 'View GitHub Repo', disabled: false, action: 'view' };
     }
     
     if (repoCreationStep === 'confirm') {
@@ -129,7 +139,7 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
     return { text: 'Set Up GitHub Repository', disabled: false, action: 'setup' };
   };
   
-  const buttonState = getButtonState();
+  const buttonState = getPlanButtonText();
   
   // Handle button click based on state
   const handleButtonClick = (e: React.MouseEvent) => {
@@ -152,7 +162,7 @@ const GitHubIntegration = ({ projectId, isOwner }: GitHubIntegrationProps) => {
       {/* Show collaboration alert for non-owners when repository exists */}
       {!isOwner && hasRepository && (
         <GitHubCollaborationAlert 
-          repoUrl={repoStatus?.repository?.html_url || ''}
+          repoUrl={existingRepoUrl || repoStatus?.repository?.html_url || ''}
           isOwner={isOwner}
         />
       )}

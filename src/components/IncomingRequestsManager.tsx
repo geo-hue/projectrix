@@ -139,14 +139,14 @@ const IncomingRequestsManager = () => {
                   
                   <Card className="relative bg-white dark:bg-black border border-black/20 dark:border-white/20 transition-all duration-300 hover:-translate-y-1 hover:-translate-x-1">
                     <CardHeader>
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-start">
                         <div>
-                          <CardTitle>{projectTitle}</CardTitle>
+                          <CardTitle className="line-clamp-2">{projectTitle}</CardTitle>
                           <CardDescription className="mt-1">
                             Request for <span className="font-medium">{request.role}</span>
                           </CardDescription>
                         </div>
-                        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20">
+                        <Badge variant="outline" className="self-start mt-2 sm:mt-0 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20">
                           Pending
                         </Badge>
                       </div>
@@ -172,14 +172,14 @@ const IncomingRequestsManager = () => {
                           <div>
                             <h4 className="font-medium">{request.applicantId?.name}</h4>
                             <p className="text-sm text-muted-foreground flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
+                              <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
                               Applied on {formatDate(request.appliedAt)}
                             </p>
                           </div>
                           
                           {/* Applicant Message - if exists */}
                           {request.message && (
-                            <div className="sm:ml-auto max-w-sm p-3 bg-muted/30 dark:bg-muted/10 rounded-lg">
+                            <div className="w-full sm:w-auto sm:ml-auto max-w-sm p-3 bg-muted/30 dark:bg-muted/10 rounded-lg mt-2 sm:mt-0">
                               <p className="text-sm italic">&quot;{request.message}&quot;</p>
                             </div>
                           )}
@@ -187,8 +187,8 @@ const IncomingRequestsManager = () => {
                         
                         {/* Competition info - if multiple applicants for same role */}
                         {requestsForSameRole.length > 1 && (
-                          <div className="rounded-md bg-primary/5 p-3 flex gap-2 items-center">
-                            <AlertCircle className="h-4 w-4 text-primary" />
+                          <div className="rounded-md bg-primary/5 p-3 flex gap-2 items-start sm:items-center">
+                            <AlertCircle className="h-4 w-4 text-primary flex-shrink-0 mt-0.5 sm:mt-0" />
                             <p className="text-sm">
                               <strong>{requestsForSameRole.length} applicants</strong> for this role. 
                               Accepting one will automatically reject others.
@@ -197,7 +197,7 @@ const IncomingRequestsManager = () => {
                         )}
                         
                         {/* Action Buttons */}
-                        <div className="flex flex-wrap gap-2 justify-end">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
                           <Button 
                             variant="outline" 
                             className="gap-2"
@@ -250,9 +250,9 @@ const IncomingRequestsManager = () => {
             {processedRequests.map((request) => (
               <Card key={request._id} className="bg-white dark:bg-black border border-black/20 dark:border-white/20">
                 <CardContent className="p-5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-10 w-10 flex-shrink-0">
                         <AvatarImage 
                           src={request.applicantId?.avatar} 
                           alt={request.applicantId?.name}
@@ -263,7 +263,7 @@ const IncomingRequestsManager = () => {
                         <AvatarFallback>{request.applicantId?.name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <h4 className="font-medium">{request.applicantId?.name}</h4>
                           <Badge 
                             variant="outline" 
@@ -275,7 +275,7 @@ const IncomingRequestsManager = () => {
                             {request.status === 'accepted' ? 'Accepted' : 'Rejected'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground line-clamp-1">
                           Applied for <span className="font-medium">{request.role}</span> on {request.projectId.title}
                         </p>
                       </div>
@@ -284,7 +284,7 @@ const IncomingRequestsManager = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto mt-2 sm:mt-0"
                       onClick={() => handleViewProfile(request.applicantId?.username || '')}
                     >
                       <UserCircle className="h-4 w-4" />

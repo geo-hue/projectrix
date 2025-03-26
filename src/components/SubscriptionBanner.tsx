@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, AlertTriangle, Rocket } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/context/AuthContext';
 
 interface SubscriptionBannerProps {
   type: 'projects' | 'collaborations' | 'publishing';
@@ -12,6 +13,7 @@ interface SubscriptionBannerProps {
 }
 
 const SubscriptionBanner = ({ type, limit, used, className = '' }: SubscriptionBannerProps) => {
+  const { user } = useAuth();
   const router = useRouter();
   const percentageUsed = Math.min((used / limit) * 100, 100);
   const isWarning = percentageUsed >= 66;
@@ -20,7 +22,9 @@ const SubscriptionBanner = ({ type, limit, used, className = '' }: SubscriptionB
   let message = '';
   
   if (type === 'projects') {
-    message = `${used}/${limit} project ideas used`;
+    message =  user?.plan === 'pro' 
+    ? `${used}/${limit} project ideas used this month` 
+    : `${used}/${limit} project ideas used (lifetime)`;
   } else if (type === 'collaborations') {
     message = `${used}/${limit} collaboration requests used`;
   } else if (type === 'publishing') {

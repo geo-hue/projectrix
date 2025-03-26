@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Github, Twitter, Linkedin, ExternalLink, LucideIcon } from "lucide-react";
+import { Github, Twitter, Linkedin, ExternalLink, LucideIcon, Mail } from "lucide-react";
 import { ThemeToggle } from './theme-toggle';
 import Link from 'next/link';
 
@@ -105,6 +105,16 @@ const Footer: React.FC = () => {
       links: [
         { label: "Terms of Service", href: "/terms" },
         { label: "Privacy Policy", href: "/privacy" },
+      ]
+    },
+    {
+      title: "Support",
+      links: [
+        { 
+          label: "Contact Support", 
+          href: "mailto:support@projectrix.app", 
+          icon: Mail 
+        }
       ]
     }
   ];
