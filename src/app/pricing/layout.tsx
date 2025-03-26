@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: 'Choose the perfect plan for your development journey. Start for free and upgrade as you grow.',
     images: [
       {
-        url: '/og-pricing.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Projectrix Pricing Plans',

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: 'Customize your next project based on preferred technologies, complexity level, and team size.',
     images: [
       {
-        url: '/og-generate.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Generate Project Ideas - Projectrix',

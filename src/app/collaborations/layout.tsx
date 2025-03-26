@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: 'Manage your development project collaborations and team activities.',
     images: [
       {
-        url: '/og-collaborations.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Projectrix Collaborations Dashboard',

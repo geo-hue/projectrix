@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: 'Find projects to collaborate on, filtered by your preferred technologies and skills.',
     images: [
       {
-        url: '/og-ideas.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Browse Projects - Projectrix',

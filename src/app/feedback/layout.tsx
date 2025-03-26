@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: 'Join the community in shaping the future of Projectrix through your valuable feedback.',
     images: [
       {
-        url: '/og-feedback.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Projectrix Community Feedback',

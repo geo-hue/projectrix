@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: 'Discover how Projectrix is transforming the way developers collaborate and build their portfolios.',
     images: [
       {
-        url: '/og-about.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'About Projectrix - Collaborative Development Platform',

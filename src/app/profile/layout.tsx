@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     description: 'Your personalized dashboard for managing projects and collaborations.',
     images: [
       {
-        url: '/og-profile.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Projectrix Developer Profile',
