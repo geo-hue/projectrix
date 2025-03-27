@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ import {
 } from '../api/projectApiSlice';
 import { Project } from '../types/projectTypes';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function GeneratePage() {
   // State and hooks
@@ -72,6 +73,12 @@ export default function GeneratePage() {
   const [teamSize, setTeamSize] = useState('');
   const [category, setCategory] = useState('');
   const [projectTheme, setProjectTheme] = useState('');
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  const [exactTeamSize, setExactTeamSize] = useState<string | null>(null);
+
+  const handleExactTeamSizeChange = (value: string) => {
+    setExactTeamSize(value);
+  };
 
   // Handle form submission
   const handleGenerate = async () => {
@@ -117,6 +124,7 @@ export default function GeneratePage() {
       },
       duration,
       teamSize,
+      exactTeamSize: exactTeamSize,
       category,
       projectTheme: projectTheme.trim()
     };
@@ -125,12 +133,33 @@ export default function GeneratePage() {
       // Use the mutation and get the result
       const result = await generateProject(params).unwrap();
       setCurrentProject(result.project);
+      
+      // Show warning message if present
+      if (result.warning) {
+        // Show warning toast with the message
+        toast.warning(result.warning, {
+          duration: 5000, // Show for 5 seconds
+          icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />
+        });
+        
+        // Also set a warning state if you want to display it in the UI
+        setWarningMessage(result.warning);
+      } else {
+        // Clear any previous warnings
+        setWarningMessage(null);
+      }
+      
       toast.success('Project idea generated successfully!');
     } catch (error: any) {
       console.error('Generate project error:', error);
       toast.error(error.data?.message || 'Failed to generate project');
     }
   };
+
+  useEffect(() => {
+    // Reset exactTeamSize when teamSize changes
+    setExactTeamSize(null);
+  }, [teamSize]);
 
   // Handle project saving
   const handleSaveProject = async (projectId: string) => {
@@ -623,6 +652,22 @@ export default function GeneratePage() {
 )}
         {/* Main Content */}
         <section className="container px-4 mx-auto">
+           {/* Warning Message Alert */}
+  {warningMessage && (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="mb-8"
+    >
+      <Alert className="bg-yellow-500/10 border-yellow-500/20">
+        <AlertTriangle className="h-5 w-5 text-yellow-500" />
+        <AlertDescription className="text-yellow-700 dark:text-yellow-400 ml-2">
+          {warningMessage}
+        </AlertDescription>
+      </Alert>
+    </motion.div>
+  )}
           <div className="grid lg:grid-cols-5 gap-8">
             {/* Preferences Panel */}
             <div className="lg:col-span-2">
@@ -681,6 +726,53 @@ export default function GeneratePage() {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Exact Team Size - Conditional render */}
+{teamSize && teamSize !== 'solo' && (
+  <div className="space-y-2 mt-4 animate-in fade-in-50 duration-300">
+    <label className="text-sm font-medium">Exact Number of Members (Optional)</label>
+    <div className="bg-black/5 dark:bg-white/5 rounded-md p-3">
+      <RadioGroup
+        value={exactTeamSize || ''}
+        onValueChange={handleExactTeamSizeChange}
+        className="flex flex-wrap gap-3"
+      >
+        {teamSize === 'small' ? (
+          <>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="2" id="team-size-2" />
+              <label htmlFor="team-size-2" className="text-sm cursor-pointer">2 Members</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="3" id="team-size-3" />
+              <label htmlFor="team-size-3" className="text-sm cursor-pointer">3 Members</label>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="4" id="team-size-4" />
+              <label htmlFor="team-size-4" className="text-sm cursor-pointer">4 Members</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="5" id="team-size-5" />
+              <label htmlFor="team-size-5" className="text-sm cursor-pointer">5 Members</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="6" id="team-size-6" />
+              <label htmlFor="team-size-6" className="text-sm cursor-pointer">6 Members</label>
+            </div>
+          </>
+        )}
+      </RadioGroup>
+      {exactTeamSize && (
+        <p className="text-xs text-muted-foreground mt-2">
+          AI will generate a project structure for exactly {exactTeamSize} team members.
+        </p>
+      )}
+    </div>
+  </div>
+)}
 
                     {/* Project Category */}
                     <div className="space-y-2">
