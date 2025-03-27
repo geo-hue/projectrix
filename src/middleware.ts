@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Whether the site is in coming soon mode
-const COMING_SOON_ENABLED = false; // Set this to false on launch day
+const COMING_SOON_ENABLED = true; // Set this to false on launch day
 
 // Routes that should always be accessible even in coming soon mode
 const ALLOWED_PATHS = [
