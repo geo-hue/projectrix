@@ -17,7 +17,7 @@ export default function ComingSoonPage() {
   // No router needed after removing buttons
   
   // Launch date - set to March 28, 2025
-  const launchDate = new Date("2025-03-28T07:00:00Z")
+  const launchDate = new Date("2025-03-28T09:00:00Z")
   
   // State for countdown
   const [timeLeft, setTimeLeft] = useState({
