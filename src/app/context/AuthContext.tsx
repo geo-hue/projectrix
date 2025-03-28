@@ -102,11 +102,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Only force refresh if we're close to expiration
         // This helps avoid unnecessary token refreshes
         if ((expirationTime - currentTime) / 1000 < TOKEN_REFRESH_THRESHOLD) {
-          console.log('Token close to expiration, forcing refresh...');
+          // console.log('Token close to expiration, forcing refresh...');
           // Force token refresh
           const token = await firebaseUser.getIdToken(true);
           localStorage.setItem('token', token);
-          console.log('Token refreshed successfully');
+          // console.log('Token refreshed successfully');
           
           // Schedule next refresh
           scheduleTokenRefresh();
@@ -141,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Set new timer
     refreshTimerRef.current = setTimeout(async () => {
-      console.log('Scheduled token refresh running...');
+      // console.log('Scheduled token refresh running...');
       await refreshToken();
     }, TOKEN_REFRESH_INTERVAL);
   };

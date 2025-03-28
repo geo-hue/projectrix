@@ -61,6 +61,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
+    // Fix for "message channel closed before response received" error
+    if (error.message && error.message.includes('message channel closed')) {
+      // If the browser is navigating away while a request is in progress
+      // Just ignore the error and don't show toasts
+      return Promise.reject(error);
+    }
+    
     // Check if the error is due to an expired token
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {

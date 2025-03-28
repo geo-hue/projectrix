@@ -1,4 +1,4 @@
-// src/app/hooks/usePayment.ts - With added debug logging
+// src/app/hooks/usePayment.ts - With commented out debug logging
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -36,7 +36,7 @@ export function usePayment(forceCountry?: string) {
   useEffect(() => {
     const detectCountry = async () => {
       if (forceCountry) {
-        console.log('Using forced country:', forceCountry);
+        // console.log('Using forced country:', forceCountry);
         setCountryCode(forceCountry);
         setLoadingCountry(false);
         return;
@@ -45,7 +45,7 @@ export function usePayment(forceCountry?: string) {
       try {
         setLoadingCountry(true);
         const detected = await getCountryCode();
-        console.log('Detected country code:', detected);
+        // console.log('Detected country code:', detected);
         setCountryCode(detected);
       } catch (error) {
         console.error('Error detecting country:', error);
@@ -61,7 +61,7 @@ export function usePayment(forceCountry?: string) {
   // Current pricing information
   const pricing = pricingData?.pricing;
   
-  // Debug pricing info
+  // Debug pricing info - commented out
   useEffect(() => {
     if (pricing) {
       // console.log('Pricing data loaded:', {
@@ -98,14 +98,14 @@ export function usePayment(forceCountry?: string) {
         return;
       }
       
-      // Debug log before payment
-      console.log('Creating payment with:', {
-        countryCode,
-        currency: pricing?.currency || (countryCode === 'NG' ? 'NGN' : 'USD'),
-        expectedAmount: pricing?.amount || (countryCode === 'NG' ? 5000 : 5),
-        formattedPrice,
-        phoneNumber: phoneNum
-      });
+      // Debug log before payment - commented out
+      // console.log('Creating payment with:', {
+      //   countryCode,
+      //   currency: pricing?.currency || (countryCode === 'NG' ? 'NGN' : 'USD'),
+      //   expectedAmount: pricing?.amount || (countryCode === 'NG' ? 5000 : 5),
+      //   formattedPrice,
+      //   phoneNumber: phoneNum
+      // });
       
       // Show loading indicator
       toast.loading('Preparing checkout...');
@@ -120,8 +120,8 @@ export function usePayment(forceCountry?: string) {
         currency: forcedCurrency // explicitly set the currency
       }).unwrap();
       
-      // Debug log the result
-      console.log('Payment session created:', result);
+      // Debug log the result - commented out
+      // console.log('Payment session created:', result);
       
       if (!result.payment?.paymentLink) {
         throw new Error('Failed to create payment link');
@@ -153,7 +153,7 @@ export function usePayment(forceCountry?: string) {
       const hasVerified = localStorage.getItem(verificationKey);
       
       if (hasVerified === 'done') {
-        console.log('Transaction already verified locally');
+        // console.log('Transaction already verified locally');
         return { success: true, message: 'Payment already verified' };
       }
       
