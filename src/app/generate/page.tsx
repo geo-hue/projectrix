@@ -75,6 +75,7 @@ export default function GeneratePage() {
   const [projectTheme, setProjectTheme] = useState('');
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [exactTeamSize, setExactTeamSize] = useState<string | null>(null);
+const [generatingAnother, setGeneratingAnother] = useState(false);
 
   const handleExactTeamSizeChange = (value: string) => {
     setExactTeamSize(value);
@@ -201,14 +202,22 @@ export default function GeneratePage() {
       }
       return;
     }
-
+  
+    // Prevent multiple clicks
+    if (generatingAnother) {
+      return;
+    }
+  
     try {
+      setGeneratingAnother(true); // Set generating state to true
       const result = await generateAnother(projectId).unwrap();
       setCurrentProject(result.project);
       toast.success('New project idea generated!');
     } catch (error: any) {
       console.error('Generate another error:', error);
       toast.error(error.data?.message || 'Failed to generate another project');
+    } finally {
+      setGeneratingAnother(false); // Reset generating state
     }
   };
 
@@ -392,9 +401,17 @@ export default function GeneratePage() {
                 variant="outline" 
                 className="flex-1 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white hover:bg-black/5 dark:hover:bg-white/5 shadow-[0_4px_0_0_rgba(0,0,0,1)] dark:shadow-[0_4px_0_0_rgba(255,255,255,1)] transform transition-all active:translate-y-1 active:shadow-none"
                 onClick={() => handleGenerateAnother(currentProject._id)}
+                disabled={generatingAnother}
               >
-                Generate Another
-              </Button>
+                {generatingAnother ? ( 
+    <>
+      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+      Generating...
+    </>
+  ) : (
+    'Generate Another'
+  )}
+</Button>
             </div>
           </CardFooter>
         </Card>
