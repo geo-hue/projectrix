@@ -123,15 +123,16 @@ const ProjectDetailsPage = () => {
             </div>
           ) : hasError ? (
             <div className="text-center py-20">
-              <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
-              <p className="text-muted-foreground mb-6">
-                The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
-              </p>
-              <Button onClick={() => router.push('/ideas')}>
-                Browse Projects
-              </Button>
-            </div>
+            <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
+            <p className="text-muted-foreground mb-6">
+              The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
+              This could be because the owner has not published it yet.
+            </p>
+            <Button onClick={() => router.push('/ideas')}>
+              Browse Projects
+            </Button>
+          </div>
           ) : projectData && (
             <div className="space-y-8">
               {/* Project Header */}

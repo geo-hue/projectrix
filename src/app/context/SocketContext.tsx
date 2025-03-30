@@ -1,5 +1,4 @@
 // src/app/context/SocketContext.tsx
-// Updated version with commented out logs
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -48,7 +47,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const token = await refreshToken();
       
       if (!token) {
-        // console.error('Failed to get token for socket connection');
+        console.error('Failed to get token for socket connection');
         return;
       }
       
@@ -64,17 +63,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Socket event handlers
       socketIo.on('connect', () => {
-        // console.log('Socket connected!');
+        console.log('Socket connected!');
         setConnected(true);
       });
 
       socketIo.on('disconnect', () => {
-        // console.log('Socket disconnected!');
+        console.log('Socket disconnected!');
         setConnected(false);
       });
 
       socketIo.on('connect_error', (error) => {
-        // console.error('Socket connection error:', error);
+        console.error('Socket connection error:', error);
         setConnected(false);
         
         // Handle auth errors
@@ -107,7 +106,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       setSocket(socketIo);
     } catch (error) {
-      // console.error('Error setting up socket connection:', error);
+      console.error('Error setting up socket connection:', error);
     }
   };
 

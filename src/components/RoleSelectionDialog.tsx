@@ -51,7 +51,7 @@ const RoleSelectionDialog = ({
       onClose();
     } catch (error:any) {
       console.error('Error publishing project with role:', error);
-      toast.error( error.data?.message||'Failed to publish project. Please try again.');
+      toast.error(error.data?.message||'Failed to publish project. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -66,7 +66,7 @@ const RoleSelectionDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] bg-white dark:bg-black border border-black/20 dark:border-white/20">
+      <DialogContent className="sm:max-w-[500px] max-h-screen bg-white dark:bg-black border border-black/20 dark:border-white/20 flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Select Your Role</DialogTitle>
           <DialogDescription>
@@ -74,7 +74,8 @@ const RoleSelectionDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        {/* Make this div scrollable with max-height */}
+        <div className="py-4 overflow-y-auto max-h-[60vh]">
           <div className="mb-4">
             <div className="rounded-lg border border-black/10 dark:border-white/10 bg-primary/5 p-3">
               <AlertCircle className="h-5 w-5 text-primary inline-block mr-2" />
@@ -118,7 +119,7 @@ const RoleSelectionDialog = ({
           </RadioGroup>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 mt-auto">
           <Button
             type="button"
             variant="outline"

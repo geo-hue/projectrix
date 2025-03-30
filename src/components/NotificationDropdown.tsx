@@ -90,7 +90,7 @@ const NotificationDropdown = () => {
 
     // Navigate based on activity type
     if (activity.entityType === "GeneratedProject" && activity.entityId) {
-      router.push(`/projects/${activity.entityId}`);
+      router.push(`/profile`);
     } else if (
       activity.type === "collaboration_request" ||
       activity.type === "collaboration_accepted" ||
