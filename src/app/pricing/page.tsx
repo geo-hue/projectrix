@@ -119,7 +119,7 @@ const PricingPage = () => {
     {
       question: "Will my subscription automatically renew?",
       answer:
-        "Yes, your subscription will not automatically renew each month."
+        "No, your subscription will not automatically renew each month."
     }
   ]
 
