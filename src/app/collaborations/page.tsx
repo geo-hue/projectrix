@@ -108,7 +108,7 @@ const CollaborationsPage = () => {
     
     // Add projects where user is owner
     const ownedProjects = myCollaborationsData.collaborations
-      .filter(collab => collab.type === 'owner' && collab.project)
+      .filter(collab => collab.type === 'owner' && collab.project && collab.project._id)
       .map(collab => ({
         ...collab.project,
         role: 'Project Owner',
@@ -117,7 +117,7 @@ const CollaborationsPage = () => {
     
     // Add projects where user is a collaborator
     const collaborativeProjects = myCollaborationsData.collaborations
-      .filter(collab => collab.type === 'member' && collab.project)
+      .filter(collab => collab.type === 'member' && collab.project && collab.project._id)
       .map(collab => ({
         ...collab.project,
         role: collab.role,
@@ -201,7 +201,7 @@ const CollaborationsPage = () => {
     </div>
   ) : getMyProjects().length > 0 ? (
     <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1">
-      {getMyProjects().map((project) => (
+      {getMyProjects().filter(project => project && project._id && project.title).map((project) => (
         <motion.div 
           key={project._id} 
           className="group relative"
