@@ -55,7 +55,7 @@ const CompactRoleApplication = ({ projectId, roles, publisherId, onSuccess, onVi
     if (myRequestsData?.requests && projectId) {
       // Extract roles user has already applied for in this project
       const applied = myRequestsData.requests
-        .filter(request => request.projectId._id === projectId)
+        .filter(request => request.projectId && request.projectId._id === projectId)
         .map(request => request.role);
       
       setAppliedRoles(applied);
