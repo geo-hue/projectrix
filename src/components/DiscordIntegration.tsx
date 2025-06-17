@@ -75,16 +75,25 @@ const DiscordIntegration: React.FC<DiscordIntegrationProps> = ({ projectId }) =>
         // User is already connected, try to join the channel
         const result = await createDiscordChannel(projectId).unwrap();
         
+        // Store that the user is connected to Discord for this project
+        localStorage.setItem(`discord_connected_${projectId}`, 'true');
+        
         if (result.inviteLink) {
-          // Store that the user is connected to Discord for this project
-          localStorage.setItem(`discord_connected_${projectId}`, 'true');
-          
-          // If we got an invite link directly, open it
+          // If we got an invite link, open it
           window.open(result.inviteLink, '_blank');
-          toast.success('Discord channel joined! If you see "Messages failed to load", please refresh your Discord app.');
+          
+          // Check if already linked message
+          if (result.message && result.message.includes('already linked')) {
+            toast.success('Already connected to Discord! Opening channel...');
+          } else {
+            toast.success('Discord channel joined! If you see "Messages failed to load", please refresh your Discord app.');
+          }
         } else if (result.authUrl) {
           // This shouldn't happen if isConnected is true, but just in case
           window.location.href = result.authUrl;
+        } else {
+          // Handle any other success case
+          toast.success('Connected to Discord successfully!');
         }
       }
     } catch (error) {

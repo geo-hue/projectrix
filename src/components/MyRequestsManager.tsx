@@ -102,7 +102,7 @@ const MyRequestsManager = () => {
 
   return (
     <div className="grid gap-6">
-      {requests.map((request) => (
+      {requests.filter(request => request.projectId && request.projectId.title).map((request) => (
         <div key={request._id} className="group relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-blue-400/20 rounded-lg transform rotate-1 transition-transform duration-300 group-hover:rotate-0"></div>
           <div className="absolute inset-0 bg-black/20 dark:bg-white/20 translate-x-1 translate-y-1 rounded-lg transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />

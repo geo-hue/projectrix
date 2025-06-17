@@ -2,10 +2,11 @@
 import { apiSlice } from './apiSlice';
 
 export interface DiscordResponse {
-  success: boolean;
+  success?: boolean;
   message?: string;
   inviteLink?: string;
-  authUrl?: string; 
+  authUrl?: string;
+  discordChannelId?: string;
 }
 
 export const discordApiSlice = apiSlice.injectEndpoints({
