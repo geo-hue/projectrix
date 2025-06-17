@@ -67,6 +67,7 @@ export interface Complexity {
   }
   
   export interface ProjectResponse {
+    warning: any;
     wasEnhanced: any;
     success: boolean;
     project: Project;

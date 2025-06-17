@@ -78,10 +78,10 @@ const ProjectIdeasPage = () => {
 
   const sortedProjects = projectsData?.projects ? [...projectsData.projects].sort((a, b) => {
     // Count unfilled roles in project A
-    const unfilledRolesA = a.teamStructure?.roles?.filter(role => !role.filled)?.length || 0;
+    const unfilledRolesA = a.teamStructure?.roles?.filter(role => role && !role.filled)?.length || 0;
     
     // Count unfilled roles in project B
-    const unfilledRolesB = b.teamStructure?.roles?.filter(role => !role.filled)?.length || 0;
+    const unfilledRolesB = b.teamStructure?.roles?.filter(role => role && !role.filled)?.length || 0;
     
     // Sort by number of unfilled roles (descending)
     return unfilledRolesB - unfilledRolesA;
