@@ -48,35 +48,29 @@ const DiscordIntegration: React.FC<DiscordIntegrationProps> = ({ projectId }) =>
   useEffect(() => {
     // Check if we have a record of the user connecting Discord before
     const discordConnected = localStorage.getItem(`discord_connected_${projectId}`);
+    console.log('Checking localStorage for Discord connection:', `discord_connected_${projectId}`, '=', discordConnected);
     if (discordConnected === 'true') {
       setIsConnected(true);
+      console.log('Set isConnected to true from localStorage');
     }
   }, [projectId]);
   
   const handleDiscordAction = async () => {
     if (!projectId) return;
     
+    console.log('Discord action started - isConnected:', isConnected, 'projectId:', projectId);
     setIsJoining(true);
     try {
-      if (!isConnected) {
-        // First, initiate OAuth flow to connect Discord account
-        try {
-          const oauthResult = await initDiscordOAuth(projectId).unwrap();
-          if (oauthResult.authUrl) {
-            window.location.href = oauthResult.authUrl;
-          } else {
-            toast.error('Failed to connect Discord account');
-          }
-        } catch (oauthError) {
-          console.error('OAuth error:', oauthError);
-          toast.error('Failed to connect Discord account');
-        }
-      } else {
-        // User is already connected, try to join the channel
+      // Always try to create/join channel first, regardless of isConnected state
+      // This handles the case where user is already linked in backend but frontend doesn't know
+      console.log('Attempting to create Discord channel for project:', projectId);
+      try {
         const result = await createDiscordChannel(projectId).unwrap();
+        console.log('Discord channel result:', result);
         
         // Store that the user is connected to Discord for this project
         localStorage.setItem(`discord_connected_${projectId}`, 'true');
+        setIsConnected(true);
         
         if (result.inviteLink) {
           // If we got an invite link, open it
@@ -89,11 +83,53 @@ const DiscordIntegration: React.FC<DiscordIntegrationProps> = ({ projectId }) =>
             toast.success('Discord channel joined! If you see "Messages failed to load", please refresh your Discord app.');
           }
         } else if (result.authUrl) {
-          // This shouldn't happen if isConnected is true, but just in case
+          // User needs to authenticate first
+          console.log('Need to authenticate, redirecting to:', result.authUrl);
           window.location.href = result.authUrl;
         } else {
           // Handle any other success case
+          console.log('No inviteLink or authUrl in result:', result);
           toast.success('Connected to Discord successfully!');
+        }
+      } catch (channelError: any) {
+        console.error('Channel creation error details:', {
+          error: channelError,
+          status: channelError?.status,
+          data: channelError?.data,
+          message: channelError?.message
+        });
+        
+        // Check if the error actually contains success data (backend sends success with error status)
+        if (channelError?.data?.inviteLink) {
+          console.log('Found inviteLink in error data, treating as success');
+          localStorage.setItem(`discord_connected_${projectId}`, 'true');
+          setIsConnected(true);
+          window.open(channelError.data.inviteLink, '_blank');
+          
+          if (channelError.data.message && channelError.data.message.includes('already linked')) {
+            toast.success('Already connected to Discord! Opening channel...');
+          } else {
+            toast.success('Discord channel joined successfully!');
+          }
+        } else if (channelError?.data?.authUrl) {
+          // Need to authenticate first
+          console.log('Need to authenticate, redirecting to:', channelError.data.authUrl);
+          window.location.href = channelError.data.authUrl;
+        } else {
+          // Check if this is an auth error that requires OAuth flow
+          console.log('Channel creation failed, trying OAuth flow');
+          try {
+            const oauthResult = await initDiscordOAuth(projectId).unwrap();
+            if (oauthResult.authUrl) {
+              console.log('Starting OAuth flow, redirecting to:', oauthResult.authUrl);
+              window.location.href = oauthResult.authUrl;
+            } else {
+              toast.error('Failed to connect Discord account');
+            }
+          } catch (oauthError) {
+            console.error('OAuth error:', oauthError);
+            toast.error('Failed to connect Discord account');
+          }
         }
       }
     } catch (error) {
